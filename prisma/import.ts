@@ -1,6 +1,7 @@
 import { PrismaClient, SlipStatus } from "@prisma/client";
 import * as fs from "fs";
 import * as path from "path";
+import { hashPassword } from "../src/lib/auth";
 
 const prisma = new PrismaClient();
 
@@ -26,7 +27,10 @@ async function main() {
     if (!user) {
       console.log("Creating user profile 'Principal'...");
       user = await prisma.user.create({
-        data: { username: "Principal" },
+        data: {
+          username: "Principal",
+          passwordHash: hashPassword("principal123"),
+        },
       });
     }
 

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Capivara3D from "@/components/Capivara3D/Capivara3D";
+import { Eye, EyeOff } from "lucide-react";
 import styles from "./AuthProvider.module.css";
 
 // ── Global Fetch Interceptor ────────────────────────────────────────────────
@@ -40,7 +41,13 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   // Form input state
-  const [inputVal, setInputVal] = useState("");
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [usernameInput, setUsernameInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
+  
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -56,13 +63,29 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     setLoading(false);
   }, []);
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
-    const cleanName = inputVal.trim();
+    const cleanName = usernameInput.trim();
 
     if (!cleanName) {
       setErrorMsg("Por favor, insira seu nome de usuário.");
       return;
+    }
+
+    if (!passwordInput) {
+      setErrorMsg("Por favor, insira sua senha.");
+      return;
+    }
+
+    if (authMode === "register") {
+      if (passwordInput.length < 6) {
+        setErrorMsg("A senha deve ter pelo menos 6 caracteres.");
+        return;
+      }
+      if (passwordInput !== confirmPasswordInput) {
+        setErrorMsg("As senhas não coincidem.");
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -72,7 +95,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: cleanName }),
+        body: JSON.stringify({
+          action: authMode,
+          username: cleanName,
+          password: passwordInput,
+        }),
       });
 
       if (!res.ok) {
@@ -106,6 +133,15 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     window.location.reload();
   }
 
+  function toggleMode(mode: "login" | "register") {
+    setAuthMode(mode);
+    setErrorMsg("");
+    setPasswordInput("");
+    setConfirmPasswordInput("");
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  }
+
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -130,24 +166,101 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             </p>
           </header>
 
-          <form onSubmit={handleLogin} className={styles.form}>
+          <div className={styles.tabsContainer}>
+            <button
+              type="button"
+              className={`${styles.tabBtn} ${authMode === "login" ? styles.tabActive : ""}`}
+              onClick={() => toggleMode("login")}
+              disabled={submitting}
+            >
+              Entrar
+            </button>
+            <button
+              type="button"
+              className={`${styles.tabBtn} ${authMode === "register" ? styles.tabActive : ""}`}
+              onClick={() => toggleMode("register")}
+              disabled={submitting}
+            >
+              Criar Conta
+            </button>
+          </div>
+
+          <form onSubmit={handleAuth} className={styles.form}>
             <div className={styles.inputGroup}>
               <label htmlFor="login-username-input" className={styles.label}>
-                Como quer ser chamado?
+                Nome de Usuário
               </label>
               <input
                 type="text"
                 id="login-username-input"
                 className={styles.input}
                 placeholder="Ex: Cami, Marques..."
-                value={inputVal}
-                onChange={(e) => setInputVal(e.target.value)}
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
                 disabled={submitting}
                 maxLength={30}
                 autoFocus
                 required
               />
             </div>
+
+            <div className={styles.inputGroup}>
+              <label htmlFor="login-password-input" className={styles.label}>
+                Senha
+              </label>
+              <div className={styles.passwordWrapper}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="login-password-input"
+                  className={`${styles.input} ${styles.passwordInput}`}
+                  placeholder="Mínimo de 6 caracteres"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  disabled={submitting}
+                  minLength={6}
+                  required
+                />
+                <button
+                  type="button"
+                  className={styles.passwordToggle}
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
+                  disabled={submitting}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {authMode === "register" && (
+              <div className={styles.inputGroup}>
+                <label htmlFor="confirm-password-input" className={styles.label}>
+                  Confirme a Senha
+                </label>
+                <div className={styles.passwordWrapper}>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    id="confirm-password-input"
+                    className={`${styles.input} ${styles.passwordInput}`}
+                    placeholder="Repita sua senha"
+                    value={confirmPasswordInput}
+                    onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                    disabled={submitting}
+                    minLength={6}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? "Ocultar senha" : "Exibir senha"}
+                    disabled={submitting}
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {errorMsg && (
               <div className={styles.errorContainer} role="alert">
@@ -163,9 +276,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               disabled={submitting}
             >
               {submitting ? (
-                <span className={styles.btnLoading}>Entrando...</span>
-              ) : (
+                <span className={styles.btnLoading}>Aguarde...</span>
+              ) : authMode === "login" ? (
                 "Entrar no App"
+              ) : (
+                "Cadastrar e Entrar"
               )}
             </button>
           </form>

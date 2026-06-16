@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { hashPassword, verifyPassword } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const { username } = await request.json();
+    const { action, username, password } = await request.json();
     const cleanUsername = username?.trim();
 
     if (!cleanUsername) {
@@ -13,17 +14,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Search for existing user (exact match)
-    let user = await prisma.user.findUnique({
-      where: { username: cleanUsername },
-    });
+    if (!password || password.length < 6) {
+      return NextResponse.json(
+        { error: "A senha deve ter pelo menos 6 caracteres." },
+        { status: 400 }
+      );
+    }
 
-    // 2. If the user does not exist, create the profile and seed initial stats/achievements
-    if (!user) {
-      user = await prisma.$transaction(async (tx) => {
+    if (action === "register") {
+      // 1. Search for existing user (exact match)
+      const existingUser = await prisma.user.findUnique({
+        where: { username: cleanUsername },
+      });
+
+      if (existingUser) {
+        return NextResponse.json(
+          { error: "Este nome de usuário já está em uso." },
+          { status: 400 }
+        );
+      }
+
+      // 2. Hash password and create user
+      const hashedPassword = hashPassword(password);
+
+      const user = await prisma.$transaction(async (tx) => {
         // Create user
         const newUser = await tx.user.create({
-          data: { username: cleanUsername },
+          data: {
+            username: cleanUsername,
+            passwordHash: hashedPassword,
+          },
         });
 
         // Initialize UserStats scoped to the new user ID
@@ -128,12 +148,46 @@ export async function POST(request: NextRequest) {
 
         return newUser;
       });
+
+      return NextResponse.json({
+        id: user.id,
+        username: user.username,
+      });
+
+    } else if (action === "login") {
+      // 1. Search for existing user
+      const user = await prisma.user.findUnique({
+        where: { username: cleanUsername },
+      });
+
+      if (!user) {
+        return NextResponse.json(
+          { error: "Usuário não encontrado." },
+          { status: 401 }
+        );
+      }
+
+      // 2. Verify password
+      const isPasswordValid = verifyPassword(password, user.passwordHash);
+      if (!isPasswordValid) {
+        return NextResponse.json(
+          { error: "Senha incorreta." },
+          { status: 401 }
+        );
+      }
+
+      return NextResponse.json({
+        id: user.id,
+        username: user.username,
+      });
+
+    } else {
+      return NextResponse.json(
+        { error: "Ação de autenticação inválida." },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({
-      id: user.id,
-      username: user.username,
-    });
   } catch (error) {
     console.error("[POST /api/auth]", error);
     return NextResponse.json(
