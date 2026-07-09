@@ -41,7 +41,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   // Form input state
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authMode, setAuthMode] = useState<"login" | "register" | "reset">("login");
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
@@ -77,7 +77,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
 
-    if (authMode === "register") {
+    if (authMode === "register" || authMode === "reset") {
       if (passwordInput.length < 6) {
         setErrorMsg("A senha deve ter pelo menos 6 caracteres.");
         return;
@@ -96,7 +96,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: authMode,
+          action: authMode === "reset" ? "reset-password" : authMode,
           username: cleanName,
           password: passwordInput,
         }),
@@ -109,16 +109,24 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       const userData = await res.json();
       
-      // Store credentials locally
-      localStorage.setItem("cami_username", userData.username);
-      localStorage.setItem("cami_user_id", userData.id);
+      if (authMode === "reset") {
+        setErrorMsg("");
+        setPasswordInput("");
+        setConfirmPasswordInput("");
+        setAuthMode("login");
+        alert("Senha redefinida com sucesso. Faça login agora com a nova senha.");
+      } else {
+        // Store credentials locally
+        localStorage.setItem("cami_username", userData.username);
+        localStorage.setItem("cami_user_id", userData.id);
 
-      setUsername(userData.username);
-      setUserId(userData.id);
-      setupFetchInterceptor(userData.id);
+        setUsername(userData.username);
+        setUserId(userData.id);
+        setupFetchInterceptor(userData.id);
 
-      // Force-reload the page to clear any previous cached client state and bind the fetch interceptor
-      window.location.reload();
+        // Force-reload the page to clear any previous cached client state and bind the fetch interceptor
+        window.location.reload();
+      }
     } catch (err: any) {
       setErrorMsg(err.message || "Não foi possível conectar ao servidor.");
     } finally {
@@ -133,7 +141,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     window.location.reload();
   }
 
-  function toggleMode(mode: "login" | "register") {
+  function toggleMode(mode: "login" | "register" | "reset") {
     setAuthMode(mode);
     setErrorMsg("");
     setPasswordInput("");
@@ -182,6 +190,14 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               disabled={submitting}
             >
               Criar Conta
+            </button>
+            <button
+              type="button"
+              className={`${styles.tabBtn} ${authMode === "reset" ? styles.tabActive : ""}`}
+              onClick={() => toggleMode("reset")}
+              disabled={submitting}
+            >
+              Redefinir Senha
             </button>
           </div>
 
@@ -232,7 +248,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               </div>
             </div>
 
-            {authMode === "register" && (
+            {(authMode === "register" || authMode === "reset") && (
               <div className={styles.inputGroup}>
                 <label htmlFor="confirm-password-input" className={styles.label}>
                   Confirme a Senha
@@ -279,8 +295,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
                 <span className={styles.btnLoading}>Aguarde...</span>
               ) : authMode === "login" ? (
                 "Entrar no App"
-              ) : (
+              ) : authMode === "register" ? (
                 "Cadastrar e Entrar"
+              ) : (
+                "Salvar Nova Senha"
               )}
             </button>
           </form>

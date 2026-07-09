@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Inter } from "next/font/google";
 import Link from "next/link";
-import { LayoutDashboard, Tag, CalendarDays, Home } from "lucide-react";
+import { LayoutDashboard, Tag, Home } from "lucide-react";
 import AuthProvider from "@/components/AuthProvider/AuthProvider";
 import styles from "./layout.module.css";
 import "./globals.css";
@@ -51,6 +51,8 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body>
         <AuthProvider>
@@ -69,15 +71,7 @@ export default function RootLayout({
               <LayoutDashboard size={18} aria-hidden="true" />
               <span className={styles.navLinkLabel}>Dashboard</span>
             </Link>
-            <Link
-              href="/calendar"
-              id="nav-calendar"
-              className={styles.navLink}
-              aria-label="Calendário de vencimentos"
-            >
-              <CalendarDays size={18} aria-hidden="true" />
-              <span className={styles.navLinkLabel}>Calendário</span>
-            </Link>
+
             <Link
               href="/categories"
               id="nav-categories"

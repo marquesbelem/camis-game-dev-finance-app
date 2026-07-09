@@ -192,6 +192,30 @@ export async function POST(request: NextRequest) {
         username: user.username,
       });
 
+    } else if (action === "reset-password") {
+      const user = await prisma.user.findUnique({
+        where: { username: cleanUsername },
+      });
+
+      if (!user) {
+        return NextResponse.json(
+          { error: "Usuário não encontrado." },
+          { status: 404 }
+        );
+      }
+
+      const hashedPassword = hashPassword(password);
+      const updatedUser = await prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash: hashedPassword },
+      });
+
+      return NextResponse.json({
+        id: updatedUser.id,
+        username: updatedUser.username,
+        message: "Senha atualizada com sucesso."
+      });
+
     } else {
       return NextResponse.json(
         { error: "Ação de autenticação inválida." },

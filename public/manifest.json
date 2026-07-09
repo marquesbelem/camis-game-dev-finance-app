@@ -1,0 +1,17 @@
+{
+  "name": "Capivara Poupadora",
+  "short_name": "Capivara",
+  "description": "Gerenciador Financeiro Gamificado",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0f1a",
+  "theme_color": "#0d0f1a",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
