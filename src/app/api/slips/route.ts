@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { recomputeAchievements, handleExpenseRegistrationXp } from "@/lib/achievements";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { sanitizeInput } from "@/lib/security";
 
 // GET /api/slips?month=YYYY-MM
 export async function GET(request: NextRequest) {
@@ -9,6 +11,14 @@ export async function GET(request: NextRequest) {
     const userId = request.headers.get("x-user-id");
     if (!userId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const ip = getClientIp(request);
+    if (isRateLimited(`slips:get:${userId}:${ip}`, { windowMs: 60000, max: 60 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -86,7 +96,75 @@ export async function GET(request: NextRequest) {
       orderBy: { dueDate: "asc" },
     });
 
-    return NextResponse.json(slips);
+    // ── Merge virtual apartment events ─────────────────────────────────────
+    const project = await prisma.apartmentProject.findUnique({
+      where: { userId },
+    });
+
+    let virtualSlips: any[] = [];
+    if (project) {
+      const [year, mon] = month ? month.split("-").map(Number) : [null, null];
+      const start = year && mon ? new Date(year, mon - 1, 1) : null;
+      const end = year && mon ? new Date(year, mon, 1) : null;
+
+      // 1. Apartment Expenses -> Slips
+      const aptExpenses = await prisma.apartmentExpense.findMany({
+        where: {
+          projectId: project.id,
+          ...(start && end ? { date: { gte: start, lt: end } } : {}),
+        },
+      });
+
+      const mappedExpenses = aptExpenses.map((exp) => ({
+        id: `apt-exp-${exp.id}`,
+        title: `[Apê] ${exp.description}`,
+        amount: exp.amount,
+        dueDate: exp.date.toISOString(),
+        status: exp.status,
+        isCreditCardPayment: false,
+        isRecurring: false,
+        categoryId: "virtual-apartment-expense",
+        category: {
+          id: "virtual-apartment-expense",
+          name: "Apartamento",
+          colorCode: "var(--color-brand)",
+          iconRef: "Home",
+        },
+      }));
+
+      // 2. Apartment Installments -> Slips
+      const aptInstallments = await prisma.apartmentInstallment.findMany({
+        where: {
+          projectId: project.id,
+          ...(start && end ? { dueDate: { gte: start, lt: end } } : {}),
+        },
+      });
+
+      const mappedInstallments = aptInstallments.map((inst) => ({
+        id: `apt-inst-${inst.id}`,
+        title: `[Apê] Parcela #${inst.installmentNumber}`,
+        amount: inst.amount,
+        dueDate: inst.dueDate.toISOString(),
+        status: inst.status,
+        isCreditCardPayment: false,
+        isRecurring: false,
+        categoryId: "virtual-apartment-installment",
+        category: {
+          id: "virtual-apartment-installment",
+          name: "Financiamento",
+          colorCode: "var(--color-info)",
+          iconRef: "Landmark",
+        },
+      }));
+
+      virtualSlips = [...mappedExpenses, ...mappedInstallments];
+    }
+
+    const mergedSlips = [...slips, ...virtualSlips];
+    // Sort all merged slips by due date asc
+    mergedSlips.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+
+    return NextResponse.json(mergedSlips);
   } catch (error) {
     console.error("[GET /api/slips]", error);
     return NextResponse.json(
@@ -104,9 +182,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const ip = getClientIp(request);
+    if (isRateLimited(`slips:post:${userId}:${ip}`, { windowMs: 60000, max: 30 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições para criar despesa. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+
+    // Monthly slips threshold validation (Max 150)
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const monthlyCount = await prisma.paymentSlip.count({
+      where: {
+        userId,
+        createdAt: {
+          gte: startOfMonth,
+          lt: endOfMonth,
+        },
+      },
+    });
+
+    if (monthlyCount >= 150) {
+      return NextResponse.json(
+        { error: "Você atingiu o limite máximo de 150 despesas para este mês." },
+        { status: 429 }
+      );
+    }
+
     const formData = await request.formData();
 
-    const title = formData.get("title") as string;
+    const title = sanitizeInput(formData.get("title") as string);
     const amount = parseFloat(formData.get("amount") as string);
     const dueDate = new Date(formData.get("dueDate") as string);
     const status = formData.get("status") as any; // SlipStatus enum

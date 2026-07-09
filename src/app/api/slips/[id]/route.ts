@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { recomputeAchievements, awardXp } from "@/lib/achievements";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { sanitizeInput } from "@/lib/security";
 
 // PUT /api/slips/[id]  (multipart/form-data — all fields optional)
 export async function PUT(
@@ -14,8 +16,84 @@ export async function PUT(
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const ip = getClientIp(request);
+    if (isRateLimited(`slips:id:put:${userId}:${ip}`, { windowMs: 60000, max: 30 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
     const formData = await request.formData();
+
+    if (id.startsWith("apt-exp-")) {
+      const expId = id.slice(8);
+      const expense = await prisma.apartmentExpense.findUnique({
+        where: { id: expId },
+        include: { project: true },
+      });
+      if (!expense || expense.project.userId !== userId) {
+        return NextResponse.json({ error: "Despesa não encontrada" }, { status: 404 });
+      }
+
+      const status = formData.get("status") as string || expense.status;
+      const updated = await prisma.apartmentExpense.update({
+        where: { id: expId },
+        data: { status },
+      });
+
+      return NextResponse.json({
+        id: `apt-exp-${updated.id}`,
+        title: `[Apê] ${updated.description}`,
+        amount: updated.amount,
+        dueDate: updated.date.toISOString(),
+        status: updated.status,
+        isCreditCardPayment: false,
+        isRecurring: false,
+        categoryId: "virtual-apartment-expense",
+        category: {
+          id: "virtual-apartment-expense",
+          name: "Apartamento",
+          colorCode: "var(--color-brand)",
+          iconRef: "Home",
+        },
+      });
+    }
+
+    if (id.startsWith("apt-inst-")) {
+      const instId = id.slice(9);
+      const installment = await prisma.apartmentInstallment.findUnique({
+        where: { id: instId },
+        include: { project: true },
+      });
+      if (!installment || installment.project.userId !== userId) {
+        return NextResponse.json({ error: "Parcela não encontrada" }, { status: 404 });
+      }
+
+      const status = formData.get("status") as string || installment.status;
+      const updated = await prisma.apartmentInstallment.update({
+        where: { id: instId },
+        data: { status },
+      });
+
+      return NextResponse.json({
+        id: `apt-inst-${updated.id}`,
+        title: `[Apê] Parcela #${updated.installmentNumber}`,
+        amount: updated.amount,
+        dueDate: updated.dueDate.toISOString(),
+        status: updated.status,
+        isCreditCardPayment: false,
+        isRecurring: false,
+        categoryId: "virtual-apartment-installment",
+        category: {
+          id: "virtual-apartment-installment",
+          name: "Financiamento",
+          colorCode: "var(--color-info)",
+          iconRef: "Landmark",
+        },
+      });
+    }
 
     const existing = await prisma.paymentSlip.findFirst({
       where: { id, userId },
@@ -24,7 +102,9 @@ export async function PUT(
       return NextResponse.json({ error: "Despesa não encontrada" }, { status: 404 });
     }
 
-    const title = (formData.get("title") as string) || existing.title;
+    const title = formData.get("title") !== null 
+      ? sanitizeInput(formData.get("title") as string) 
+      : existing.title;
     const rawAmount = formData.get("amount");
     const amount = rawAmount ? parseFloat(rawAmount as string) : existing.amount;
     const rawDueDate = formData.get("dueDate");
@@ -102,7 +182,43 @@ export async function DELETE(
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const ip = getClientIp(request);
+    if (isRateLimited(`slips:id:delete:${userId}:${ip}`, { windowMs: 60000, max: 30 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
+
+    if (id.startsWith("apt-exp-")) {
+      const expId = id.slice(8);
+      const expense = await prisma.apartmentExpense.findUnique({
+        where: { id: expId },
+        include: { project: true },
+      });
+      if (!expense || expense.project.userId !== userId) {
+        return NextResponse.json({ error: "Despesa não encontrada" }, { status: 404 });
+      }
+      await prisma.apartmentExpense.delete({ where: { id: expId } });
+      recomputeAchievements(userId).catch(console.error);
+      return new NextResponse(null, { status: 204 });
+    }
+
+    if (id.startsWith("apt-inst-")) {
+      const instId = id.slice(9);
+      const installment = await prisma.apartmentInstallment.findUnique({
+        where: { id: instId },
+        include: { project: true },
+      });
+      if (!installment || installment.project.userId !== userId) {
+        return NextResponse.json({ error: "Parcela não encontrada" }, { status: 404 });
+      }
+      await prisma.apartmentInstallment.delete({ where: { id: instId } });
+      recomputeAchievements(userId).catch(console.error);
+      return new NextResponse(null, { status: 204 });
+    }
 
     const existing = await prisma.paymentSlip.findFirst({
       where: { id, userId },

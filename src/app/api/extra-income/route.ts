@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { sanitizeInput } from "@/lib/security";
 
 // GET /api/extra-income?month=YYYY-MM
 export async function GET(request: NextRequest) {
@@ -7,6 +9,14 @@ export async function GET(request: NextRequest) {
     const userId = request.headers.get("x-user-id");
     if (!userId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const ip = getClientIp(request);
+    if (isRateLimited(`extra-income:get:${userId}:${ip}`, { windowMs: 60000, max: 60 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -38,8 +48,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const ip = getClientIp(request);
+    if (isRateLimited(`extra-income:post:${userId}:${ip}`, { windowMs: 60000, max: 30 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { amount, description, month } = body;
+
+    const sanitizedDescription = sanitizeInput(description);
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -47,7 +67,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    if (!description || description.trim() === "") {
+    if (!sanitizedDescription) {
       return NextResponse.json(
         { error: "Descrição é obrigatória" },
         { status: 400 }
@@ -63,7 +83,7 @@ export async function POST(request: NextRequest) {
     const income = await prisma.extraIncome.create({
       data: {
         amount: parseFloat(amount),
-        description: description.trim(),
+        description: sanitizedDescription,
         month,
         userId,
       },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
 
 // GET /api/leisure-budget?month=YYYY-MM
 export async function GET(request: NextRequest) {
@@ -7,6 +8,14 @@ export async function GET(request: NextRequest) {
     const userId = request.headers.get("x-user-id");
     if (!userId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const ip = getClientIp(request);
+    if (isRateLimited(`leisure-budget:get:${userId}:${ip}`, { windowMs: 60000, max: 60 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
     }
 
     const { searchParams } = new URL(request.url);

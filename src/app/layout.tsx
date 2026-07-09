@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Inter } from "next/font/google";
 import Link from "next/link";
-import { LayoutDashboard, Tag, CalendarDays } from "lucide-react";
+import { LayoutDashboard, Tag, CalendarDays, Home } from "lucide-react";
 import AuthProvider from "@/components/AuthProvider/AuthProvider";
 import styles from "./layout.module.css";
 import "./globals.css";
@@ -86,6 +86,15 @@ export default function RootLayout({
             >
               <Tag size={18} aria-hidden="true" />
               <span className={styles.navLinkLabel}>Categorias</span>
+            </Link>
+            <Link
+              href="/apartment"
+              id="nav-apartment"
+              className={styles.navLink}
+              aria-label="Planejamento do apartamento"
+            >
+              <Home size={18} aria-hidden="true" />
+              <span className={styles.navLinkLabel}>Apartamento</span>
             </Link>
           </nav>
 

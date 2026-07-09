@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { CategoryWithCount } from "@/lib/types";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { sanitizeInput } from "@/lib/security";
 
 // ── Curated icon set (from research.md) ────────────────────────────────────
 const VALID_ICONS = new Set([
@@ -20,6 +22,14 @@ export async function GET(request: NextRequest) {
     const userId = request.headers.get("x-user-id");
     if (!userId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const ip = getClientIp(request);
+    if (isRateLimited(`categories:get:${userId}:${ip}`, { windowMs: 60000, max: 60 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
     }
 
     const categories: CategoryWithCount[] = await prisma.category.findMany({
@@ -55,6 +65,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const ip = getClientIp(request);
+    if (isRateLimited(`categories:post:${userId}:${ip}`, { windowMs: 60000, max: 30 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { name, colorCode, iconRef } = body as {
       name?: string;
@@ -62,14 +80,16 @@ export async function POST(request: NextRequest) {
       iconRef?: string;
     };
 
+    const sanitizedName = sanitizeInput(name);
+
     // ── Validation ──────────────────────────────────────────────────────────
-    if (!name || !name.trim()) {
+    if (!sanitizedName) {
       return NextResponse.json(
         { error: "O nome da categoria é obrigatório e deve ter 50 caracteres ou menos." },
         { status: 400 }
       );
     }
-    if (name.trim().length > 50) {
+    if (sanitizedName.length > 50) {
       return NextResponse.json(
         { error: "O nome da categoria é obrigatório e deve ter 50 caracteres ou menos." },
         { status: 400 }
@@ -91,7 +111,7 @@ export async function POST(request: NextRequest) {
     // ── Case-insensitive uniqueness check ───────────────────────────────────
     const existing = await prisma.category.findFirst({
       where: {
-        name: { equals: name.trim(), mode: "insensitive" },
+        name: { equals: sanitizedName, mode: "insensitive" },
         OR: [
           { userId: null },
           { userId },
@@ -107,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     // ── Create ──────────────────────────────────────────────────────────────
     const created = await prisma.category.create({
-      data: { name: name.trim(), colorCode, iconRef, userId },
+      data: { name: sanitizedName, colorCode, iconRef, userId },
       include: {
         _count: {
           select: {

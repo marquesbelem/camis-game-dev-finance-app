@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { sanitizeInput } from "@/lib/security";
 
 // ── Shared validation helpers ───────────────────────────────────────────────
 const VALID_ICONS = new Set([
@@ -23,6 +25,14 @@ export async function PUT(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const ip = getClientIp(request as any);
+    if (isRateLimited(`categories:id:put:${userId}:${ip}`, { windowMs: 60000, max: 30 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+
     const { id } = await context.params;
     const body = await request.json();
     const { name, colorCode, iconRef } = body as {
@@ -40,14 +50,15 @@ export async function PUT(request: Request, context: RouteContext) {
     }
 
     // ── Validate provided fields ────────────────────────────────────────────
-    if (name !== undefined) {
-      if (!name.trim()) {
+    const sanitizedName = name !== undefined ? sanitizeInput(name) : undefined;
+    if (sanitizedName !== undefined) {
+      if (!sanitizedName) {
         return NextResponse.json(
           { error: "O nome da categoria é obrigatório e deve ter 50 caracteres ou menos." },
           { status: 400 }
         );
       }
-      if (name.trim().length > 50) {
+      if (sanitizedName.length > 50) {
         return NextResponse.json(
           { error: "O nome da categoria é obrigatório e deve ter 50 caracteres ou menos." },
           { status: 400 }
@@ -56,7 +67,7 @@ export async function PUT(request: Request, context: RouteContext) {
       // Case-insensitive uniqueness check excluding current record
       const conflict = await prisma.category.findFirst({
         where: {
-          name: { equals: name.trim(), mode: "insensitive" },
+          name: { equals: sanitizedName, mode: "insensitive" },
           OR: [
             { userId: null },
             { userId },
@@ -86,7 +97,7 @@ export async function PUT(request: Request, context: RouteContext) {
 
     // ── Apply update ────────────────────────────────────────────────────────
     const updateData: Record<string, string> = {};
-    if (name !== undefined) updateData.name = name.trim();
+    if (sanitizedName !== undefined) updateData.name = sanitizedName;
     if (colorCode !== undefined) updateData.colorCode = colorCode;
     if (iconRef !== undefined) updateData.iconRef = iconRef;
 
@@ -117,6 +128,14 @@ export async function DELETE(request: Request, context: RouteContext) {
     const userId = request.headers.get("x-user-id");
     if (!userId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const ip = getClientIp(request as any);
+    if (isRateLimited(`categories:id:delete:${userId}:${ip}`, { windowMs: 60000, max: 30 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
     }
 
     const { id } = await context.params;

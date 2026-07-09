@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
 
 // GET /api/stats
 export async function GET(request: NextRequest) {
@@ -7,6 +8,14 @@ export async function GET(request: NextRequest) {
     const userId = request.headers.get("x-user-id");
     if (!userId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const ip = getClientIp(request);
+    if (isRateLimited(`stats:get:${userId}:${ip}`, { windowMs: 60000, max: 60 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
     }
 
     let stats = await prisma.userStats.findUnique({
@@ -67,6 +76,14 @@ export async function PUT(request: NextRequest) {
     const userId = request.headers.get("x-user-id");
     if (!userId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const ip = getClientIp(request);
+    if (isRateLimited(`stats:put:${userId}:${ip}`, { windowMs: 60000, max: 30 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
     }
 
     const body = await request.json();

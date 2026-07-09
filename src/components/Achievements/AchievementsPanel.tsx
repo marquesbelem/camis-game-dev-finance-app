@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Trophy, Star, Zap, TrendingDown, Settings, Lock, ChevronDown } from "lucide-react";
-import Capivara3D from "@/components/Capivara3D/Capivara3D";
 import styles from "./AchievementsPanel.module.css";
 
 interface Achievement {
@@ -164,11 +163,6 @@ export default function AchievementsPanel({ onAchievementUnlocked, onSettingsSav
 
   return (
     <aside className={styles.panel} aria-label="Painel de RPG e conquistas">
-      {/* Mascote 3D */}
-      <div className={styles.mascotContainer}>
-        <Capivara3D sizeMultiplier={0.65} />
-      </div>
-
       {/* ── RPG User Profile HUD ── */}
       {stats && (
         <section className={styles.rpgProfile}>

@@ -118,9 +118,30 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
             {slip.category.name}
           </span>
 
-          <span className={styles.dueDate}>
-            Vence {formatDate(slip.dueDate)}
-          </span>
+          {(() => {
+            const isPending = slip.status === "PENDENTE";
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const yyyy = tomorrow.getFullYear();
+            const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
+            const dd = String(tomorrow.getDate()).padStart(2, "0");
+            const tomorrowStr = `${yyyy}-${mm}-${dd}`;
+            
+            const isDueTomorrow = isPending && slip.dueDate.slice(0, 10) === tomorrowStr;
+            const isOverdue = isPending && new Date(slip.dueDate) < today;
+
+            return (
+              <span className={`${styles.dueDateTag} ${
+                isDueTomorrow ? styles.dueDateTagTomorrow :
+                isOverdue ? styles.dueDateTagOverdue : ""
+              }`}>
+                Vence {formatDate(slip.dueDate)}
+              </span>
+            );
+          })()}
 
           {slip.documentPath && (
             <a

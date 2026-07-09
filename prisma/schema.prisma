@@ -27,6 +27,7 @@ model User {
   achievements  Achievement[]
   stats         UserStats?
   extraIncomes  ExtraIncome[]
+  apartmentProject ApartmentProject?
 }
 
 model Category {
@@ -113,4 +114,65 @@ model ExtraIncome {
 
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ApartmentProject {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyValue      Float              @default(0.0)
+  downPayment        Float              @default(0.0)
+  financedAmount     Float              @default(0.0)
+  interestRate       Float              @default(0.0)
+  loanTermMonths     Int                @default(0)
+  amortizationType   String             @default("SAC")
+  installmentsPaid   Int                @default(0)
+  installmentsTotal  Int                @default(0)
+  obraBudget         Float              @default(0.0)
+  createdAt          DateTime           @default(now())
+
+  stages             ApartmentStage[]
+  expenses           ApartmentExpense[]
+  installments       ApartmentInstallment[]
+}
+
+model ApartmentStage {
+  id          String             @id @default(uuid())
+  name        String
+  budget      Float              @default(0.0)
+  status      String             @default("PENDENTE")
+  projectId   String
+  project     ApartmentProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  expenses    ApartmentExpense[]
+  createdAt   DateTime           @default(now())
+}
+
+model ApartmentExpense {
+  id          String             @id @default(uuid())
+  description String
+  amount      Float
+  status      String             @default("PENDENTE")
+  type        String             @default("OBRA") // "OBRA" | "DOCUMENTACAO" | "MOVEIS" | "DECORACAO" | "GERAL"
+  date        DateTime           @default(now())
+  
+  projectId   String
+  project     ApartmentProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  stageId     String?
+  stage       ApartmentStage?    @relation(fields: [stageId], references: [id], onDelete: SetNull)
+  
+  createdAt   DateTime           @default(now())
+}
+
+model ApartmentInstallment {
+  id                String             @id @default(uuid())
+  installmentNumber Int
+  dueDate           DateTime
+  amount            Float
+  status            String             @default("PENDENTE") // "PENDENTE" | "PAGO"
+  
+  projectId         String
+  project           ApartmentProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime           @default(now())
 }

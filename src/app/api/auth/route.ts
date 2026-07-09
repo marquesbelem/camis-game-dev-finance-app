@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/auth";
+import { isRateLimited, getClientIp } from "@/lib/rate-limit";
+import { sanitizeInput } from "@/lib/security";
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request);
+    // Strict rate limit: 10 auth attempts per minute per IP
+    if (isRateLimited(`auth:${ip}`, { windowMs: 60000, max: 10 })) {
+      return NextResponse.json(
+        { error: "Muitas tentativas de login/registro. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+
     const { action, username, password } = await request.json();
-    const cleanUsername = username?.trim();
+    const cleanUsername = sanitizeInput(username);
 
     if (!cleanUsername) {
       return NextResponse.json(

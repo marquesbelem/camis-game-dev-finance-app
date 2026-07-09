@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, LayoutDashboard, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, LayoutDashboard, ChevronLeft, ChevronRight, DollarSign } from "lucide-react";
 import AdicionarDespesa from "@/components/AdicionarDespesa/AdicionarDespesa";
 import SlipItem, { Slip } from "@/components/SlipList/SlipItem";
 import DashboardCharts from "@/components/DashboardCharts/DashboardCharts";
@@ -41,6 +41,9 @@ interface Category {
 // ── Page ───────────────────────────────────────────────────────────────────────
 export default function Home() {
   const [slips, setSlips] = useState<Slip[]>([]);
+  const [extraIncomes, setExtraIncomes] = useState<any[]>([]);
+  const [isExtraModalOpen, setIsExtraModalOpen] = useState(false);
+  const [extraIncomeAmount, setExtraIncomeAmount] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [filterCategoryId, setFilterCategoryId] = useState("ALL");
   const [sortBy, setSortBy] = useState("DUE_DATE");
@@ -61,19 +64,23 @@ export default function Home() {
   const loadSlips = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [slipsRes, statsRes] = await Promise.all([
+      const [slipsRes, statsRes, extraRes] = await Promise.all([
         fetch(`/api/slips?month=${selectedMonth}`),
         fetch("/api/stats"),
+        fetch(`/api/extra-income?month=${selectedMonth}`),
       ]);
-      const [slipsData, statsData] = await Promise.all([
+      const [slipsData, statsData, extraData] = await Promise.all([
         slipsRes.json(),
         statsRes.json(),
+        extraRes.json(),
       ]);
       setSlips(slipsData);
+      setExtraIncomes(extraData);
       const salary = statsData.scheduledSalaryAmount > 0 ? statsData.scheduledSalaryAmount : 3000.0;
       const budgetPct = statsData.monthlyBudgetLimit ?? 50.0;
       const calculatedBudget = salary * (budgetPct / 100);
-      setBudgetLimit(calculatedBudget);
+      const totalExtra = extraData.reduce((sum: number, inc: any) => sum + inc.amount, 0);
+      setBudgetLimit(calculatedBudget + totalExtra);
 
       // Trigger retroactive salary received celebration if validated
       if (statsData.celebrateSalary) {
@@ -93,69 +100,78 @@ export default function Home() {
     loadSlips();
   }, [loadSlips]);
 
-  // ── Native notifications verification ─────────────────────────────────────
+  // ── Native notifications verification for ALL slips & apartment expenses ──
   useEffect(() => {
-    if (slips.length === 0) return;
+    if (typeof window === "undefined" || !("Notification" in window)) return;
 
-    if (typeof window !== "undefined" && "Notification" in window) {
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      
-      const yyyy = tomorrow.getFullYear();
-      const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
-      const dd = String(tomorrow.getDate()).padStart(2, "0");
-      const tomorrowStr = `${yyyy}-${mm}-${dd}`;
+    async function checkUpcomingNotifications() {
+      try {
+        const res = await fetch("/api/slips");
+        if (!res.ok) return;
+        const allSlips: Slip[] = await res.json();
 
-      const upcoming = slips.filter((s) => {
-        if (s.status !== "PENDENTE") return false;
-        const dateStr = s.dueDate.slice(0, 10);
-        return dateStr === tomorrowStr;
-      });
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
+        const dd = String(tomorrow.getDate()).padStart(2, "0");
+        const tomorrowStr = `${yyyy}-${mm}-${dd}`;
 
-      if (upcoming.length > 0) {
-        const todayStr = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
-        const storageKey = `notified_expenses_${todayStr}`;
-        const notifiedIdsRaw = localStorage.getItem(storageKey);
-        const notifiedIds = notifiedIdsRaw ? JSON.parse(notifiedIdsRaw) : [];
+        const upcoming = allSlips.filter((s) => {
+          if (s.status !== "PENDENTE") return false;
+          const dateStr = s.dueDate.slice(0, 10);
+          return dateStr === tomorrowStr;
+        });
 
-        const toNotify = upcoming.filter((s) => !notifiedIds.includes(s.id));
+        if (upcoming.length > 0) {
+          const todayStr = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+          const storageKey = `notified_expenses_${todayStr}`;
+          const notifiedIdsRaw = localStorage.getItem(storageKey);
+          const notifiedIds = notifiedIdsRaw ? JSON.parse(notifiedIdsRaw) : [];
 
-        if (toNotify.length > 0) {
-          const triggerNotifications = () => {
-            if (toNotify.length === 1) {
-              const slip = toNotify[0];
-              const formattedAmount = slip.amount.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              });
-              new Notification("⚠️ Despesa Vencendo Amanhã!", {
-                body: `A despesa "${slip.title}" (${formattedAmount}) vence amanhã. Não se esqueça de pagar!`,
-                icon: "/favicon.ico",
-              });
-            } else {
-              new Notification("⚠️ Despesas Vencendo Amanhã!", {
-                body: `Você tem ${toNotify.length} despesas vencendo amanhã. Toque para verificar seu painel!`,
-                icon: "/favicon.ico",
-              });
-            }
+          const toNotify = upcoming.filter((s) => !notifiedIds.includes(s.id));
 
-            const newNotifiedIds = [...notifiedIds, ...toNotify.map((s) => s.id)];
-            localStorage.setItem(storageKey, JSON.stringify(newNotifiedIds));
-          };
+          if (toNotify.length > 0) {
+            const triggerNotifications = () => {
+              if (toNotify.length === 1) {
+                const slip = toNotify[0];
+                const formattedAmount = slip.amount.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                });
+                new Notification("⚠️ Despesa Vencendo Amanhã!", {
+                  body: `A despesa "${slip.title}" (${formattedAmount}) vence amanhã. Não se esqueça de pagar!`,
+                  icon: "/favicon.ico",
+                });
+              } else {
+                new Notification("⚠️ Despesas Vencendo Amanhã!", {
+                  body: `Você tem ${toNotify.length} despesas vencendo amanhã. Toque para verificar seu painel!`,
+                  icon: "/favicon.ico",
+                });
+              }
 
-          if (Notification.permission === "default") {
-            Notification.requestPermission().then((permission) => {
+              const newNotifiedIds = [...notifiedIds, ...toNotify.map((s) => s.id)];
+              localStorage.setItem(storageKey, JSON.stringify(newNotifiedIds));
+            };
+
+            if (Notification.permission === "default") {
+              const permission = await Notification.requestPermission();
               if (permission === "granted") {
                 triggerNotifications();
               }
-            });
-          } else if (Notification.permission === "granted") {
-            triggerNotifications();
+            } else if (Notification.permission === "granted") {
+              triggerNotifications();
+            }
           }
         }
+      } catch (err) {
+        console.error("Erro ao verificar notificações:", err);
       }
     }
+
+    checkUpcomingNotifications();
   }, [slips]);
 
   // ── Leisure budget loading ───────────────────────────────────────────────
@@ -300,6 +316,44 @@ export default function Home() {
   function closeForm() {
     setIsFormOpen(false);
     setEditingSlip(null);
+  }
+
+  async function handleAddExtraIncome(e: React.FormEvent) {
+    e.preventDefault();
+    if (!extraIncomeAmount || parseFloat(extraIncomeAmount) <= 0) return;
+
+    try {
+      const res = await fetch("/api/extra-income", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: parseFloat(extraIncomeAmount),
+          description: "Receita Extra",
+          month: selectedMonth,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Erro ao adicionar receita");
+      }
+
+      addToast({
+        title: "Bônus Adicionado! 💖",
+        message: `Renda extra de ${parseFloat(extraIncomeAmount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} adicionada ao HP!`,
+        type: "success",
+      });
+      
+      setIsExtraModalOpen(false);
+      setExtraIncomeAmount("");
+      loadSlips();
+    } catch (err: any) {
+      addToast({
+        title: "Erro",
+        message: err.message || "Não foi possível registrar a receita extra.",
+        type: "danger",
+      });
+    }
   }
 
   // Filter and sort slips based on user settings
@@ -496,13 +550,64 @@ export default function Home() {
 
       {/* ── FAB (mobile only) ────────────────────────────────────────── */}
       <button
+        id="fab-add-extra"
+        className={styles.fabExtra}
+        onClick={() => setIsExtraModalOpen(true)}
+        title="Adicionar Receita Extra"
+        aria-label="Adicionar receita extra"
+      >
+        <DollarSign size={24} />
+      </button>
+
+      <button
         id="fab-add-slip"
         className={styles.fab}
         onClick={() => { setEditingSlip(null); setIsFormOpen(true); }}
+        title="Adicionar Despesa"
         aria-label="Adicionar despesa"
       >
         <Plus size={24} />
       </button>
+
+      {/* ── Extra Income Modal ────────────────────────────────────────── */}
+      {isExtraModalOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h3 className={styles.modalTitle}>Adicionar Receita Extra</h3>
+            <form onSubmit={handleAddExtraIncome}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Valor da Receita (R$)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className={styles.input}
+                  value={extraIncomeAmount}
+                  onChange={(e) => setExtraIncomeAmount(e.target.value)}
+                  placeholder="Ex: 500,00"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExtraModalOpen(false);
+                    setExtraIncomeAmount("");
+                  }}
+                  className={styles.cancelBtn}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className={styles.submitBtn}>
+                  Adicionar Bônus
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ── Toast notifications & Salary Modal ────────────────────────────── */}
       <Celebration
