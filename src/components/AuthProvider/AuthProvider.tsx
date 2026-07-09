@@ -63,6 +63,72 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     setLoading(false);
   }, []);
 
+  // ── Firebase Push Notifications registration ──────────────────────────────
+  useEffect(() => {
+    if (!userId) return;
+
+    const firebaseConfig = {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    };
+
+    if (!firebaseConfig.messagingSenderId || !firebaseConfig.apiKey) {
+      console.warn("Firebase client configuration variables missing. Push notifications setup skipped.");
+      return;
+    }
+
+    async function setupPushNotifications() {
+      try {
+        const { initializeApp } = await import("firebase/app");
+        const { getMessaging, getToken } = await import("firebase/messaging");
+
+        if (typeof window !== "undefined" && "Notification" in window) {
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") {
+            console.log("Notification permission not granted by user.");
+            return;
+          }
+
+          const swUrl = `/firebase-messaging-sw.js?apiKey=${encodeURIComponent(firebaseConfig.apiKey || "")}` +
+            `&authDomain=${encodeURIComponent(firebaseConfig.authDomain || "")}` +
+            `&projectId=${encodeURIComponent(firebaseConfig.projectId || "")}` +
+            `&storageBucket=${encodeURIComponent(firebaseConfig.storageBucket || "")}` +
+            `&messagingSenderId=${encodeURIComponent(firebaseConfig.messagingSenderId || "")}` +
+            `&appId=${encodeURIComponent(firebaseConfig.appId || "")}`;
+
+          const registration = await navigator.serviceWorker.register(swUrl, { scope: "/" });
+          console.log("Service Worker registered successfully.", registration);
+
+          const app = initializeApp(firebaseConfig);
+          const messaging = getMessaging(app);
+
+          const token = await getToken(messaging, {
+            serviceWorkerRegistration: registration,
+            vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+          });
+
+          if (token) {
+            console.log("Firebase Device token obtained:", token);
+            await fetch("/api/auth/push-tokens", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token }),
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to initialize Firebase FCM notifications:", err);
+      }
+    }
+
+    const timer = setTimeout(setupPushNotifications, 3000);
+    return () => clearTimeout(timer);
+  }, [userId]);
+
   async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
     const cleanName = usernameInput.trim();

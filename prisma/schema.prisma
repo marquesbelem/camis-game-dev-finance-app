@@ -28,6 +28,7 @@ model User {
   stats         UserStats?
   extraIncomes  ExtraIncome[]
   apartmentProject ApartmentProject?
+  deviceTokens  DeviceToken[]
 }
 
 model Category {
@@ -175,4 +176,12 @@ model ApartmentInstallment {
   project           ApartmentProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
   createdAt         DateTime           @default(now())
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
