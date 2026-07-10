@@ -6,12 +6,6 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
 } from "recharts";
 import styles from "./DashboardCharts.module.css";
 
@@ -65,21 +59,13 @@ export default function DashboardCharts({ slips }: Props) {
   // ── Category breakdown for donut ──────────────────────────────────────────
   const categoryMap: Record<string, { name: string; color: string; total: number }> = {};
   for (const slip of slips) {
-    const key = slip.category.id;
+    const key = slip.category.name;
     if (!categoryMap[key]) {
       categoryMap[key] = { name: slip.category.name, color: slip.category.colorCode, total: 0 };
     }
     categoryMap[key].total += slip.amount;
   }
   const donutData = Object.values(categoryMap).sort((a, b) => b.total - a.total);
-
-  // ── Paid vs Pending for bar chart ─────────────────────────────────────────
-  const barData = donutData.map((d) => {
-    const catSlips = slips.filter((s) => s.category.name === d.name);
-    const paid = catSlips.filter((s) => s.status === "PAGO").reduce((sum, s) => sum + s.amount, 0);
-    const pending = catSlips.filter((s) => s.status !== "PAGO").reduce((sum, s) => sum + s.amount, 0);
-    return { name: d.name, Pago: paid, Pendente: pending };
-  });
 
   return (
     <div className={styles.chartsGrid}>
@@ -125,45 +111,6 @@ export default function DashboardCharts({ slips }: Props) {
             </li>
           ))}
         </ul>
-      </section>
-
-      {/* ── Bar – Paid vs Pending ─────────────────────────────────────────── */}
-      <section className={styles.chartCard} aria-label="Pago vs Pendente por categoria">
-        <h3 className={styles.chartTitle}>Pago vs Pendente</h3>
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={barData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-            <XAxis
-              dataKey="name"
-              tick={{ fill: "var(--color-text-tertiary)", fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fill: "var(--color-text-tertiary)", fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(v: number) =>
-                v >= 1000 ? `R$${(v / 1000).toFixed(0)}k` : `R$${v}`
-              }
-            />
-            <Tooltip
-              formatter={(v: number) => formatCurrency(v)}
-              contentStyle={{
-                background: "var(--color-bg-elevated)",
-                border: "1px solid var(--color-border-strong)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--color-text-primary)",
-                fontSize: "13px",
-              }}
-            />
-            <Legend
-              wrapperStyle={{ fontSize: "12px", color: "var(--color-text-secondary)" }}
-            />
-            <Bar dataKey="Pago" fill="var(--color-success)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Pendente" fill="var(--color-warning)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
       </section>
     </div>
   );

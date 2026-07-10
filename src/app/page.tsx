@@ -244,18 +244,28 @@ export default function Home() {
   }
 
   async function handleDelete(id: string) {
-    const deleted = slips.find((s) => s.id === id);
-    const res = await fetch(`/api/slips/${id}`, { method: "DELETE" });
-    if (!res.ok && res.status !== 204) {
-      addToast({ title: "Erro", message: "Não foi possível excluir a despesa.", type: "danger" });
-      return;
+    try {
+      const deleted = slips.find((s) => s.id === id);
+      const res = await fetch(`/api/slips/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        let errMsg = "Não foi possível excluir a despesa.";
+        try {
+          const data = await res.json();
+          if (data && data.error) errMsg = data.error;
+        } catch {}
+        addToast({ title: "Erro", message: errMsg, type: "danger" });
+        return;
+      }
+      setSlips((prev) => prev.filter((s) => s.id !== id));
+      if (deleted) {
+        addToast({ title: "Despesa excluída", message: deleted.title, type: "info" });
+      }
+      // Refresh leisure budget in case deleted slip was Lazer
+      loadLeisureBudget();
+    } catch (err) {
+      console.error("Erro ao excluir despesa:", err);
+      addToast({ title: "Erro", message: "Erro de conexão ao excluir despesa.", type: "danger" });
     }
-    setSlips((prev) => prev.filter((s) => s.id !== id));
-    if (deleted) {
-      addToast({ title: "Despesa excluída", message: deleted.title, type: "info" });
-    }
-    // Refresh leisure budget in case deleted slip was Lazer
-    loadLeisureBudget();
   }
 
   async function handleStatusToggle(slip: Slip) {
@@ -450,15 +460,15 @@ export default function Home() {
             <SummaryCards slips={slips} budgetLimit={budgetLimit} loading={loading} />
           </section>
 
-          {/* Leisure Budget Card */}
-          <section aria-label="Orçamento de lazer">
-            <LeisureBudgetCard data={leisureData} loading={leisureLoading} />
-          </section>
-
-          {/* Charts */}
-          <section aria-label="Gráficos de gastos">
-            <DashboardCharts slips={slips} />
-          </section>
+          {/* Charts & Leisure Budget Section */}
+          <div className={styles.chartsRow}>
+            <section aria-label="Gráficos de gastos" className={styles.chartCol}>
+              <DashboardCharts slips={slips} />
+            </section>
+            <section aria-label="Orçamento de lazer" className={styles.leisureCol}>
+              <LeisureBudgetCard data={leisureData} loading={leisureLoading} />
+            </section>
+          </div>
 
           {/* Slip list */}
           <section aria-label="Lista de despesas">
@@ -556,7 +566,7 @@ export default function Home() {
         title="Adicionar Receita Extra"
         aria-label="Adicionar receita extra"
       >
-        <DollarSign size={24} />
+        <DollarSign size={20} />
       </button>
 
       <button
@@ -566,7 +576,7 @@ export default function Home() {
         title="Adicionar Despesa"
         aria-label="Adicionar despesa"
       >
-        <Plus size={24} />
+        <Plus size={20} />
       </button>
 
       {/* ── Extra Income Modal ────────────────────────────────────────── */}

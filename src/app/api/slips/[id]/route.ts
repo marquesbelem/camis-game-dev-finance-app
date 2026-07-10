@@ -227,6 +227,35 @@ export async function DELETE(
       return NextResponse.json({ error: "Despesa não encontrada" }, { status: 404 });
     }
 
+    if (existing.isRecurring) {
+      const dueDate = new Date(existing.dueDate);
+      const year = dueDate.getFullYear();
+      const month = dueDate.getMonth() + 1; // 1-indexed
+      
+      const db = prisma as any;
+      const alreadySkipped = await db.recurringSkip.findFirst({
+        where: {
+          title: existing.title,
+          categoryId: existing.categoryId,
+          userId,
+          year,
+          month,
+        },
+      });
+
+      if (!alreadySkipped) {
+        await db.recurringSkip.create({
+          data: {
+            title: existing.title,
+            categoryId: existing.categoryId,
+            userId,
+            year,
+            month,
+          },
+        }).catch(console.error);
+      }
+    }
+
     await prisma.paymentSlip.delete({ where: { id } });
 
     // Recompute achievements asynchronously after mutation

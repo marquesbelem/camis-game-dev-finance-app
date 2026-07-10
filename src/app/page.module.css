@@ -132,8 +132,8 @@
   bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   right: 24px;
   z-index: 50;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-full);
   background: var(--gradient-brand);
   color: white;
@@ -415,11 +415,11 @@
 .fabExtra {
   display: flex;
   position: fixed;
-  bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   right: 24px;
   z-index: 50;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, var(--color-success), var(--color-success-dim));
   color: white;
@@ -545,4 +545,25 @@
 @keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
   to   { transform: translateY(0); opacity: 1; }
+}
+
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.chartCol {
+  min-width: 0;
+}
+
+.leisureCol {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .chartsRow {
+    grid-template-columns: 1fr;
+  }
 }

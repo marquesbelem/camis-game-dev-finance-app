@@ -185,3 +185,15 @@ model DeviceToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 }
+
+model RecurringSkip {
+  id          String   @id @default(uuid())
+  title       String
+  categoryId  String
+  userId      String
+  year        Int
+  month       Int
+  createdAt   DateTime @default(now())
+
+  @@unique([title, categoryId, userId, year, month])
+}

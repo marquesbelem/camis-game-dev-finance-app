@@ -523,11 +523,18 @@ export default function ApartmentPage() {
     if (!confirm(`Excluir a despesa "${description}"?`)) return;
     try {
       const res = await fetch(`/api/apartment/expenses/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        let errMsg = "Não foi possível excluir a despesa.";
+        try {
+          const data = await res.json();
+          if (data && data.error) errMsg = data.error;
+        } catch {}
+        throw new Error(errMsg);
+      }
       addToast({ title: "Despesa Excluída", message: description, type: "info" });
       loadData();
-    } catch {
-      addToast({ title: "Erro", message: "Não foi possível excluir a despesa.", type: "danger" });
+    } catch (err: any) {
+      addToast({ title: "Erro", message: err.message || "Não foi possível excluir a despesa.", type: "danger" });
     }
   }
 

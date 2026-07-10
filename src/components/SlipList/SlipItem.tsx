@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Pencil, Trash2, FileText, CreditCard, AlertCircle, CheckCircle2, Clock, Repeat } from "lucide-react";
 import styles from "./SlipItem.module.css";
 
@@ -47,17 +46,11 @@ function formatDate(iso: string): string {
 }
 
 export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Props) {
-  const [confirming, setConfirming] = useState(false);
   const state = getSlipState(slip);
 
   function handleDeleteClick() {
-    if (confirming) {
+    if (confirm(`Deseja realmente excluir a despesa "${slip.title}"?`)) {
       onDelete(slip.id);
-      setConfirming(false);
-    } else {
-      setConfirming(true);
-      // Auto-cancel confirmation after 3 s
-      setTimeout(() => setConfirming(false), 3000);
     }
   }
 
@@ -183,10 +176,10 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
 
         <button
           id={`delete-slip-${slip.id}`}
-          className={`${styles.actionBtn} ${confirming ? styles.deleteConfirm : styles.deleteBtn}`}
+          className={`${styles.actionBtn} ${styles.deleteBtn}`}
           onClick={handleDeleteClick}
-          title={confirming ? "Clique novamente para confirmar" : "Excluir despesa"}
-          aria-label={confirming ? "Confirmar exclusão" : `Excluir ${slip.title}`}
+          title="Excluir despesa"
+          aria-label={`Excluir ${slip.title}`}
         >
           <Trash2 size={15} />
         </button>

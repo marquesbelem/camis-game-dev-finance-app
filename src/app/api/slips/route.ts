@@ -49,6 +49,22 @@ export async function GET(request: NextRequest) {
       );
 
       for (const rs of recurringSlips) {
+        // Check if the user has skipped this recurring slip for this month
+        const db = prisma as any;
+        const isSkipped = await db.recurringSkip.findFirst({
+          where: {
+            title: rs.title,
+            categoryId: rs.categoryId,
+            userId,
+            year,
+            month: mon,
+          },
+        });
+
+        if (isSkipped) {
+          continue; // Do not auto-recreate this month!
+        }
+
         // Check if a slip with same title+category already exists in this month
         const exists = await prisma.paymentSlip.findFirst({
           where: {
