@@ -462,11 +462,11 @@ export default function Home() {
 
           {/* Charts & Leisure Budget Section */}
           <div className={styles.chartsRow}>
-            <section aria-label="Gráficos de gastos" className={styles.chartCol}>
-              <DashboardCharts slips={slips} />
-            </section>
             <section aria-label="Orçamento de lazer" className={styles.leisureCol}>
               <LeisureBudgetCard data={leisureData} loading={leisureLoading} />
+            </section>
+            <section aria-label="Gráficos de gastos" className={styles.chartCol}>
+              <DashboardCharts slips={slips} />
             </section>
           </div>
 
