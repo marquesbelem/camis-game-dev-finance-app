@@ -4,6 +4,7 @@ import { saveUploadedFile } from "@/lib/upload";
 import { recomputeAchievements, handleExpenseRegistrationXp } from "@/lib/achievements";
 import { isRateLimited, getClientIp } from "@/lib/rate-limit";
 import { sanitizeInput } from "@/lib/security";
+import { SlipStatus } from "@prisma/client";
 
 // GET /api/slips?month=YYYY-MM
 export async function GET(request: NextRequest) {
@@ -48,57 +49,55 @@ export async function GET(request: NextRequest) {
         (slip) => slip.isRecurring
       );
 
+      const skips = await prisma.recurringSkip.findMany({
+        where: {
+          userId,
+          year,
+          month: mon,
+        },
+      });
+      const skippedKeys = new Set(skips.map((s) => `${s.title}-${s.categoryId}`));
+
+      const existingSlips = await prisma.paymentSlip.findMany({
+        where: {
+          userId,
+          dueDate: { gte: start, lt: end },
+        },
+      });
+      const existingKeys = new Set(existingSlips.map((s) => `${s.title}-${s.categoryId}`));
+
+      const slipsToCreate = [];
       for (const rs of recurringSlips) {
-        // Check if the user has skipped this recurring slip for this month
-        const db = prisma as any;
-        const isSkipped = await db.recurringSkip.findFirst({
-          where: {
-            title: rs.title,
-            categoryId: rs.categoryId,
-            userId,
-            year,
-            month: mon,
-          },
-        });
-
-        if (isSkipped) {
-          continue; // Do not auto-recreate this month!
+        const key = `${rs.title}-${rs.categoryId}`;
+        if (skippedKeys.has(key) || existingKeys.has(key)) {
+          continue;
         }
 
-        // Check if a slip with same title+category already exists in this month
-        const exists = await prisma.paymentSlip.findFirst({
-          where: {
-            userId,
-            title: rs.title,
-            categoryId: rs.categoryId,
-            dueDate: { gte: start, lt: end },
-          },
+        const day = rs.recurringDay ?? rs.dueDate.getDate();
+        const maxDay = new Date(year, mon, 0).getDate();
+        const clampedDay = Math.min(day, maxDay);
+
+        slipsToCreate.push({
+          title: rs.title,
+          amount: rs.amount,
+          dueDate: new Date(year, mon - 1, clampedDay),
+          status: "PENDENTE" as const,
+          isCreditCardPayment: rs.isCreditCardPayment,
+          isRecurring: true,
+          recurringDay: rs.recurringDay,
+          categoryId: rs.categoryId,
+          userId,
         });
+      }
 
-        if (!exists) {
-          const day = rs.recurringDay ?? rs.dueDate.getDate();
-          // Clamp day to max days in target month
-          const maxDay = new Date(year, mon, 0).getDate();
-          const clampedDay = Math.min(day, maxDay);
-
-          await prisma.paymentSlip.create({
-            data: {
-              title: rs.title,
-              amount: rs.amount,
-              dueDate: new Date(year, mon - 1, clampedDay),
-              status: "PENDENTE",
-              isCreditCardPayment: rs.isCreditCardPayment,
-              isRecurring: true,
-              recurringDay: rs.recurringDay,
-              categoryId: rs.categoryId,
-              userId,
-            },
-          });
-        }
+      if (slipsToCreate.length > 0) {
+        await prisma.paymentSlip.createMany({
+          data: slipsToCreate,
+        });
       }
     }
 
-    let whereClause: any = { userId };
+    const whereClause: { userId: string; dueDate?: { gte: Date; lt: Date } } = { userId };
     if (month) {
       const [year, mon] = month.split("-").map(Number);
       const start = new Date(year, mon - 1, 1);
@@ -117,7 +116,22 @@ export async function GET(request: NextRequest) {
       where: { userId },
     });
 
-    let virtualSlips: any[] = [];
+    let virtualSlips: Array<{
+      id: string;
+      title: string;
+      amount: number;
+      dueDate: string;
+      status: string;
+      isCreditCardPayment: boolean;
+      isRecurring: boolean;
+      categoryId: string;
+      category: {
+        id: string;
+        name: string;
+        colorCode: string;
+        iconRef: string;
+      };
+    }> = [];
     if (project) {
       const [year, mon] = month ? month.split("-").map(Number) : [null, null];
       const start = year && mon ? new Date(year, mon - 1, 1) : null;
@@ -233,7 +247,7 @@ export async function POST(request: NextRequest) {
     const title = sanitizeInput(formData.get("title") as string);
     const amount = parseFloat(formData.get("amount") as string);
     const dueDate = new Date(formData.get("dueDate") as string);
-    const status = formData.get("status") as any; // SlipStatus enum
+    const status = formData.get("status") as SlipStatus; // SlipStatus enum
     const isCreditCardPayment =
       formData.get("isCreditCardPayment") === "true";
     const isRecurring = formData.get("isRecurring") === "true";
