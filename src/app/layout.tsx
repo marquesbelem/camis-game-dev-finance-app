@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Inter } from "next/font/google";
 import Link from "next/link";
-import { LayoutDashboard, Tag, Home } from "lucide-react";
+import { LayoutDashboard, Tag, Home, Repeat } from "lucide-react";
 import AuthProvider from "@/components/AuthProvider/AuthProvider";
 import styles from "./layout.module.css";
 import "./globals.css";
@@ -89,6 +89,15 @@ export default function RootLayout({
             >
               <Home size={18} aria-hidden="true" />
               <span className={styles.navLinkLabel}>Apartamento</span>
+            </Link>
+            <Link
+              href="/recurring"
+              id="nav-recurring"
+              className={styles.navLink}
+              aria-label="Despesas recorrentes"
+            >
+              <Repeat size={18} aria-hidden="true" />
+              <span className={styles.navLinkLabel}>Recorrentes</span>
             </Link>
           </nav>
 
