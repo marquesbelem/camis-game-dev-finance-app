@@ -90,12 +90,12 @@ export default function AchievementsPanel({ onAchievementUnlocked, onSettingsSav
     setAchievements(achData);
     setStats(statsData);
 
-    // Populate configuration defaults if loaded
-    if (statsData) {
-      setBudgetLimit(statsData.monthlyBudgetLimit.toString());
-      setCreditLimit(statsData.totalCreditLimit.toString());
-      setSalaryAmount(statsData.scheduledSalaryAmount.toString());
-      setPaymentDay(statsData.salaryPaymentDay.toString());
+    // Populate configuration defaults if loaded safely
+    if (statsData && !statsData.error) {
+      setBudgetLimit(statsData.monthlyBudgetLimit?.toString() ?? "50");
+      setCreditLimit(statsData.totalCreditLimit?.toString() ?? "1000");
+      setSalaryAmount(statsData.scheduledSalaryAmount?.toString() ?? "3000");
+      setPaymentDay(statsData.salaryPaymentDay?.toString() ?? "5");
       setLeisureBudget(statsData.leisureBudget?.toString() ?? "0");
     }
 
