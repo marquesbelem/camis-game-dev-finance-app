@@ -46,6 +46,7 @@ export default function Home() {
   const [extraIncomeAmount, setExtraIncomeAmount] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [filterCategoryId, setFilterCategoryId] = useState("ALL");
+  const [filterStatus, setFilterStatus] = useState("ALL");
   const [sortBy, setSortBy] = useState("DUE_DATE");
   const [budgetLimit, setBudgetLimit] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
@@ -375,7 +376,12 @@ export default function Home() {
       result = result.filter((slip) => slip.categoryId === filterCategoryId);
     }
 
-    // 2. Sort
+    // 2. Filter by status
+    if (filterStatus !== "ALL") {
+      result = result.filter((slip) => slip.status === filterStatus);
+    }
+
+    // 3. Sort
     const now = new Date();
     if (sortBy === "STATUS") {
       result.sort((a, b) => {
@@ -398,7 +404,7 @@ export default function Home() {
     }
 
     return result;
-  }, [slips, filterCategoryId, sortBy]);
+  }, [slips, filterCategoryId, filterStatus, sortBy]);
 
   return (
     <>
@@ -483,14 +489,14 @@ export default function Home() {
               {/* Filtering and sorting controls */}
               <div className={styles.listControls}>
                 <div className={styles.controlGroup}>
-                  <label htmlFor="filter-category" className={styles.controlLabel}>Filtrar:</label>
+                  <label htmlFor="filter-category" className={styles.controlLabel}>Categoria:</label>
                   <select
                     id="filter-category"
                     value={filterCategoryId}
                     onChange={(e) => setFilterCategoryId(e.target.value)}
                     className={styles.controlSelect}
                   >
-                    <option value="ALL">Todas as categorias</option>
+                    <option value="ALL">Todas</option>
                     {categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.name}
@@ -498,6 +504,21 @@ export default function Home() {
                     ))}
                   </select>
                 </div>
+
+                <div className={styles.controlGroup}>
+                  <label htmlFor="filter-status" className={styles.controlLabel}>Status:</label>
+                  <select
+                    id="filter-status"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className={styles.controlSelect}
+                  >
+                    <option value="ALL">Todos</option>
+                    <option value="PENDENTE">Pendentes</option>
+                    <option value="PAGO">Pagas</option>
+                  </select>
+                </div>
+
 
                 <div className={styles.controlGroup}>
                   <label htmlFor="sort-by" className={styles.controlLabel}>Ordenar:</label>
