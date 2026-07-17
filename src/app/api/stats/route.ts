@@ -18,6 +18,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get("month"); // e.g. "2026-07"
+
     let stats = await prisma.userStats.findUnique({
       where: { id: userId },
     });
@@ -38,14 +41,28 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    let monthlyBudget = null;
+    if (month) {
+      monthlyBudget = await prisma.monthlyBudget.findUnique({
+        where: {
+          userId_month: {
+            userId,
+            month,
+          },
+        },
+      });
+    }
+
     // Salary validation logic (hybrid approach: projected from day 1, celebrated on payment day)
     let celebrateSalary = false;
     const now = new Date();
     const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const currentDay = now.getDate();
 
+    const effectiveSalary = monthlyBudget ? monthlyBudget.scheduledSalaryAmount : stats.scheduledSalaryAmount;
+
     if (
-      stats.scheduledSalaryAmount > 0 &&
+      effectiveSalary > 0 &&
       currentDay >= stats.salaryPaymentDay &&
       stats.lastSalaryValidationMonth !== currentMonthStr
     ) {
@@ -59,6 +76,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ...stats,
+      monthlyBudgetLimit: monthlyBudget ? monthlyBudget.monthlyBudgetLimit : stats.monthlyBudgetLimit,
+      scheduledSalaryAmount: monthlyBudget ? monthlyBudget.scheduledSalaryAmount : stats.scheduledSalaryAmount,
+      leisureBudget: monthlyBudget ? monthlyBudget.leisureBudget : stats.leisureBudget,
       celebrateSalary,
     });
   } catch (error) {
@@ -86,6 +106,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get("month");
+
     const body = await request.json();
     const {
       monthlyBudgetLimit,
@@ -96,16 +119,48 @@ export async function PUT(request: NextRequest) {
       leisureBudget,
     } = body;
 
+    if (month && (monthlyBudgetLimit !== undefined || scheduledSalaryAmount !== undefined || leisureBudget !== undefined)) {
+      const currentStats = await prisma.userStats.findUnique({ where: { id: userId } });
+      const defaultLimit = currentStats?.monthlyBudgetLimit ?? 50.0;
+      const defaultSalary = currentStats?.scheduledSalaryAmount ?? 3000.0;
+      const defaultLeisure = currentStats?.leisureBudget ?? 0.0;
+
+      await prisma.monthlyBudget.upsert({
+        where: {
+          userId_month: {
+            userId,
+            month,
+          },
+        },
+        update: {
+          ...(monthlyBudgetLimit !== undefined && { monthlyBudgetLimit }),
+          ...(scheduledSalaryAmount !== undefined && { scheduledSalaryAmount }),
+          ...(leisureBudget !== undefined && { leisureBudget }),
+        },
+        create: {
+          userId,
+          month,
+          monthlyBudgetLimit: monthlyBudgetLimit ?? defaultLimit,
+          scheduledSalaryAmount: scheduledSalaryAmount ?? defaultSalary,
+          leisureBudget: leisureBudget ?? defaultLeisure,
+        },
+      });
+    }
+
+    const updateStatsData: any = {};
+    if (totalCreditLimit !== undefined) updateStatsData.totalCreditLimit = totalCreditLimit;
+    if (currentStreakDays !== undefined) updateStatsData.currentStreakDays = currentStreakDays;
+    if (salaryPaymentDay !== undefined) updateStatsData.salaryPaymentDay = salaryPaymentDay;
+
+    if (!month) {
+      if (monthlyBudgetLimit !== undefined) updateStatsData.monthlyBudgetLimit = monthlyBudgetLimit;
+      if (scheduledSalaryAmount !== undefined) updateStatsData.scheduledSalaryAmount = scheduledSalaryAmount;
+      if (leisureBudget !== undefined) updateStatsData.leisureBudget = leisureBudget;
+    }
+
     const updated = await prisma.userStats.upsert({
       where: { id: userId },
-      update: {
-        ...(monthlyBudgetLimit !== undefined && { monthlyBudgetLimit }),
-        ...(totalCreditLimit !== undefined && { totalCreditLimit }),
-        ...(currentStreakDays !== undefined && { currentStreakDays }),
-        ...(scheduledSalaryAmount !== undefined && { scheduledSalaryAmount }),
-        ...(salaryPaymentDay !== undefined && { salaryPaymentDay }),
-        ...(leisureBudget !== undefined && { leisureBudget }),
-      },
+      update: updateStatsData,
       create: {
         id: userId,
         monthlyBudgetLimit: monthlyBudgetLimit ?? 50.0,
@@ -116,6 +171,22 @@ export async function PUT(request: NextRequest) {
         leisureBudget: leisureBudget ?? 0,
       },
     });
+
+    if (month) {
+      const monthlyBudget = await prisma.monthlyBudget.findUnique({
+        where: {
+          userId_month: {
+            userId,
+            month,
+          },
+        },
+      });
+      if (monthlyBudget) {
+        updated.monthlyBudgetLimit = monthlyBudget.monthlyBudgetLimit;
+        updated.scheduledSalaryAmount = monthlyBudget.scheduledSalaryAmount;
+        updated.leisureBudget = monthlyBudget.leisureBudget;
+      }
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

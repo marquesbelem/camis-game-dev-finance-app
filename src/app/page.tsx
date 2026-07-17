@@ -67,7 +67,7 @@ export default function Home() {
     try {
       const [slipsRes, statsRes, extraRes] = await Promise.all([
         fetch(`/api/slips?month=${selectedMonth}`),
-        fetch("/api/stats"),
+        fetch(`/api/stats?month=${selectedMonth}`),
         fetch(`/api/extra-income?month=${selectedMonth}`),
       ]);
       const [slipsData, statsData, extraData] = await Promise.all([
@@ -429,6 +429,7 @@ export default function Home() {
         {/* ── Sidebar: Achievements ─────────────────────────────────── */}
         <aside className={styles.sidebar}>
           <AchievementsPanel
+            selectedMonth={selectedMonth}
             onAchievementUnlocked={celebrateAchievement}
             onSettingsSaved={() => { loadSlips(true); loadLeisureBudget(); }}
           />
@@ -592,7 +593,19 @@ export default function Home() {
       <AdicionarDespesa
         isOpen={isFormOpen}
         onClose={closeForm}
-        onSave={handleSave}
+        onSave={(saved) => {
+          if (saved.isInstallment || editingSlip?.isInstallment) {
+            loadSlips();
+            addToast({
+              title: editingSlip ? "Parcelamento atualizado" : "Parcelamento adicionado",
+              message: saved.title,
+              type: "success",
+            });
+            loadLeisureBudget();
+          } else {
+            handleSave(saved);
+          }
+        }}
         editingSlip={editingSlip}
       />
 

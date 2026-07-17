@@ -127,6 +127,74 @@ export async function PUT(
       documentPath = await saveUploadedFile(file);
     }
 
+    const rawInstallmentsCount = formData.get("installmentsCount");
+    let targetInstallmentTotal = existing.installmentTotal;
+
+    if (rawInstallmentsCount && existing.isInstallment && existing.installmentGroupId) {
+      const newTotal = parseInt(rawInstallmentsCount as string, 10);
+      const currentTotal = existing.installmentTotal ?? 1;
+
+      if (!isNaN(newTotal) && newTotal >= (existing.installmentNumber ?? 1) && newTotal <= 100 && newTotal !== currentTotal) {
+        targetInstallmentTotal = newTotal;
+
+        const groupSlips = await prisma.paymentSlip.findMany({
+          where: { installmentGroupId: existing.installmentGroupId, userId },
+          orderBy: { installmentNumber: "asc" },
+        });
+
+        if (newTotal > currentTotal) {
+          const firstSlip = groupSlips.find(s => s.installmentNumber === 1) || groupSlips[0] || existing;
+          const baseDate = new Date(firstSlip.dueDate);
+
+          for (let i = currentTotal + 1; i <= newTotal; i++) {
+            const d = new Date(baseDate);
+            const day = d.getDate();
+            d.setMonth(d.getMonth() + (i - 1));
+            if (d.getDate() !== day) {
+              d.setDate(0);
+            }
+
+            await prisma.paymentSlip.create({
+              data: {
+                title,
+                amount,
+                dueDate: d,
+                status: "PENDENTE",
+                isCreditCardPayment,
+                isRecurring: false,
+                isInstallment: true,
+                installmentNumber: i,
+                installmentTotal: newTotal,
+                installmentGroupId: existing.installmentGroupId,
+                categoryId,
+                documentPath,
+                userId,
+              },
+            });
+          }
+        } else if (newTotal < currentTotal) {
+          await prisma.paymentSlip.deleteMany({
+            where: {
+              installmentGroupId: existing.installmentGroupId,
+              userId,
+              installmentNumber: { gt: newTotal },
+            },
+          });
+        }
+
+        await prisma.paymentSlip.updateMany({
+          where: {
+            installmentGroupId: existing.installmentGroupId,
+            userId,
+            installmentNumber: { lte: newTotal },
+          },
+          data: {
+            installmentTotal: newTotal,
+          },
+        });
+      }
+    }
+
     const updated = await prisma.paymentSlip.update({
       where: { id },
       data: {
@@ -139,6 +207,7 @@ export async function PUT(
         recurringDay: isRecurring ? dueDate.getDate() : null,
         categoryId,
         documentPath,
+        installmentTotal: targetInstallmentTotal,
       },
       include: { category: true },
     });

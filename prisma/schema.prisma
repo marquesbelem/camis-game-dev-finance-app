@@ -29,6 +29,7 @@ model User {
   extraIncomes  ExtraIncome[]
   apartmentProject ApartmentProject?
   deviceTokens  DeviceToken[]
+  monthlyBudgets MonthlyBudget[]
 }
 
 model Category {
@@ -200,4 +201,18 @@ model RecurringSkip {
   createdAt   DateTime @default(now())
 
   @@unique([title, categoryId, userId, year, month])
+}
+
+model MonthlyBudget {
+  id                    String   @id @default(uuid())
+  userId                String
+  month                 String   // Format: YYYY-MM
+  monthlyBudgetLimit    Float    @default(50.0) // Percentage (0-100)
+  scheduledSalaryAmount Float    @default(3000.0)
+  leisureBudget         Float    @default(0.0)
+  createdAt             DateTime @default(now())
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
 }

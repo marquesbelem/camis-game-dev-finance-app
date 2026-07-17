@@ -28,6 +28,7 @@ interface UserStats {
 }
 
 interface Props {
+  selectedMonth?: string;
   onAchievementUnlocked?: (title: string) => void;
   onSettingsSaved?: () => void;
 }
@@ -62,7 +63,7 @@ function getCharacterEmoji(level: number): string {
   return "👑";
 }
 
-export default function AchievementsPanel({ onAchievementUnlocked, onSettingsSaved }: Props) {
+export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked, onSettingsSaved }: Props) {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -81,9 +82,10 @@ export default function AchievementsPanel({ onAchievementUnlocked, onSettingsSav
   achievementsRef.current = achievements;
 
   const loadData = useCallback(async () => {
+    const statsUrl = selectedMonth ? `/api/stats?month=${selectedMonth}` : "/api/stats";
     const [achRes, statsRes] = await Promise.all([
       fetch("/api/achievements"),
-      fetch("/api/stats"),
+      fetch(statsUrl),
     ]);
     const [achData, statsData] = await Promise.all([achRes.json(), statsRes.json()]);
     const prev = achievementsRef.current;
@@ -108,7 +110,7 @@ export default function AchievementsPanel({ onAchievementUnlocked, onSettingsSav
         }
       }
     }
-  }, [onAchievementUnlocked]);
+  }, [onAchievementUnlocked, selectedMonth]);
 
   useEffect(() => {
     setLoading(true);
@@ -119,7 +121,8 @@ export default function AchievementsPanel({ onAchievementUnlocked, onSettingsSav
 
   async function handleSaveSettings(e: React.FormEvent) {
     e.preventDefault();
-    await fetch("/api/stats", {
+    const statsUrl = selectedMonth ? `/api/stats?month=${selectedMonth}` : "/api/stats";
+    await fetch(statsUrl, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

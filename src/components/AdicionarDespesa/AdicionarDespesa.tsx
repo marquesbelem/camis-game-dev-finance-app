@@ -20,6 +20,10 @@ interface Slip {
   status: string;
   isCreditCardPayment: boolean;
   isRecurring: boolean;
+  isInstallment?: boolean;
+  installmentNumber?: number;
+  installmentTotal?: number;
+  installmentGroupId?: string | null;
   categoryId: string;
   documentPath: string | null;
   category: Category;
@@ -201,6 +205,13 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
         setError("Quantidade de parcelas deve ser entre 2 e 100.");
         return;
       }
+    } else if (editingSlip && editingSlip.isInstallment) {
+      const parsedCount = parseInt(installmentsCount, 10);
+      const minCount = editingSlip.installmentNumber ?? 1;
+      if (isNaN(parsedCount) || parsedCount < minCount || parsedCount > 100) {
+        setError(`Quantidade de parcelas deve ser entre ${minCount} e 100.`);
+        return;
+      }
     }
 
     const formData = new FormData();
@@ -212,6 +223,8 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
     formData.append("isRecurring", isRecurring.toString());
     formData.append("isInstallment", isInstallment.toString());
     if (isInstallment && !editingSlip) {
+      formData.append("installmentsCount", installmentsCount);
+    } else if (editingSlip && editingSlip.isInstallment) {
       formData.append("installmentsCount", installmentsCount);
     }
     formData.append("categoryId", categoryId);
@@ -483,9 +496,26 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
                 </div>
               )}
             </>
-          ) : (editingSlip as any).isInstallment ? (
-            <div className={styles.installmentInfo}>
-              <span>ℹ️ Esta despesa é a parcela <strong>{(editingSlip as any).installmentNumber}</strong> de <strong>{(editingSlip as any).installmentTotal}</strong>.</span>
+          ) : editingSlip.isInstallment ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              <div className={styles.installmentInfo}>
+                <span>ℹ️ Esta despesa é a parcela <strong>{editingSlip.installmentNumber}</strong> de <strong>{editingSlip.installmentTotal}</strong>.</span>
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="slip-installments-count" className={styles.label}>
+                  Alterar total de parcelas
+                </label>
+                <input
+                  id="slip-installments-count"
+                  type="number"
+                  min={editingSlip.installmentNumber ?? 1}
+                  max="100"
+                  value={installmentsCount}
+                  onChange={(e) => setInstallmentsCount(e.target.value)}
+                  className={styles.input}
+                  required
+                />
+              </div>
             </div>
           ) : null}
 

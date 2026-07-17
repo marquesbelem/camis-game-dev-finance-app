@@ -21,12 +21,31 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const month = searchParams.get("month");
 
-    // Fetch configured leisure budget
-    const stats = await prisma.userStats.findUnique({
-      where: { id: userId },
-    });
+    // Fetch configured leisure budget for the month (or fallback to user stats)
+    let budget = 0;
+    let hasMonthlyConfig = false;
 
-    const budget = stats?.leisureBudget ?? 0;
+    if (month) {
+      const monthlyBudget = await prisma.monthlyBudget.findUnique({
+        where: {
+          userId_month: {
+            userId,
+            month,
+          },
+        },
+      });
+      if (monthlyBudget) {
+        budget = monthlyBudget.leisureBudget;
+        hasMonthlyConfig = true;
+      }
+    }
+
+    if (!hasMonthlyConfig) {
+      const stats = await prisma.userStats.findUnique({
+        where: { id: userId },
+      });
+      budget = stats?.leisureBudget ?? 0;
+    }
 
     // If no budget configured, return zeroed state
     if (budget <= 0) {
