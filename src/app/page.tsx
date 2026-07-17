@@ -71,16 +71,16 @@ export default function Home() {
         fetch(`/api/extra-income?month=${selectedMonth}`),
       ]);
       const [slipsData, statsData, extraData] = await Promise.all([
-        slipsRes.json(),
-        statsRes.json(),
-        extraRes.json(),
-      ]);
-      setSlips(slipsData);
-      setExtraIncomes(extraData);
+        slipsRes.ok ? slipsRes.json().catch(() => []) : [],
+        statsRes.ok ? statsRes.json().catch(() => ({})) : {},
+        extraRes.ok ? extraRes.json().catch(() => []) : [],
+      ]) as [any, any, any];
+      setSlips(Array.isArray(slipsData) ? slipsData : []);
+      setExtraIncomes(Array.isArray(extraData) ? extraData : []);
       const salary = statsData.scheduledSalaryAmount > 0 ? statsData.scheduledSalaryAmount : 3000.0;
       const budgetPct = statsData.monthlyBudgetLimit ?? 50.0;
       const calculatedBudget = salary * (budgetPct / 100);
-      const totalExtra = extraData.reduce((sum: number, inc: any) => sum + inc.amount, 0);
+      const totalExtra = Array.isArray(extraData) ? extraData.reduce((sum: number, inc: any) => sum + inc.amount, 0) : 0;
       setBudgetLimit(calculatedBudget + totalExtra);
 
       // Trigger retroactive salary received celebration if validated
@@ -109,7 +109,8 @@ export default function Home() {
       try {
         const res = await fetch("/api/slips");
         if (!res.ok) return;
-        const allSlips: Slip[] = await res.json();
+        const allSlips: Slip[] = await res.json().catch(() => []);
+        if (!Array.isArray(allSlips)) return;
 
         const today = new Date();
         const tomorrow = new Date(today);
@@ -244,10 +245,11 @@ export default function Home() {
     }
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id: string, deleteAll?: boolean) {
     try {
       const deleted = slips.find((s) => s.id === id);
-      const res = await fetch(`/api/slips/${id}`, { method: "DELETE" });
+      const url = `/api/slips/${id}${deleteAll ? "?deleteAll=true" : ""}`;
+      const res = await fetch(url, { method: "DELETE" });
       if (!res.ok) {
         let errMsg = "Não foi possível excluir a despesa.";
         try {
@@ -257,9 +259,24 @@ export default function Home() {
         addToast({ title: "Erro", message: errMsg, type: "danger" });
         return;
       }
-      setSlips((prev) => prev.filter((s) => s.id !== id));
+      
+      if (deleteAll && deleted?.isInstallment && deleted?.installmentGroupId) {
+        setSlips((prev) =>
+          prev.filter(
+            (s) =>
+              !(
+                s.installmentGroupId === deleted.installmentGroupId &&
+                (s.installmentNumber ?? 1) >= (deleted.installmentNumber ?? 1)
+              )
+          )
+        );
+      } else {
+        setSlips((prev) => prev.filter((s) => s.id !== id));
+      }
+
       if (deleted) {
-        addToast({ title: "Despesa excluída", message: deleted.title, type: "info" });
+        const msg = deleteAll ? `${deleted.title} (e parcelas futuras)` : deleted.title;
+        addToast({ title: "Despesa excluída", message: msg, type: "info" });
       }
       // Refresh leisure budget in case deleted slip was Lazer
       loadLeisureBudget();

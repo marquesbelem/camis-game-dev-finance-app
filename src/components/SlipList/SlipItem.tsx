@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2, FileText, CreditCard, AlertCircle, CheckCircle2, Clock, Repeat } from "lucide-react";
+import { Pencil, Trash2, FileText, CreditCard, AlertCircle, CheckCircle2, Clock, Repeat, Calendar } from "lucide-react";
 import styles from "./SlipItem.module.css";
 
 interface Category {
@@ -18,6 +18,10 @@ export interface Slip {
   status: string;
   isCreditCardPayment: boolean;
   isRecurring: boolean;
+  isInstallment?: boolean;
+  installmentNumber?: number;
+  installmentTotal?: number;
+  installmentGroupId?: string | null;
   categoryId: string;
   documentPath: string | null;
   category: Category;
@@ -26,7 +30,7 @@ export interface Slip {
 interface Props {
   slip: Slip;
   onEdit: (slip: Slip) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, deleteAll?: boolean) => void;
   onStatusToggle: (slip: Slip) => void;
 }
 
@@ -49,8 +53,18 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
   const state = getSlipState(slip);
 
   function handleDeleteClick() {
-    if (confirm(`Deseja realmente excluir a despesa "${slip.title}"?`)) {
-      onDelete(slip.id);
+    if (slip.isInstallment && slip.installmentGroupId) {
+      if (confirm(`Deseja realmente excluir a parcela ${slip.installmentNumber} de ${slip.installmentTotal} da despesa "${slip.title}"?`)) {
+        if (confirm("Esta despesa faz parte de um parcelamento. Deseja excluir também esta e todas as parcelas futuras?")) {
+          onDelete(slip.id, true);
+        } else {
+          onDelete(slip.id, false);
+        }
+      }
+    } else {
+      if (confirm(`Deseja realmente excluir a despesa "${slip.title}"?`)) {
+        onDelete(slip.id);
+      }
     }
   }
 
@@ -92,6 +106,12 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
             {slip.isRecurring && (
               <span className={styles.recurringBadge} title="Despesa Recorrente">
                 <Repeat size={12} />
+              </span>
+            )}
+            {slip.isInstallment && (
+              <span className={styles.installmentBadge} title={`Parcela ${slip.installmentNumber}/${slip.installmentTotal}`}>
+                <Calendar size={12} />
+                <span>{slip.installmentNumber}/{slip.installmentTotal}</span>
               </span>
             )}
           </div>

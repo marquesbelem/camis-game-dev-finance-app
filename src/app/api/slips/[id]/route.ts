@@ -191,6 +191,8 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const deleteAll = searchParams.get("deleteAll") === "true";
 
     if (id.startsWith("apt-exp-")) {
       const expId = id.slice(8);
@@ -256,7 +258,19 @@ export async function DELETE(
       }
     }
 
-    await prisma.paymentSlip.delete({ where: { id } });
+    if (deleteAll && existing.isInstallment && existing.installmentGroupId) {
+      await prisma.paymentSlip.deleteMany({
+        where: {
+          userId,
+          installmentGroupId: existing.installmentGroupId,
+          installmentNumber: {
+            gte: existing.installmentNumber ?? 1,
+          },
+        },
+      });
+    } else {
+      await prisma.paymentSlip.delete({ where: { id } });
+    }
 
     // Recompute achievements asynchronously after mutation
     recomputeAchievements(userId).catch(console.error);

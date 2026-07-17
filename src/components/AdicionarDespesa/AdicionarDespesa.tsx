@@ -50,6 +50,8 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
   const [categoryId, setCategoryId] = useState("");
   const [isCreditCardPayment, setIsCreditCardPayment] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
+  const [isInstallment, setIsInstallment] = useState(false);
+  const [installmentsCount, setInstallmentsCount] = useState("2");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -135,6 +137,8 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
       setCategoryId(editingSlip.categoryId);
       setIsCreditCardPayment(editingSlip.isCreditCardPayment);
       setIsRecurring((editingSlip as any).isRecurring ?? false);
+      setIsInstallment((editingSlip as any).isInstallment ?? false);
+      setInstallmentsCount(((editingSlip as any).installmentTotal ?? 2).toString());
     } else {
       resetForm();
     }
@@ -157,6 +161,8 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
     setCategoryId(categories[0]?.id ?? "");
     setIsCreditCardPayment(false);
     setIsRecurring(false);
+    setIsInstallment(false);
+    setInstallmentsCount("2");
     setFile(null);
     setError("");
   }
@@ -189,6 +195,14 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
 
     if (!categoryId) { setError("Selecione uma categoria."); return; }
 
+    if (isInstallment && !editingSlip) {
+      const parsedCount = parseInt(installmentsCount, 10);
+      if (isNaN(parsedCount) || parsedCount < 2 || parsedCount > 100) {
+        setError("Quantidade de parcelas deve ser entre 2 e 100.");
+        return;
+      }
+    }
+
     const formData = new FormData();
     formData.append("title", title.trim());
     formData.append("amount", parsedAmount.toString());
@@ -196,6 +210,10 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
     formData.append("status", status);
     formData.append("isCreditCardPayment", isCreditCardPayment.toString());
     formData.append("isRecurring", isRecurring.toString());
+    formData.append("isInstallment", isInstallment.toString());
+    if (isInstallment && !editingSlip) {
+      formData.append("installmentsCount", installmentsCount);
+    }
     formData.append("categoryId", categoryId);
     if (file) formData.append("document", file);
 
@@ -398,13 +416,78 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
               role="switch"
               aria-checked={isRecurring}
               className={`${styles.toggle} ${isRecurring ? styles.toggleOn : ""}`}
-              onClick={() => setIsRecurring((v) => !v)}
+              onClick={() => {
+                setIsRecurring((v) => !v);
+                if (!isRecurring) {
+                  setIsInstallment(false);
+                }
+              }}
               tabIndex={0}
-              onKeyDown={(e) => e.key === " " && setIsRecurring((v) => !v)}
+              onKeyDown={(e) => {
+                if (e.key === " ") {
+                  setIsRecurring((v) => !v);
+                  if (!isRecurring) setIsInstallment(false);
+                }
+              }}
             >
               <span className={styles.toggleThumb} />
             </div>
           </label>
+
+          {/* Installment toggle */}
+          {!editingSlip ? (
+            <>
+              <label className={styles.toggleRow} htmlFor="slip-installment">
+                <div className={styles.toggleInfo}>
+                  <Calendar size={16} />
+                  <span>Despesa parcelada</span>
+                </div>
+                <div
+                  id="slip-installment"
+                  role="switch"
+                  aria-checked={isInstallment}
+                  className={`${styles.toggle} ${isInstallment ? styles.toggleOn : ""}`}
+                  onClick={() => {
+                    setIsInstallment((v) => !v);
+                    if (!isInstallment) {
+                      setIsRecurring(false);
+                    }
+                  }}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === " ") {
+                      setIsInstallment((v) => !v);
+                      if (!isInstallment) setIsRecurring(false);
+                    }
+                  }}
+                >
+                  <span className={styles.toggleThumb} />
+                </div>
+              </label>
+
+              {isInstallment && (
+                <div className={styles.field} style={{ marginTop: "0.5rem" }}>
+                  <label htmlFor="slip-installments-count" className={styles.label}>
+                    Quantidade de parcelas
+                  </label>
+                  <input
+                    id="slip-installments-count"
+                    type="number"
+                    min="2"
+                    max="100"
+                    value={installmentsCount}
+                    onChange={(e) => setInstallmentsCount(e.target.value)}
+                    className={styles.input}
+                    required
+                  />
+                </div>
+              )}
+            </>
+          ) : (editingSlip as any).isInstallment ? (
+            <div className={styles.installmentInfo}>
+              <span>ℹ️ Esta despesa é a parcela <strong>{(editingSlip as any).installmentNumber}</strong> de <strong>{(editingSlip as any).installmentTotal}</strong>.</span>
+            </div>
+          ) : null}
 
           {/* File upload */}
           <div className={styles.field}>

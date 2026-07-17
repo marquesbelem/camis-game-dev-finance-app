@@ -5,6 +5,7 @@ import { recomputeAchievements, handleExpenseRegistrationXp } from "@/lib/achiev
 import { isRateLimited, getClientIp } from "@/lib/rate-limit";
 import { sanitizeInput } from "@/lib/security";
 import { SlipStatus } from "@prisma/client";
+import { randomUUID } from "crypto";
 
 // GET /api/slips?month=YYYY-MM
 export async function GET(request: NextRequest) {
@@ -220,6 +221,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const formData = await request.formData();
+
+    const title = sanitizeInput(formData.get("title") as string);
+    const amount = parseFloat(formData.get("amount") as string);
+    const dueDate = new Date(formData.get("dueDate") as string);
+    const status = formData.get("status") as SlipStatus; // SlipStatus enum
+    const isCreditCardPayment =
+      formData.get("isCreditCardPayment") === "true";
+    const isRecurring = formData.get("isRecurring") === "true";
+    const isInstallment = formData.get("isInstallment") === "true";
+    const installmentsCount = parseInt(formData.get("installmentsCount") as string || "1", 10);
+    const categoryId = formData.get("categoryId") as string;
+    const file = formData.get("document") as File | null;
+
+    // Validation
+    if (!title || isNaN(amount) || amount <= 0 || !categoryId || !status) {
+      return NextResponse.json(
+        { error: "Campos obrigatórios ausentes ou inválidos" },
+        { status: 400 }
+      );
+    }
+
+    if (isInstallment && (isNaN(installmentsCount) || installmentsCount < 1)) {
+      return NextResponse.json(
+        { error: "Quantidade de parcelas inválida." },
+        { status: 400 }
+      );
+    }
+
     // Monthly slips threshold validation (Max 150)
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -235,30 +265,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (monthlyCount >= 150) {
+    const totalToCreate = isInstallment ? installmentsCount : 1;
+    if (monthlyCount + totalToCreate > 150) {
       return NextResponse.json(
-        { error: "Você atingiu o limite máximo de 150 despesas para este mês." },
+        { error: `Você atingiu o limite de despesas. Não é possível criar mais ${totalToCreate} despesas este mês.` },
         { status: 429 }
-      );
-    }
-
-    const formData = await request.formData();
-
-    const title = sanitizeInput(formData.get("title") as string);
-    const amount = parseFloat(formData.get("amount") as string);
-    const dueDate = new Date(formData.get("dueDate") as string);
-    const status = formData.get("status") as SlipStatus; // SlipStatus enum
-    const isCreditCardPayment =
-      formData.get("isCreditCardPayment") === "true";
-    const isRecurring = formData.get("isRecurring") === "true";
-    const categoryId = formData.get("categoryId") as string;
-    const file = formData.get("document") as File | null;
-
-    // Validation
-    if (!title || isNaN(amount) || amount <= 0 || !categoryId || !status) {
-      return NextResponse.json(
-        { error: "Campos obrigatórios ausentes ou inválidos" },
-        { status: 400 }
       );
     }
 
@@ -267,21 +278,59 @@ export async function POST(request: NextRequest) {
       documentPath = await saveUploadedFile(file);
     }
 
-    const slip = await prisma.paymentSlip.create({
-      data: {
-        title,
-        amount,
-        dueDate,
-        status,
-        isCreditCardPayment,
-        isRecurring,
-        recurringDay: isRecurring ? dueDate.getDate() : null,
-        categoryId,
-        documentPath,
-        userId,
-      },
-      include: { category: true },
-    });
+    let resultSlip;
+
+    if (isInstallment && installmentsCount > 1) {
+      const installmentGroupId = randomUUID();
+      for (let i = 1; i <= installmentsCount; i++) {
+        const d = new Date(dueDate);
+        const day = d.getDate();
+        d.setMonth(d.getMonth() + (i - 1));
+        if (d.getDate() !== day) {
+          d.setDate(0); // Clamp to last day of month
+        }
+
+        const slip = await prisma.paymentSlip.create({
+          data: {
+            title,
+            amount,
+            dueDate: d,
+            status: i === 1 ? status : "PENDENTE",
+            isCreditCardPayment,
+            isRecurring: false,
+            isInstallment: true,
+            installmentNumber: i,
+            installmentTotal: installmentsCount,
+            installmentGroupId,
+            categoryId,
+            documentPath,
+            userId,
+          },
+          include: { category: true },
+        });
+
+        if (i === 1) {
+          resultSlip = slip;
+        }
+      }
+    } else {
+      resultSlip = await prisma.paymentSlip.create({
+        data: {
+          title,
+          amount,
+          dueDate,
+          status,
+          isCreditCardPayment,
+          isRecurring,
+          recurringDay: isRecurring ? dueDate.getDate() : null,
+          isInstallment: false,
+          categoryId,
+          documentPath,
+          userId,
+        },
+        include: { category: true },
+      });
+    }
 
     // Award XP for daily registration consistency
     const xpDetails = await handleExpenseRegistrationXp(userId).catch((err) => {
@@ -293,7 +342,7 @@ export async function POST(request: NextRequest) {
     recomputeAchievements(userId).catch(console.error);
 
     return NextResponse.json({
-      ...slip,
+      ...resultSlip,
       xpDetails,
     }, { status: 201 });
   } catch (error) {
