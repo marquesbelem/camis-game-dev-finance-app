@@ -204,7 +204,7 @@ export async function PUT(
         status,
         isCreditCardPayment,
         isRecurring,
-        recurringDay: isRecurring ? dueDate.getDate() : null,
+        recurringDay: isRecurring ? dueDate.getUTCDate() : null,
         categoryId,
         documentPath,
         installmentTotal: targetInstallmentTotal,

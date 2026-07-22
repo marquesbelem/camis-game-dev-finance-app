@@ -36,8 +36,13 @@ interface Props {
 
 function getSlipState(slip: Slip): "paid" | "overdue" | "pending" {
   if (slip.status === "PAGO") return "paid";
-  const due = new Date(slip.dueDate);
-  if (due < new Date()) return "overdue";
+  const dueStr = slip.dueDate.slice(0, 10);
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  const todayStr = `${yyyy}-${mm}-${dd}`;
+  if (dueStr < todayStr) return "overdue";
   return "pending";
 }
 
@@ -46,7 +51,13 @@ function formatCurrency(value: number): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR");
+  if (!iso) return "";
+  const dateStr = iso.slice(0, 10);
+  const [y, m, d] = dateStr.split("-");
+  if (y && m && d && y.length === 4) {
+    return `${d}/${m}/${y}`;
+  }
+  return new Date(iso).toLocaleDateString("pt-BR", { timeZone: "UTC" });
 }
 
 export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Props) {
@@ -133,18 +144,22 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
 
           {(() => {
             const isPending = slip.status === "PENDENTE";
+            const dueStr = slip.dueDate.slice(0, 10);
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, "0");
+            const dd = String(today.getDate()).padStart(2, "0");
+            const todayStr = `${yyyy}-${mm}-${dd}`;
             
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            const yyyy = tomorrow.getFullYear();
-            const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
-            const dd = String(tomorrow.getDate()).padStart(2, "0");
-            const tomorrowStr = `${yyyy}-${mm}-${dd}`;
-            
-            const isDueTomorrow = isPending && slip.dueDate.slice(0, 10) === tomorrowStr;
-            const isOverdue = isPending && new Date(slip.dueDate) < today;
+            const tyyyy = tomorrow.getFullYear();
+            const tmm = String(tomorrow.getMonth() + 1).padStart(2, "0");
+            const tdd = String(tomorrow.getDate()).padStart(2, "0");
+            const tomorrowStr = `${tyyyy}-${tmm}-${tdd}`;
+
+            const isDueTomorrow = isPending && dueStr === tomorrowStr;
+            const isOverdue = isPending && dueStr < todayStr;
 
             return (
               <span className={`${styles.dueDateTag} ${

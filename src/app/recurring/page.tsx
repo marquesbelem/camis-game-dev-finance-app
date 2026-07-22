@@ -167,7 +167,7 @@ export default function RecurringPage() {
 
             <ul className={styles.recurringList} role="list">
               {slips.map((slip) => {
-                const day = slip.recurringDay ?? new Date(slip.dueDate).getDate();
+                const day = slip.recurringDay ?? (slip.dueDate ? parseInt(slip.dueDate.slice(8, 10), 10) : 1);
                 return (
                   <li key={slip.id} className={styles.listItem}>
                     {/* Color bar indicator based on category */}

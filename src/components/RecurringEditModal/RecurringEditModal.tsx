@@ -68,7 +68,7 @@ export default function RecurringEditModal({ isOpen, onClose, onSave, slip }: Pr
         setAmount(slip.amount.toString());
         setCategoryId(slip.categoryId);
         setIsCreditCardPayment(slip.isCreditCardPayment);
-        const defaultDay = slip.recurringDay ?? new Date(slip.dueDate).getDate();
+        const defaultDay = slip.recurringDay ?? (slip.dueDate ? parseInt(slip.dueDate.slice(8, 10), 10) : 1);
         setRecurringDay(defaultDay);
       }, 0);
       return () => clearTimeout(timer);

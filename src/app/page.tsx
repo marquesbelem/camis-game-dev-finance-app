@@ -412,11 +412,13 @@ export default function Home() {
     } else {
       // Default: Group overdue first, then sort by due date asc
       result.sort((a, b) => {
-        const aOverdue = a.status !== "PAGO" && new Date(a.dueDate) < now;
-        const bOverdue = b.status !== "PAGO" && new Date(b.dueDate) < now;
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+        const aOverdue = a.status !== "PAGO" && a.dueDate.slice(0, 10) < todayStr;
+        const bOverdue = b.status !== "PAGO" && b.dueDate.slice(0, 10) < todayStr;
         if (aOverdue && !bOverdue) return -1;
         if (!aOverdue && bOverdue) return 1;
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        return a.dueDate.slice(0, 10).localeCompare(b.dueDate.slice(0, 10));
       });
     }
 

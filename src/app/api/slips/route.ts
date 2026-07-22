@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        const day = rs.recurringDay ?? rs.dueDate.getDate();
+        const day = rs.recurringDay ?? rs.dueDate.getUTCDate();
         const maxDay = new Date(year, mon, 0).getDate();
         const clampedDay = Math.min(day, maxDay);
 
@@ -322,7 +322,7 @@ export async function POST(request: NextRequest) {
           status,
           isCreditCardPayment,
           isRecurring,
-          recurringDay: isRecurring ? dueDate.getDate() : null,
+          recurringDay: isRecurring ? dueDate.getUTCDate() : null,
           isInstallment: false,
           categoryId,
           documentPath,
