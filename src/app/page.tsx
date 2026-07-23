@@ -9,19 +9,12 @@ import SpeedDialFab from "@/components/SpeedDialFab/SpeedDialFab";
 import SlipItem, { Slip } from "@/components/SlipList/SlipItem";
 import DashboardCharts from "@/components/DashboardCharts/DashboardCharts";
 import SummaryCards from "@/components/DashboardCharts/SummaryCards";
-import AchievementsMiniWidget from "@/components/Achievements/AchievementsMiniWidget";
 import RecentExpensesWidget from "@/components/RecentExpensesWidget/RecentExpensesWidget";
 import ExtraIncomesWidget from "@/components/ExtraIncomesWidget/ExtraIncomesWidget";
 import CategoryBudgetWidget, { CategoryBudgetInfo } from "@/components/CategoryBudgetWidget/CategoryBudgetWidget";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
 import type { CategoryWithCount } from "@/lib/types";
 import LeisureBudgetCard from "@/components/LeisureBudgetCard/LeisureBudgetCard";
-import Capivara3D from "@/components/Capivara3D/Capivara3D";
-import CapyScoreGauge, { computeCapyScore } from "@/components/CapyScore/CapyScoreGauge";
-import QuestsWidget from "@/components/Quests/QuestsWidget";
-import StreakFlameCard from "@/components/Streak/StreakFlameCard";
-import CapyStoreModal from "@/components/CapyStore/CapyStoreModal";
-import type { StoreItem } from "@/app/api/user/store/route";
 import styles from "./page.module.css";
 
 // ── Month helpers ──────────────────────────────────────────────────────────────
@@ -73,36 +66,9 @@ export default function Home() {
   const [leisureData, setLeisureData] = useState<any>(null);
   const [leisureLoading, setLeisureLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isStoreOpen, setIsStoreOpen] = useState(false);
-  const [capyCoins, setCapyCoins] = useState(0);
-  const [equippedAccessory, setEquippedAccessory] = useState("ORANGE");
-  const [equippedSkin, setEquippedSkin] = useState("DEFAULT");
-  const [unlockedItems, setUnlockedItems] = useState<string[]>(["ORANGE", "DEFAULT"]);
-  const [catalog, setCatalog] = useState<StoreItem[]>([]);
   const [userStats, setUserStats] = useState<any>(null);
 
-  const { toasts, dismissToast, celebrateAchievement, addToast, showXpToast, showLevelUpToast } = useToasts();
-
-  const loadStoreData = useCallback(async () => {
-    try {
-      const userId = localStorage.getItem("user_id") || "demo-user";
-      const res = await fetch("/api/user/store", { headers: { "x-user-id": userId } });
-      if (res.ok) {
-        const data = await res.json();
-        setCapyCoins(data.capyCoins || 0);
-        setEquippedAccessory(data.equippedAccessory || "ORANGE");
-        setEquippedSkin(data.equippedSkin || "DEFAULT");
-        setUnlockedItems(data.unlockedItems || ["ORANGE", "DEFAULT"]);
-        setCatalog(data.catalog || []);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadStoreData();
-  }, [loadStoreData]);
+  const { toasts, dismissToast, addToast, showXpToast, showLevelUpToast } = useToasts();
 
   // ── Data loading ──────────────────────────────────────────────────────────
   const loadSlips = useCallback(async (silent = false) => {
@@ -510,13 +476,6 @@ export default function Home() {
   }
 
   // Filter and sort slips based on user settings
-  const capyScoreInfo = useMemo(() => {
-    return computeCapyScore(
-      slips,
-      userStats?.totalCreditLimit ?? 1000,
-      userStats?.leisureBudget ?? 0
-    );
-  }, [slips, userStats]);
 
   const filteredAndSorted = useMemo(() => {
     let result = [...slips];
@@ -641,46 +600,6 @@ export default function Home() {
             onAddIncome={() => setIsExtraModalOpen(true)}
           />
 
-          {/* ④ Gamification Section: Mascot Card & CapyScore Gauge */}
-          <div id="gamification-section" className={styles.gamificationRow}>
-            <div className={styles.mascotHeaderCard}>
-              <div className={styles.mascotInfo}>
-                <h3 className={styles.mascotTitle}>Capivara Poupadora</h3>
-                <p className={styles.mascotSubtitle}>
-                  Humor: {capyScoreInfo.statusLabel}
-                </p>
-                <button
-                  className={styles.storeBtn}
-                  onClick={() => setIsStoreOpen(true)}
-                  aria-label="Abrir loja de cosméticos"
-                >
-                  <ShoppingBag size={16} />
-                  <span>Loja 🪙 {capyCoins}</span>
-                </button>
-              </div>
-
-              <Capivara3D
-                sizeMultiplier={0.8}
-                mood={capyScoreInfo.recommendedMood}
-                equippedAccessory={equippedAccessory}
-                equippedSkin={equippedSkin}
-              />
-            </div>
-
-            <CapyScoreGauge
-              slips={slips}
-              totalCreditLimit={userStats?.totalCreditLimit ?? 1000}
-              leisureBudget={userStats?.leisureBudget ?? 0}
-            />
-          </div>
-
-          {/* ⑤ Quests, Streak & Achievements Mini Widget Row */}
-          <div className={styles.gamificationRow}>
-            <StreakFlameCard />
-            <QuestsWidget onRewardClaimed={() => { loadStoreData(); loadSlips(true); }} />
-            <AchievementsMiniWidget />
-          </div>
-
         </main>
       </div>
 
@@ -770,18 +689,6 @@ export default function Home() {
         onDismiss={dismissToast}
         salaryToCelebrate={salaryToCelebrate}
         onDismissSalary={() => setSalaryToCelebrate(null)}
-      />
-
-      {/* ── CapyStore Modal ──────────────────────────────────────────────── */}
-      <CapyStoreModal
-        isOpen={isStoreOpen}
-        onClose={() => setIsStoreOpen(false)}
-        capyCoins={capyCoins}
-        equippedAccessory={equippedAccessory}
-        equippedSkin={equippedSkin}
-        unlockedItems={unlockedItems}
-        catalog={catalog}
-        onUpdateStore={loadStoreData}
       />
     </>
   );

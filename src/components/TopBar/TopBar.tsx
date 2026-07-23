@@ -28,7 +28,6 @@ const navLinks = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/expenses", icon: Receipt, label: "Despesas" },
   { href: "/categories", icon: Tag, label: "Categorias" },
-  { href: "/achievements", icon: Trophy, label: "Conquistas" },
   { href: "/apartment", icon: Home, label: "Apartamento" },
   { href: "/settings", icon: Sliders, label: "Parâmetros" },
 ];
