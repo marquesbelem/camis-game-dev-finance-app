@@ -41,6 +41,8 @@ model Category {
   isSystemDefault Boolean       @default(false) // Protects seed categories from deletion
   createdAt       DateTime      @default(now())  // Audit timestamp
   
+  budgetLimit     Float?        // Optional category monthly budget limit in R$
+  
   userId          String?
   user            User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
   

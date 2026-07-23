@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Capivara3D from "@/components/Capivara3D/Capivara3D";
 import TopBar from "@/components/TopBar/TopBar";
 import GuidedTutorial from "@/components/GuidedTutorial/GuidedTutorial";
+import DeleteAccountModal from "@/components/DeleteAccountModal/DeleteAccountModal";
 import { Eye, EyeOff } from "lucide-react";
 import styles from "./AuthProvider.module.css";
 
@@ -69,6 +70,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [showTutorial, setShowTutorial] = useState(false);
+  const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("cami_username");
@@ -246,6 +248,14 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem("cami_user_id");
     localStorage.removeItem("cami_tutorial_completed");
     // Reload to clear auth state
+    window.location.reload();
+  }
+
+  function handleAccountDeleted() {
+    setIsDeleteAccountOpen(false);
+    setUsername(null);
+    setUserId(null);
+    localStorage.clear();
     window.location.reload();
   }
 
@@ -443,7 +453,12 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   // Render TopBar with hamburger nav + user info, then page content
   return (
     <>
-      <TopBar username={username!} onLogout={handleLogout} onRestartTutorial={handleRestartTutorial} />
+      <TopBar
+        username={username!}
+        onLogout={handleLogout}
+        onRestartTutorial={handleRestartTutorial}
+        onDeleteAccount={() => setIsDeleteAccountOpen(true)}
+      />
       {children}
       {showTutorial && (
         <GuidedTutorial
@@ -451,6 +466,12 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           onSkip={handleTutorialComplete}
         />
       )}
+      <DeleteAccountModal
+        isOpen={isDeleteAccountOpen}
+        username={username!}
+        onClose={() => setIsDeleteAccountOpen(false)}
+        onAccountDeleted={handleAccountDeleted}
+      />
     </>
   );
 }

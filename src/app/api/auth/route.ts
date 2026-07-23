@@ -233,3 +233,56 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// DELETE /api/auth — Excluir Conta do Usuário e todos os dados associados
+export async function DELETE(request: NextRequest) {
+  try {
+    const userId = request.headers.get("x-user-id");
+    if (!userId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const ip = getClientIp(request);
+    if (isRateLimited(`auth:delete:${userId}:${ip}`, { windowMs: 60000, max: 5 })) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const { password } = body;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+    }
+
+    // Security check: verify password before deleting account
+    if (!password || !verifyPassword(password, user.passwordHash)) {
+      return NextResponse.json(
+        { error: "Senha incorreta. Confirmação de segurança falhou." },
+        { status: 400 }
+      );
+    }
+
+    // Delete user (Prisma onDelete: Cascade deletes all linked data automatically)
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Conta e todos os dados foram excluídos com sucesso.",
+    });
+  } catch (error) {
+    console.error("[DELETE /api/auth]", error);
+    return NextResponse.json(
+      { error: "Falha ao excluir a conta." },
+      { status: 500 }
+    );
+  }
+}

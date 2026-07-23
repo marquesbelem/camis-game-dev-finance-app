@@ -7,13 +7,12 @@ import styles from "./SpeedDialFab.module.css";
 interface SpeedDialFabProps {
   onAddExpense: () => void;
   onAddIncome: () => void;
-  onOpenSettings: () => void;
+  onOpenSettings?: () => void;
 }
 
 export default function SpeedDialFab({
   onAddExpense,
   onAddIncome,
-  onOpenSettings,
 }: SpeedDialFabProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,27 +60,10 @@ export default function SpeedDialFab({
       {/* Expanded Speed Dial Items */}
       {isOpen && (
         <div className={styles.speedDialList}>
-          {/* Option 3: Settings */}
-          <div
-            className={styles.dialItem}
-            style={{ animationDelay: "0ms" }}
-          >
-            <span className={styles.itemLabel}>Parâmetros</span>
-            <button
-              type="button"
-              className={`${styles.subFab} ${styles.fabSettings}`}
-              onClick={() => handleAction(onOpenSettings)}
-              title="Configurar Parâmetros"
-              aria-label="Configurar parâmetros"
-            >
-              <Settings size={20} />
-            </button>
-          </div>
-
           {/* Option 2: Extra Income */}
           <div
             className={styles.dialItem}
-            style={{ animationDelay: "40ms" }}
+            style={{ animationDelay: "0ms" }}
           >
             <span className={styles.itemLabel}>Receita Extra</span>
             <button
@@ -98,7 +80,7 @@ export default function SpeedDialFab({
           {/* Option 1: Add Expense */}
           <div
             className={styles.dialItem}
-            style={{ animationDelay: "80ms" }}
+            style={{ animationDelay: "40ms" }}
           >
             <span className={styles.itemLabel}>Adicionar Despesa</span>
             <button

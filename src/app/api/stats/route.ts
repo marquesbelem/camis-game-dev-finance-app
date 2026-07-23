@@ -190,10 +190,12 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("[PUT /api/stats]", error);
+    console.error("[PUT/PATCH /api/stats]", error);
     return NextResponse.json(
       { error: "Falha ao atualizar as estatísticas" },
       { status: 500 }
     );
   }
 }
+
+export { PUT as PATCH };

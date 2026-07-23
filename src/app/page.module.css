@@ -29,6 +29,34 @@
   width: 100%;
 }
 
+.categoryBudgetsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.categoryBudgetsTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.categoryBudgetsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .categoryBudgetsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Header ─────────────────────────────────────────────────────────────────── */
 .header {
   display: flex;

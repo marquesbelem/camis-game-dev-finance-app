@@ -2,16 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Settings, X, DollarSign, Calendar, CreditCard, HeartHandshake, Percent } from "lucide-react";
+import { Settings, X, DollarSign, Calendar, CreditCard, HeartHandshake, Percent, Trash2 } from "lucide-react";
 import styles from "./SettingsModal.module.css";
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaved: () => void;
+  onDeleteAccount?: () => void;
 }
 
-export default function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) {
+export default function SettingsModal({ isOpen, onClose, onSaved, onDeleteAccount }: SettingsModalProps) {
   const [budgetLimit, setBudgetLimit] = useState("");
   const [creditLimit, setCreditLimit] = useState("");
   const [salaryAmount, setSalaryAmount] = useState("");
@@ -174,6 +175,23 @@ export default function SettingsModal({ isOpen, onClose, onSaved }: SettingsModa
               required
             />
           </div>
+
+          {onDeleteAccount && (
+            <div className={`${styles.dangerZone} ${styles.fullWidth}`}>
+              <span className={styles.dangerZoneTitle}>Zona de Perigo</span>
+              <button
+                type="button"
+                className={styles.deleteAccountBtn}
+                onClick={() => {
+                  onClose();
+                  onDeleteAccount();
+                }}
+              >
+                <Trash2 size={15} />
+                <span>Excluir Minha Conta</span>
+              </button>
+            </div>
+          )}
 
           <div className={`${styles.actions} ${styles.fullWidth}`}>
             <button type="button" className={styles.cancelBtn} onClick={onClose}>

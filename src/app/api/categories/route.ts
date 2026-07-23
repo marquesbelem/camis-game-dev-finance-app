@@ -145,3 +145,55 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Falha ao criar categoria" }, { status: 500 });
   }
 }
+
+// PUT /api/categories — batch update category budget limits
+export async function PUT(request: NextRequest) {
+  try {
+    const userId = request.headers.get("x-user-id");
+    if (!userId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const ip = getClientIp(request);
+    if (isRateLimited(`categories:put:${userId}:${ip}`, { windowMs: 60000, max: 30 })) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+
+    const body = await request.json();
+    const { categoryLimits } = body as {
+      categoryLimits: Array<{ id: string; budgetLimit: number | null }>;
+    };
+
+    if (!Array.isArray(categoryLimits)) {
+      return NextResponse.json(
+        { error: "Formato inválido para categoryLimits." },
+        { status: 400 }
+      );
+    }
+
+    // Update each category budgetLimit
+    await Promise.all(
+      categoryLimits.map(async (item) => {
+        const val = item.budgetLimit !== null && item.budgetLimit !== undefined && !isNaN(Number(item.budgetLimit)) && Number(item.budgetLimit) > 0
+          ? Number(item.budgetLimit)
+          : null;
+
+        await prisma.category.updateMany({
+          where: { id: item.id },
+          data: { budgetLimit: val },
+        });
+      })
+    );
+
+    return NextResponse.json({ message: "Limites de categoria atualizados com sucesso." });
+  } catch (error) {
+    console.error("[PUT /api/categories]", error);
+    return NextResponse.json(
+      { error: "Falha ao atualizar limites das categorias" },
+      { status: 500 }
+    );
+  }
+}

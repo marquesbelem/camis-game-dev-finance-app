@@ -12,7 +12,9 @@ import SummaryCards from "@/components/DashboardCharts/SummaryCards";
 import AchievementsMiniWidget from "@/components/Achievements/AchievementsMiniWidget";
 import RecentExpensesWidget from "@/components/RecentExpensesWidget/RecentExpensesWidget";
 import ExtraIncomesWidget from "@/components/ExtraIncomesWidget/ExtraIncomesWidget";
+import CategoryBudgetWidget, { CategoryBudgetInfo } from "@/components/CategoryBudgetWidget/CategoryBudgetWidget";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
+import type { CategoryWithCount } from "@/lib/types";
 import LeisureBudgetCard from "@/components/LeisureBudgetCard/LeisureBudgetCard";
 import Capivara3D from "@/components/Capivara3D/Capivara3D";
 import CapyScoreGauge, { computeCapyScore } from "@/components/CapyScore/CapyScoreGauge";
@@ -106,18 +108,21 @@ export default function Home() {
   const loadSlips = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [slipsRes, statsRes, extraRes] = await Promise.all([
+      const [slipsRes, statsRes, extraRes, catRes] = await Promise.all([
         fetch(`/api/slips?month=${selectedMonth}`),
         fetch(`/api/stats?month=${selectedMonth}`),
         fetch(`/api/extra-income?month=${selectedMonth}`),
+        fetch("/api/categories"),
       ]);
-      const [slipsData, statsData, extraData] = await Promise.all([
+      const [slipsData, statsData, extraData, catData] = await Promise.all([
         slipsRes.ok ? slipsRes.json().catch(() => []) : [],
         statsRes.ok ? statsRes.json().catch(() => ({})) : {},
         extraRes.ok ? extraRes.json().catch(() => []) : [],
-      ]) as [any, any, any];
+        catRes.ok ? catRes.json().catch(() => []) : [],
+      ]) as [any, any, any, any];
       setSlips(Array.isArray(slipsData) ? slipsData : []);
       setExtraIncomes(Array.isArray(extraData) ? extraData : []);
+      setCategories(Array.isArray(catData) ? catData : []);
       setUserStats(statsData);
       const salary = statsData.scheduledSalaryAmount > 0 ? statsData.scheduledSalaryAmount : 3000.0;
       const budgetPct = statsData.monthlyBudgetLimit ?? 50.0;
@@ -145,6 +150,35 @@ export default function Home() {
   useEffect(() => {
     loadSlips();
   }, [loadSlips]);
+
+  // ── Configured Category Budgets calculation for selected month ───────────
+  const categoryBudgets: CategoryBudgetInfo[] = useMemo(() => {
+    const salaryNum = userStats?.scheduledSalaryAmount > 0 ? userStats.scheduledSalaryAmount : 3000;
+
+    return (categories as any[])
+      .filter((cat) => cat.budgetLimit && Number(cat.budgetLimit) > 0)
+      .map((cat) => {
+        const budgetPct = Number(cat.budgetLimit);
+        const budgetAmount = (salaryNum * budgetPct) / 100;
+
+        const spentAmount = slips
+          .filter((s) => s.categoryId === cat.id)
+          .reduce((sum, s) => sum + Number(s.amount), 0);
+
+        const remainingAmount = budgetAmount - spentAmount;
+
+        return {
+          id: cat.id,
+          name: cat.name,
+          colorCode: cat.colorCode,
+          iconRef: cat.iconRef,
+          budgetLimitPct: budgetPct,
+          budgetAmount,
+          spentAmount,
+          remainingAmount,
+        };
+      });
+  }, [categories, slips, userStats]);
 
   // Re-check slips & salary celebration when tutorial completes
   useEffect(() => {
@@ -434,6 +468,7 @@ export default function Home() {
       });
       
       playSound("add_expense");
+      setIsExtraModalOpen(false);
       setExtraIncomeAmount("");
       setExtraIncomeDesc("");
       loadSlips();
@@ -574,6 +609,18 @@ export default function Home() {
             <DashboardCharts slips={slips} />
           </section>
 
+          {/* ③ Orçamentos por Categoria (Widgets minimizáveis) */}
+          {categoryBudgets.length > 0 && (
+            <section aria-label="Orçamentos de categorias configuradas" className={styles.categoryBudgetsSection}>
+              <h3 className={styles.categoryBudgetsTitle}>🎯 Orçamentos por Categoria</h3>
+              <div className={styles.categoryBudgetsGrid}>
+                {categoryBudgets.map((cat) => (
+                  <CategoryBudgetWidget key={cat.id} category={cat} />
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* ③ Leisure Budget */}
           <section aria-label="Orçamento de lazer">
             <LeisureBudgetCard data={leisureData} loading={leisureLoading} />
@@ -658,83 +705,19 @@ export default function Home() {
         targetMonth={selectedMonth}
       />
 
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        onSaved={() => loadSlips()}
-      />
-
       {/* ── Collapsible Speed Dial FAB ───────────────────────────────── */}
       <SpeedDialFab
         onAddExpense={() => { setEditingSlip(null); setIsFormOpen(true); }}
         onAddIncome={() => setIsExtraModalOpen(true)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       {/* ── Extra Income Modal ────────────────────────────────────────── */}
       {isExtraModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsExtraModalOpen(false)}>
-          <div className={styles.extraModalContent} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.extraModalHeader}>
-              <h3 className={styles.modalTitle}>✨ Receitas Extras ({formatMonthLabel(selectedMonth)})</h3>
-              <button
-                type="button"
-                className={styles.closeBtn}
-                onClick={() => {
-                  setIsExtraModalOpen(false);
-                  setExtraIncomeAmount("");
-                  setExtraIncomeDesc("");
-                }}
-                aria-label="Fechar"
-              >
-                <X size={18} />
-              </button>
-            </div>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>✨ Adicionar Receita Extra</h3>
 
-            {/* List of Registered Extra Incomes */}
-            <div className={styles.extraIncomeSection}>
-              <h4 className={styles.extraSectionTitle}>Receitas Cadastradas</h4>
-              {extraIncomes.length === 0 ? (
-                <p className={styles.extraEmptyText}>Nenhuma receita extra cadastrada neste mês.</p>
-              ) : (
-                <div className={styles.extraList}>
-                  {extraIncomes.map((inc) => (
-                    <div key={inc.id} className={styles.extraCard}>
-                      <div className={styles.extraCardInfo}>
-                        <span className={styles.extraIcon}>💰</span>
-                        <div className={styles.extraDetails}>
-                          <strong className={styles.extraDesc}>{inc.description || "Receita Extra"}</strong>
-                          <span className={styles.extraDate}>
-                            {inc.createdAt ? new Date(inc.createdAt).toLocaleDateString("pt-BR") : ""}
-                          </span>
-                        </div>
-                      </div>
-                      <div className={styles.extraCardRight}>
-                        <span className={styles.extraAmount}>
-                          + {Number(inc.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                        </span>
-                        <button
-                          type="button"
-                          className={styles.deleteExtraBtn}
-                          onClick={() => handleDeleteExtraIncome(inc.id)}
-                          title="Excluir esta receita extra"
-                          aria-label={`Excluir ${inc.description}`}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <hr className={styles.extraDivider} />
-
-            {/* Form to Add New Extra Income */}
             <form onSubmit={handleAddExtraIncome}>
-              <h4 className={styles.extraSectionTitle}>Adicionar Nova Receita</h4>
-
               <div className={styles.formGroup}>
                 <label className={styles.label}>Descrição (opcional)</label>
                 <input
@@ -756,6 +739,7 @@ export default function Home() {
                   onChange={(e) => setExtraIncomeAmount(e.target.value)}
                   placeholder="Ex: 500,00"
                   required
+                  autoFocus
                 />
               </div>
 
@@ -769,10 +753,10 @@ export default function Home() {
                   }}
                   className={styles.cancelBtn}
                 >
-                  Fechar
+                  Cancelar
                 </button>
                 <button type="submit" className={styles.submitBtn}>
-                  + Adicionar Receita
+                  + Adicionar Bônus
                 </button>
               </div>
             </form>

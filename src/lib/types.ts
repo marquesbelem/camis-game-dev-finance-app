@@ -6,6 +6,7 @@ export interface Category {
   colorCode: string;
   iconRef: string;
   isSystemDefault: boolean;
+  budgetLimit?: number | null;
   createdAt: Date | string;
 }
 

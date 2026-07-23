@@ -12,6 +12,8 @@ import {
   Trophy,
   LogOut,
   GraduationCap,
+  Trash2,
+  Sliders,
 } from "lucide-react";
 import styles from "./TopBar.module.css";
 
@@ -19,6 +21,7 @@ interface TopBarProps {
   username: string;
   onLogout: () => void;
   onRestartTutorial?: () => void;
+  onDeleteAccount?: () => void;
 }
 
 const navLinks = [
@@ -27,9 +30,10 @@ const navLinks = [
   { href: "/categories", icon: Tag, label: "Categorias" },
   { href: "/achievements", icon: Trophy, label: "Conquistas" },
   { href: "/apartment", icon: Home, label: "Apartamento" },
+  { href: "/settings", icon: Sliders, label: "Parâmetros" },
 ];
 
-export default function TopBar({ username, onLogout, onRestartTutorial }: TopBarProps) {
+export default function TopBar({ username, onLogout, onRestartTutorial, onDeleteAccount }: TopBarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -148,6 +152,16 @@ export default function TopBar({ username, onLogout, onRestartTutorial }: TopBar
               <LogOut size={16} />
               Sair da conta
             </button>
+            {onDeleteAccount && (
+              <button
+                type="button"
+                className={styles.drawerDeleteBtn}
+                onClick={() => { setIsOpen(false); onDeleteAccount(); }}
+              >
+                <Trash2 size={16} />
+                Excluir minha conta
+              </button>
+            )}
           </div>
         </nav>
       )}
