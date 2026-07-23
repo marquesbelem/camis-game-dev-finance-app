@@ -7,10 +7,15 @@
   background: radial-gradient(circle at center, rgba(59, 130, 246, 0.12) 0%, rgba(15, 23, 42, 0.4) 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
-  padding: 24px;
+  padding: 20px 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
+  /*
+    clip-path clips CSS 3D-transformed descendants (unlike overflow:hidden which doesn't).
+    This ensures the isometric room never bleeds outside the card.
+  */
+  clip-path: inset(0 round 24px);
 }
 
 .titleArea {
@@ -48,6 +53,8 @@
   perspective: 900px;
   perspective-origin: 50% 30%;
   margin: 10px 0 20px;
+  flex-shrink: 0;
+  /* zoom applied inline via JS — scales layout + 3D together */
 }
 
 .room {
@@ -55,7 +62,13 @@
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transform: rotateX(60deg) rotateZ(-45deg);
+  /*
+    The isometric projection with rotateX(60deg) rotateZ(-45deg) places the room's
+    content ~155px to the LEFT of the scene origin (cubes start at x=-90).
+    translateX(155px) translateY(18px) at the START of the list = applied LAST =
+    moves in screen/parent space AFTER rotations, re-centering the room visually.
+  */
+  transform: translateX(155px) translateY(18px) rotateX(60deg) rotateZ(-45deg);
   transition: transform 0.5s ease;
 }
 

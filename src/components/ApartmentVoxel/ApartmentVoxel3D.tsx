@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Home, Lock, Check } from "lucide-react";
 import styles from "./ApartmentVoxel3D.module.css";
 
@@ -49,6 +49,21 @@ interface ApartmentVoxel3DProps {
 
 export default function ApartmentVoxel3D({ progressPct = 0 }: ApartmentVoxel3DProps) {
   const roundedPct = Math.min(100, Math.max(0, Math.round(progressPct)));
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+
+  // Use zoom (not scale) because CSS zoom re-does layout + clips 3D content naturally.
+  // The scene is 220px; we shrink on narrow containers.
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const SCENE_SIZE = 220;
+    const obs = new ResizeObserver(([entry]) => {
+      const available = entry.contentRect.width - 40; // 20px padding each side
+      setZoom(Math.min(1, Math.max(0.4, available / SCENE_SIZE)));
+    });
+    obs.observe(containerRef.current);
+    return () => obs.disconnect();
+  }, []);
 
   const isTier1 = roundedPct >= 15; // Piso & Chaves
   const isTier2 = roundedPct >= 40; // Sofá & TV
@@ -56,7 +71,7 @@ export default function ApartmentVoxel3D({ progressPct = 0 }: ApartmentVoxel3DPr
   const isTier4 = roundedPct >= 90; // Varanda & Capivara de Férias!
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={containerRef}>
       <div className={styles.titleArea}>
         <h3 className={styles.title}>
           <Home size={20} className="text-emerald-400" />
@@ -65,7 +80,14 @@ export default function ApartmentVoxel3D({ progressPct = 0 }: ApartmentVoxel3DPr
         <span className={styles.pctBadge}>{roundedPct}% Concluído</span>
       </div>
 
-      <div className={styles.scene}>
+      {/*
+        The isometric room projects its 3D content ~155px to the LEFT of the scene origin
+        (because cubes at x=-90 sit outside the 220px bounding box).
+        We correct this with translateX(155px) translateY(18px) on .room (in screen space,
+        applied AFTER the rotations in the CSS transform list).
+        zoom scales the entire scene including 3D content and re-adjusts layout size.
+      */}
+      <div className={styles.scene} style={{ zoom }}>
         <div className={styles.room}>
           {/* 1. Base Floor */}
           <Cube w={180} h={180} d={12} x={-90} y={-90} z={-6} color={isTier1 ? "#0f766e" : "#334155"} topColor={isTier1 ? "#14b8a6" : "#475569"} rightColor={isTier1 ? "#0d9488" : "#1e293b"} />
