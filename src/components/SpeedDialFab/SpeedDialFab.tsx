@@ -39,7 +39,7 @@ export default function SpeedDialFab({
   };
 
   return (
-    <div ref={containerRef} className={styles.container}>
+    <div id="speed-dial-fab" ref={containerRef} className={styles.container}>
       {/* Main Trigger Button */}
       <button
         type="button"

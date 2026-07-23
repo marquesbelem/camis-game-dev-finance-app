@@ -17,19 +17,20 @@ enum SlipStatus {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  username     String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
+  id                String   @id @default(uuid())
+  username          String   @unique
+  passwordHash      String
+  tutorialCompleted Boolean  @default(false)
+  createdAt         DateTime @default(now())
 
-  categories    Category[]
-  slips         PaymentSlip[]
-  achievements  Achievement[]
-  stats         UserStats?
-  extraIncomes  ExtraIncome[]
+  categories       Category[]
+  slips            PaymentSlip[]
+  achievements     Achievement[]
+  stats            UserStats?
+  extraIncomes     ExtraIncome[]
   apartmentProject ApartmentProject?
-  deviceTokens  DeviceToken[]
-  monthlyBudgets MonthlyBudget[]
+  deviceTokens     DeviceToken[]
+  monthlyBudgets   MonthlyBudget[]
 }
 
 model Category {

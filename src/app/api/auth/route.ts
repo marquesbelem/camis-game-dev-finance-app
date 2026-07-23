@@ -163,6 +163,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         id: user.id,
         username: user.username,
+        tutorialCompleted: false,
       });
 
     } else if (action === "login") {
@@ -190,6 +191,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         id: user.id,
         username: user.username,
+        tutorialCompleted: user.tutorialCompleted,
       });
 
     } else if (action === "reset-password") {

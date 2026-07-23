@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Capivara3D from "@/components/Capivara3D/Capivara3D";
 import TopBar from "@/components/TopBar/TopBar";
+import GuidedTutorial from "@/components/GuidedTutorial/GuidedTutorial";
 import { Eye, EyeOff } from "lucide-react";
 import styles from "./AuthProvider.module.css";
 
@@ -51,15 +52,19 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("cami_username");
     const storedUserId = localStorage.getItem("cami_user_id");
+    const tutorialDone = localStorage.getItem("cami_tutorial_completed") === "true";
 
     if (storedUsername && storedUserId) {
       setUsername(storedUsername);
       setUserId(storedUserId);
       setupFetchInterceptor(storedUserId);
+      // Show tutorial if not yet completed
+      if (!tutorialDone) setShowTutorial(true);
     }
     setLoading(false);
   }, []);
@@ -186,6 +191,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         // Store credentials locally
         localStorage.setItem("cami_username", userData.username);
         localStorage.setItem("cami_user_id", userData.id);
+        // Store tutorial status: new users always get tutorial
+        localStorage.setItem("cami_tutorial_completed", userData.tutorialCompleted ? "true" : "false");
 
         setUsername(userData.username);
         setUserId(userData.id);
@@ -204,8 +211,27 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   function handleLogout() {
     localStorage.removeItem("cami_username");
     localStorage.removeItem("cami_user_id");
+    localStorage.removeItem("cami_tutorial_completed");
     // Reload to clear auth state
     window.location.reload();
+  }
+
+  async function handleTutorialComplete() {
+    setShowTutorial(false);
+    localStorage.setItem("cami_tutorial_completed", "true");
+    try {
+      await fetch("/api/auth/tutorial", { method: "PATCH" });
+    } catch {
+      // non-critical — localStorage is source of truth for session
+    }
+  }
+
+  async function handleRestartTutorial() {
+    localStorage.setItem("cami_tutorial_completed", "false");
+    try {
+      await fetch("/api/auth/tutorial", { method: "DELETE" });
+    } catch { /* non-critical */ }
+    setShowTutorial(true);
   }
 
   function toggleMode(mode: "login" | "register" | "reset") {
@@ -381,8 +407,14 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   // Render TopBar with hamburger nav + user info, then page content
   return (
     <>
-      <TopBar username={username!} onLogout={handleLogout} />
+      <TopBar username={username!} onLogout={handleLogout} onRestartTutorial={handleRestartTutorial} />
       {children}
+      {showTutorial && (
+        <GuidedTutorial
+          onComplete={handleTutorialComplete}
+          onSkip={handleTutorialComplete}
+        />
+      )}
     </>
   );
 }

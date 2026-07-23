@@ -521,7 +521,7 @@ export default function Home() {
           </header>
 
           {/* ① Summary Cards – most important */}
-          <section aria-label="Resumo financeiro do mês">
+          <section id="summary-cards-section" aria-label="Resumo financeiro do mês">
             <SummaryCards slips={slips} budgetLimit={budgetLimit} loading={loading} />
           </section>
 
@@ -544,7 +544,7 @@ export default function Home() {
           />
 
           {/* ④ Gamification Section: Mascot Card & CapyScore Gauge */}
-          <div className={styles.gamificationRow}>
+          <div id="gamification-section" className={styles.gamificationRow}>
             <div className={styles.mascotHeaderCard}>
               <div className={styles.mascotInfo}>
                 <h3 className={styles.mascotTitle}>Capivara Poupadora</h3>

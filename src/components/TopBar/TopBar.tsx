@@ -11,12 +11,14 @@ import {
   Home,
   Trophy,
   LogOut,
+  GraduationCap,
 } from "lucide-react";
 import styles from "./TopBar.module.css";
 
 interface TopBarProps {
   username: string;
   onLogout: () => void;
+  onRestartTutorial?: () => void;
 }
 
 const navLinks = [
@@ -27,7 +29,7 @@ const navLinks = [
   { href: "/achievements", icon: Trophy, label: "Conquistas" },
 ];
 
-export default function TopBar({ username, onLogout }: TopBarProps) {
+export default function TopBar({ username, onLogout, onRestartTutorial }: TopBarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -128,6 +130,16 @@ export default function TopBar({ username, onLogout }: TopBarProps) {
                 <p className={styles.drawerUserLabel}>Conta ativa</p>
               </div>
             </div>
+            {onRestartTutorial && (
+              <button
+                type="button"
+                className={styles.drawerTutorialBtn}
+                onClick={() => { setIsOpen(false); onRestartTutorial(); }}
+              >
+                <GraduationCap size={16} />
+                Reiniciar Tutorial
+              </button>
+            )}
             <button
               type="button"
               className={styles.drawerLogoutBtn}
