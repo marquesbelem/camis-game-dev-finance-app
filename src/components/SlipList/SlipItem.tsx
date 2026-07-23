@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Pencil, Trash2, FileText, CreditCard, AlertCircle, CheckCircle2, Clock, Repeat, Calendar } from "lucide-react";
+import { MonsterBadge, BattleSlash } from "../MonsterBattle/MonsterCard";
+import DeleteRecurringModal from "../DeleteRecurringModal/DeleteRecurringModal";
 import styles from "./SlipItem.module.css";
 
 interface Category {
@@ -62,21 +65,18 @@ function formatDate(iso: string): string {
 
 export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Props) {
   const state = getSlipState(slip);
+  const [showBattle, setShowBattle] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  function handleToggleClick() {
+    if (slip.status === "PENDENTE") {
+      setShowBattle(true);
+    }
+    onStatusToggle(slip);
+  }
 
   function handleDeleteClick() {
-    if (slip.isInstallment && slip.installmentGroupId) {
-      if (confirm(`Deseja realmente excluir a parcela ${slip.installmentNumber} de ${slip.installmentTotal} da despesa "${slip.title}"?`)) {
-        if (confirm("Esta despesa faz parte de um parcelamento. Deseja excluir também esta e todas as parcelas futuras?")) {
-          onDelete(slip.id, true);
-        } else {
-          onDelete(slip.id, false);
-        }
-      }
-    } else {
-      if (confirm(`Deseja realmente excluir a despesa "${slip.title}"?`)) {
-        onDelete(slip.id);
-      }
-    }
+    setIsDeleteModalOpen(true);
   }
 
   const StateIcon =
@@ -86,118 +86,150 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
         ? AlertCircle
         : Clock;
 
-  return (
-    <article
-      className={`${styles.item} ${styles[`state_${state}`]}`}
-      aria-label={`Despesa: ${slip.title}`}
-    >
-      {/* Color accent bar */}
-      <span
-        className={styles.colorBar}
-        style={{ background: slip.category.colorCode }}
-        aria-hidden="true"
-      />
+  const isOverdue = slip.status === "PENDENTE" && slip.dueDate.slice(0, 10) < new Date().toISOString().slice(0, 10);
 
-      {/* Main content */}
-      <div className={styles.body}>
-        {/* Top row */}
-        <div className={styles.topRow}>
-          <div className={styles.titleRow}>
-            <StateIcon
-              size={16}
-              className={`${styles.stateIcon} ${styles[`stateIcon_${state}`]}`}
-              aria-hidden="true"
-            />
-            <h3 className={styles.title}>{slip.title}</h3>
-            {slip.isCreditCardPayment && (
-              <span className={styles.creditBadge} title="Cartão de Crédito">
-                <CreditCard size={12} />
-              </span>
-            )}
-            {slip.isRecurring && (
-              <span className={styles.recurringBadge} title="Despesa Recorrente">
-                <Repeat size={12} />
-              </span>
-            )}
-            {slip.isInstallment && (
-              <span className={styles.installmentBadge} title={`Parcela ${slip.installmentNumber}/${slip.installmentTotal}`}>
-                <Calendar size={12} />
-                <span>{slip.installmentNumber}/{slip.installmentTotal}</span>
-              </span>
+  return (
+    <>
+      {showBattle && (
+        <BattleSlash
+          amount={slip.amount}
+          onComplete={() => setShowBattle(false)}
+        />
+      )}
+      <DeleteRecurringModal
+        isOpen={isDeleteModalOpen}
+        expenseTitle={slip.title}
+        isRecurring={slip.isRecurring}
+        isInstallment={slip.isInstallment && !!slip.installmentGroupId}
+        installmentNumber={slip.installmentNumber}
+        installmentTotal={slip.installmentTotal}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={(deleteFuture) => onDelete(slip.id, deleteFuture)}
+      />
+      <article
+        className={`${styles.item} ${styles[`state_${state}`]}`}
+        aria-label={`Despesa: ${slip.title}`}
+      >
+        {/* Color accent bar */}
+        <span
+          className={styles.colorBar}
+          style={{ background: slip.category.colorCode }}
+          aria-hidden="true"
+        />
+
+        {/* Main content */}
+        <div className={styles.body}>
+          {/* Top row */}
+          <div className={styles.topRow}>
+            <div className={styles.titleContainer}>
+              <div className={styles.titleHeader}>
+                <StateIcon
+                  size={18}
+                  className={`${styles.stateIcon} ${styles[`stateIcon_${state}`]}`}
+                  aria-hidden="true"
+                />
+                <h3 className={styles.title}>{slip.title}</h3>
+              </div>
+
+              <div className={styles.badgesRow}>
+                {slip.isCreditCardPayment && (
+                  <span className={styles.creditBadge} title="Cartão de Crédito">
+                    <CreditCard size={12} />
+                  </span>
+                )}
+                {slip.isRecurring && (
+                  <span className={styles.recurringBadge} title="Despesa Recorrente">
+                    <Repeat size={12} />
+                  </span>
+                )}
+                {slip.isInstallment && (
+                  <span className={styles.installmentBadge} title={`Parcela ${slip.installmentNumber}/${slip.installmentTotal}`}>
+                    <Calendar size={12} />
+                    <span>{slip.installmentNumber}/{slip.installmentTotal}</span>
+                  </span>
+                )}
+                {slip.status === "PENDENTE" && (
+                  <MonsterBadge
+                    isOverdue={isOverdue}
+                    isCreditCard={slip.isCreditCardPayment}
+                    isRecurring={slip.isRecurring}
+                  />
+                )}
+              </div>
+            </div>
+
+            <span className={styles.amount}>{formatCurrency(slip.amount)}</span>
+          </div>
+
+          {/* Meta row */}
+          <div className={styles.metaRow}>
+            <span
+              className={styles.categoryTag}
+              style={{
+                background: `${slip.category.colorCode}22`,
+                color: slip.category.colorCode,
+                borderColor: `${slip.category.colorCode}44`,
+              }}
+            >
+              {slip.category.name}
+            </span>
+
+            {(() => {
+              const isPending = slip.status === "PENDENTE";
+              const dueStr = slip.dueDate.slice(0, 10);
+              const today = new Date();
+              const yyyy = today.getFullYear();
+              const mm = String(today.getMonth() + 1).padStart(2, "0");
+              const dd = String(today.getDate()).padStart(2, "0");
+              const todayStr = `${yyyy}-${mm}-${dd}`;
+              
+              const tomorrow = new Date(today);
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              const tyyyy = tomorrow.getFullYear();
+              const tmm = String(tomorrow.getMonth() + 1).padStart(2, "0");
+              const tdd = String(tomorrow.getDate()).padStart(2, "0");
+              const tomorrowStr = `${tyyyy}-${tmm}-${tdd}`;
+
+              const isDueTomorrow = isPending && dueStr === tomorrowStr;
+              const isOverdueTag = isPending && dueStr < todayStr;
+
+              return (
+                <span className={`${styles.dueDateTag} ${
+                  isDueTomorrow ? styles.dueDateTagTomorrow :
+                  isOverdueTag ? styles.dueDateTagOverdue : ""
+                }`}>
+                  Vence {formatDate(slip.dueDate)}
+                </span>
+              );
+            })()}
+
+            {slip.documentPath && (
+              <a
+                href={slip.documentPath}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.docLink}
+                title="Ver documento anexo"
+                id={`doc-link-${slip.id}`}
+              >
+                <FileText size={14} />
+              </a>
             )}
           </div>
-          <span className={styles.amount}>{formatCurrency(slip.amount)}</span>
         </div>
 
-        {/* Meta row */}
-        <div className={styles.metaRow}>
-          <span
-            className={styles.categoryTag}
-            style={{
-              background: `${slip.category.colorCode}22`,
-              color: slip.category.colorCode,
-              borderColor: `${slip.category.colorCode}44`,
-            }}
+        {/* Actions */}
+        <div className={styles.actions}>
+          {/* Status toggle */}
+          <button
+            id={`toggle-status-${slip.id}`}
+            className={`${styles.actionBtn} ${state === "paid" ? styles.paidBtn : styles.pendingBtn}`}
+            onClick={handleToggleClick}
+            title={state === "paid" ? "Marcar como pendente" : "Marcar como pago"}
+            aria-label={state === "paid" ? "Marcar como pendente" : "Marcar como pago"}
           >
-            {slip.category.name}
-          </span>
-
-          {(() => {
-            const isPending = slip.status === "PENDENTE";
-            const dueStr = slip.dueDate.slice(0, 10);
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, "0");
-            const dd = String(today.getDate()).padStart(2, "0");
-            const todayStr = `${yyyy}-${mm}-${dd}`;
-            
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tyyyy = tomorrow.getFullYear();
-            const tmm = String(tomorrow.getMonth() + 1).padStart(2, "0");
-            const tdd = String(tomorrow.getDate()).padStart(2, "0");
-            const tomorrowStr = `${tyyyy}-${tmm}-${tdd}`;
-
-            const isDueTomorrow = isPending && dueStr === tomorrowStr;
-            const isOverdue = isPending && dueStr < todayStr;
-
-            return (
-              <span className={`${styles.dueDateTag} ${
-                isDueTomorrow ? styles.dueDateTagTomorrow :
-                isOverdue ? styles.dueDateTagOverdue : ""
-              }`}>
-                Vence {formatDate(slip.dueDate)}
-              </span>
-            );
-          })()}
-
-          {slip.documentPath && (
-            <a
-              href={slip.documentPath}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.docLink}
-              title="Ver documento anexo"
-              id={`doc-link-${slip.id}`}
-            >
-              <FileText size={14} />
-            </a>
-          )}
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className={styles.actions}>
-        {/* Status toggle */}
-        <button
-          id={`toggle-status-${slip.id}`}
-          className={`${styles.actionBtn} ${state === "paid" ? styles.paidBtn : styles.pendingBtn}`}
-          onClick={() => onStatusToggle(slip)}
-          title={state === "paid" ? "Marcar como pendente" : "Marcar como pago"}
-          aria-label={state === "paid" ? "Marcar como pendente" : "Marcar como pago"}
-        >
-          {state === "paid" ? <Clock size={15} /> : <CheckCircle2 size={15} />}
-        </button>
+            {state === "paid" ? <Clock size={15} /> : <CheckCircle2 size={15} />}
+          </button>
 
         <button
           id={`edit-slip-${slip.id}`}
@@ -220,5 +252,6 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
         </button>
       </div>
     </article>
+  </>
   );
 }

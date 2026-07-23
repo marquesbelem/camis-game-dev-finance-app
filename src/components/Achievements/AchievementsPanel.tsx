@@ -1,7 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Trophy, Star, Zap, TrendingDown, Settings, Lock, ChevronDown } from "lucide-react";
+import {
+  Trophy,
+  Star,
+  Zap,
+  TrendingDown,
+  Settings,
+  Lock,
+  ChevronDown,
+  Swords,
+  Home,
+  Activity,
+  CheckCircle2,
+} from "lucide-react";
 import styles from "./AchievementsPanel.module.css";
 
 interface Achievement {
@@ -34,41 +46,29 @@ interface Props {
 }
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
-  CARD_THRESHOLD: <TrendingDown size={16} />,
-  SAVINGS: <Star size={16} />,
-  STREAK: <Zap size={16} />,
+  CARD_THRESHOLD: <TrendingDown size={18} />,
+  SAVINGS: <Star size={18} />,
+  STREAK: <Zap size={18} />,
+  MONSTER_HUNTER: <Swords size={18} />,
+  APARTMENT_PROGRESS: <Home size={18} />,
+  CAPY_SCORE: <Activity size={18} />,
 };
 
 const TRAIL_LABELS: Record<string, string> = {
   CARD_THRESHOLD: "💳 Trilha Redução de Cartão",
-  STREAK: "🔥 Trilha Consistência (Sem Cartão)",
+  STREAK: "🔥 Trilha Consistência Diária",
   SAVINGS: "📈 Trilha Margem de Lucro",
+  MONSTER_HUNTER: "⚔️ Trilha Caçador de Monstros",
+  APARTMENT_PROGRESS: "🏠 Trilha Conquista do Apê 3D",
+  CAPY_SCORE: "📊 Trilha Saúde CapyScore",
 };
-
-// RPG Titles based on user level
-function getCharacterClass(level: number): string {
-  if (level <= 2) return "Capivara Aprendiz";
-  if (level <= 4) return "Capivara Guerreira";
-  if (level <= 6) return "Capivara da Margem";
-  if (level <= 9) return "Capivara Paladina";
-  return "Mestre Capivara";
-}
-
-// RPG Emojis/Avatars based on level
-function getCharacterEmoji(level: number): string {
-  if (level <= 2) return "🌾";
-  if (level <= 4) return "🛡️";
-  if (level <= 6) return "🍊";
-  if (level <= 9) return "✨";
-  return "👑";
-}
 
 export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked, onSettingsSaved }: Props) {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [treeExpanded, setTreeExpanded] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string>("ALL");
 
   // Settings form state
   const [budgetLimit, setBudgetLimit] = useState("");
@@ -77,7 +77,6 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
   const [paymentDay, setPaymentDay] = useState("");
   const [leisureBudget, setLeisureBudget] = useState("");
 
-  // Stable ref so interval callback always reads the latest achievements list
   const achievementsRef = useRef<Achievement[]>([]);
   achievementsRef.current = achievements;
 
@@ -92,7 +91,6 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
     setAchievements(achData);
     setStats(statsData);
 
-    // Populate configuration defaults if loaded safely
     if (statsData && !statsData.error) {
       setBudgetLimit(statsData.monthlyBudgetLimit?.toString() ?? "50");
       setCreditLimit(statsData.totalCreditLimit?.toString() ?? "1000");
@@ -101,255 +99,150 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
       setLeisureBudget(statsData.leisureBudget?.toString() ?? "0");
     }
 
-    // Fire notification for newly unlocked achievements
-    if (onAchievementUnlocked) {
-      for (const ach of achData as Achievement[]) {
-        const was = prev.find((p) => p.id === ach.id);
-        if (ach.isUnlocked && was && !was.isUnlocked) {
-          onAchievementUnlocked(ach.title);
+    if (Array.isArray(achData) && prev.length > 0) {
+      achData.forEach((ach: Achievement) => {
+        const p = prev.find((x) => x.id === ach.id);
+        if (p && !p.isUnlocked && ach.isUnlocked) {
+          onAchievementUnlocked?.(ach.title);
         }
-      }
+      });
     }
-  }, [onAchievementUnlocked, selectedMonth]);
+
+    setLoading(false);
+  }, [selectedMonth, onAchievementUnlocked]);
 
   useEffect(() => {
-    setLoading(true);
-    loadData().finally(() => setLoading(false));
-    const timer = setInterval(loadData, 20000);
-    return () => clearInterval(timer);
+    loadData();
+    const interval = setInterval(loadData, 5000);
+    return () => clearInterval(interval);
   }, [loadData]);
 
   async function handleSaveSettings(e: React.FormEvent) {
     e.preventDefault();
-    const statsUrl = selectedMonth ? `/api/stats?month=${selectedMonth}` : "/api/stats";
-    await fetch(statsUrl, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        monthlyBudgetLimit: (budgetLimit !== "" && !isNaN(parseFloat(budgetLimit))) ? parseFloat(budgetLimit) : undefined,
-        totalCreditLimit: (creditLimit !== "" && !isNaN(parseFloat(creditLimit))) ? parseFloat(creditLimit) : undefined,
-        scheduledSalaryAmount: (salaryAmount !== "" && !isNaN(parseFloat(salaryAmount))) ? parseFloat(salaryAmount) : undefined,
-        salaryPaymentDay: (paymentDay !== "" && !isNaN(parseInt(paymentDay))) ? parseInt(paymentDay) : undefined,
-        leisureBudget: (leisureBudget !== "" && !isNaN(parseFloat(leisureBudget))) ? parseFloat(leisureBudget) : undefined,
-      }),
-    });
-    setShowSettings(false);
-    // Reload panel data to refresh local state
-    loadData();
-    // Notify parent to silently refresh dashboard budget values
-    if (onSettingsSaved) {
-      onSettingsSaved();
+    try {
+      const res = await fetch("/api/stats", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          monthlyBudgetLimit: parseFloat(budgetLimit) || 50,
+          totalCreditLimit: parseFloat(creditLimit) || 1000,
+          scheduledSalaryAmount: parseFloat(salaryAmount) || 3000,
+          salaryPaymentDay: parseInt(paymentDay) || 5,
+          leisureBudget: parseFloat(leisureBudget) || 0,
+        }),
+      });
+      if (res.ok) {
+        setShowSettings(false);
+        onSettingsSaved?.();
+        await loadData();
+      }
+    } catch (err) {
+      console.error("Erro ao salvar configurações:", err);
     }
+  }
+
+  const unlockedCount = achievements.filter((a) => a.isUnlocked).length;
+  const allTrailTypes = Object.keys(TRAIL_LABELS);
+
+  const filteredTrails = allTrailTypes.filter((t) => {
+    if (activeFilter === "ALL") return true;
+    if (activeFilter === "RPG" && (t === "MONSTER_HUNTER" || t === "APARTMENT_PROGRESS" || t === "CAPY_SCORE")) return true;
+    if (activeFilter === "FINANCE" && (t === "CARD_THRESHOLD" || t === "STREAK" || t === "SAVINGS")) return true;
+    return false;
+  });
+
+  function isChainedLocked(ach: Achievement): boolean {
+    if (ach.level <= 1) return false;
+    const prev = achievements.find((a) => a.type === ach.type && a.level === ach.level - 1);
+    return prev ? !prev.isUnlocked : false;
   }
 
   if (loading) {
     return (
       <aside className={styles.panel}>
-        <div className={styles.skeleton} />
-        <div className={styles.skeleton} />
-        <div className={styles.skeleton} />
+        <div style={{ color: "#94a3b8", fontSize: "0.85rem", padding: "20px" }}>
+          Carregando Árvore de Conquistas...
+        </div>
       </aside>
     );
   }
 
-  const xpRequired = stats ? stats.level * 100 : 100;
-  const xpPct = stats ? Math.min(100, (stats.xp / xpRequired) * 100) : 0;
-  const unlockedCount = achievements.filter((a) => a.isUnlocked).length;
-
-  const trails = ["CARD_THRESHOLD", "STREAK", "SAVINGS"];
-
-  const isChainedLocked = (ach: Achievement) => {
-    if (ach.level === 1) return false;
-    const prev = achievements.find((a) => a.type === ach.type && a.level === ach.level - 1);
-    return !prev?.isUnlocked;
-  };
-
   return (
-    <aside className={styles.panel} aria-label="Painel de RPG e conquistas">
-      {/* ── RPG User Profile HUD ── */}
-      {stats && (
-        <section className={styles.rpgProfile}>
-          <div className={styles.profileHeader}>
-            <span className={styles.profileAvatar} role="img" aria-label="Avatar">
-              {getCharacterEmoji(stats.level)}
-            </span>
-            <div className={styles.profileMeta}>
-              <h3 className={styles.profileClass}>{getCharacterClass(stats.level)}</h3>
-              <div className={styles.profileLevelRow}>
-                <span className={styles.levelLabel}>Nível {stats.level}</span>
-                <span className={styles.streakBadge}>🔥 {stats.currentStreakDays} dias sem cartão</span>
-              </div>
-            </div>
-          </div>
-          <div className={styles.xpProgressRow}>
-            <div className={styles.xpBar}>
-              <div className={styles.xpFill} style={{ width: `${xpPct}%` }} />
-              <div className={styles.xpBarGloss} />
-            </div>
-            <span className={styles.xpLabel}>
-              {stats.xp} / {xpRequired} XP
-            </span>
-          </div>
-        </section>
-      )}
-
+    <aside className={styles.panel}>
       {/* Header */}
       <div className={styles.panelHeader}>
-        <button
-          className={styles.panelTitleButton}
-          onClick={() => setTreeExpanded((v) => !v)}
-          aria-expanded={treeExpanded}
-          aria-label={treeExpanded ? "Minimizar conquistas" : "Expandir conquistas"}
-        >
-          <Trophy size={18} className={styles.trophyIcon} />
-          <h2 className={styles.panelTitle}>Árvores de Conquistas</h2>
+        <div className={styles.panelTitleButton}>
+          <Trophy size={20} className={styles.trophyIcon} />
+          <h2 className={styles.panelTitle}>Árvore de Conquistas</h2>
           <span className={styles.badge}>
-            {unlockedCount}/{achievements.length}
+            {unlockedCount}/{achievements.length} Concluídas
           </span>
-          <ChevronDown size={16} className={`${styles.toggleChevron} ${treeExpanded ? styles.toggleChevronOpen : ""}`} />
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className={styles.filterTabs}>
+        <button
+          className={`${styles.filterBtn} ${activeFilter === "ALL" ? styles.filterBtnActive : ""}`}
+          onClick={() => setActiveFilter("ALL")}
+        >
+          Todas ({achievements.length})
         </button>
-        <div className={styles.headerActions}>
-          <button
-            id="open-achievement-settings"
-            className={styles.iconBtn}
-            onClick={() => setShowSettings((v) => !v)}
-            title="Configurar limites e salário"
-            aria-label="Configurar limites de orçamento e salário"
-          >
-            <Settings size={16} />
-          </button>
-        </div>
+        <button
+          className={`${styles.filterBtn} ${activeFilter === "RPG" ? styles.filterBtnActive : ""}`}
+          onClick={() => setActiveFilter("RPG")}
+        >
+          🎮 RPG & Conquistas
+        </button>
+        <button
+          className={`${styles.filterBtn} ${activeFilter === "FINANCE" ? styles.filterBtnActive : ""}`}
+          onClick={() => setActiveFilter("FINANCE")}
+        >
+          💳 Cartão & Margem
+        </button>
       </div>
 
-      <div className={`${styles.collapsibleContent} ${treeExpanded ? styles.treeExpanded : ""}`}>
-        <div className={styles.collapsibleInner}>
-          {/* Settings panel */}
-          {showSettings && stats && (
-            <form onSubmit={handleSaveSettings} className={styles.inlineForm}>
-              <h3 className={styles.inlineTitle}>⚙ Configurações de RPG</h3>
-              <div className={styles.formGrid}>
-                <div>
-                  <label className={styles.inlineLabel} htmlFor="budget-limit">
-                    Orçamento HP (%)
-                  </label>
-                  <input
-                    id="budget-limit"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="1"
-                    value={budgetLimit}
-                    onChange={(e) => setBudgetLimit(e.target.value)}
-                    className={styles.inlineInput}
-                  />
-                </div>
-                <div>
-                  <label className={styles.inlineLabel} htmlFor="credit-limit">
-                    Limite do Cartão (R$)
-                  </label>
-                  <input
-                    id="credit-limit"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={creditLimit}
-                    onChange={(e) => setCreditLimit(e.target.value)}
-                    className={styles.inlineInput}
-                  />
-                </div>
-                <div>
-                  <label className={styles.inlineLabel} htmlFor="salary-amount">
-                    Salário Agendado (R$)
-                  </label>
-                  <input
-                    id="salary-amount"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={salaryAmount}
-                    onChange={(e) => setSalaryAmount(e.target.value)}
-                    className={styles.inlineInput}
-                  />
-                </div>
-                <div>
-                  <label className={styles.inlineLabel} htmlFor="payment-day">
-                    Dia do Pagamento (1-31)
-                  </label>
-                  <input
-                    id="payment-day"
-                    type="number"
-                    min="1"
-                    max="31"
-                    value={paymentDay}
-                    onChange={(e) => setPaymentDay(e.target.value)}
-                    className={styles.inlineInput}
-                  />
-                </div>
-                <div>
-                  <label className={styles.inlineLabel} htmlFor="leisure-budget">
-                    Orçamento de Lazer (R$)
-                  </label>
-                  <input
-                    id="leisure-budget"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={leisureBudget}
-                    onChange={(e) => setLeisureBudget(e.target.value)}
-                    className={styles.inlineInput}
-                  />
-                </div>
-              </div>
-              <button id="save-settings-btn" type="submit" className={styles.saveBtn}>
-                Salvar Parâmetros
-              </button>
-            </form>
-          )}
+      {/* Filtered Skill Tree Trails */}
+      {filteredTrails.map((trailType) => {
+        const trailAchievements = achievements
+          .filter((a) => a.type === trailType)
+          .sort((a, b) => a.level - b.level);
 
-          {/* Chained Achievement Trails */}
-          {trails.map((trailType) => {
-            const trailAchievements = achievements
-              .filter((a) => a.type === trailType)
-              .sort((a, b) => a.level - b.level);
-
-            return (
-              <section key={trailType} className={styles.section}>
-                <h3 className={styles.sectionTitle}>{TRAIL_LABELS[trailType]}</h3>
-                <div className={styles.trailContainer}>
-                  {trailAchievements.map((ach) => {
-                    const locked = isChainedLocked(ach);
-                    return (
-                      <AchievementCard key={ach.id} achievement={ach} isLocked={locked} />
-                    );
-                  })}
-                </div>
-              </section>
-            );
-          })}
-
-          {achievements.length === 0 && (
-            <p className={styles.empty}>Nenhuma conquista disponível no momento.</p>
-          )}
-        </div>
-      </div>
+        return (
+          <section key={trailType} className={styles.trailSection}>
+            <div className={styles.trailTitleRow}>
+              <h3 className={styles.trailTitle}>
+                {TRAIL_LABELS[trailType]}
+              </h3>
+            </div>
+            <div className={styles.nodesChain}>
+              {trailAchievements.map((ach) => {
+                const locked = isChainedLocked(ach);
+                return <AchievementNodeCard key={ach.id} achievement={ach} isLocked={locked} />;
+              })}
+            </div>
+          </section>
+        );
+      })}
     </aside>
   );
 }
 
-// ── Achievement Card sub-component ────────────────────────────────────────────
-function AchievementCard({
+function AchievementNodeCard({
   achievement: ach,
   isLocked,
 }: {
   achievement: Achievement;
   isLocked: boolean;
 }) {
+  const coinReward = ach.level * 25;
+  const xpReward = ach.level * 40;
+
   return (
     <article
       className={`${styles.achCard} ${ach.isUnlocked ? styles.achUnlocked : ""} ${
         isLocked ? styles.achChainLocked : ""
       }`}
-      aria-label={`Conquista: ${ach.title}`}
     >
       <div className={styles.achHeader}>
         <div className={`${styles.achIcon} ${ach.isUnlocked ? styles.achIconUnlocked : ""}`}>
@@ -358,30 +251,35 @@ function AchievementCard({
         <div className={styles.achMeta}>
           <div className={styles.titleRow}>
             <span className={styles.achTitle}>{ach.title}</span>
-            <span className={styles.lvlBadge}>Nv.{ach.level}</span>
+            <span className={styles.lvlBadge}>Nv. {ach.level}</span>
           </div>
           <span className={styles.achDesc}>{ach.description}</span>
         </div>
       </div>
+
+      {/* Rewards Row */}
+      <div className={styles.rewardsRow}>
+        <span className={`${styles.rewardChip} ${styles.chipCoin}`}>🪙 +{coinReward}</span>
+        <span className={`${styles.rewardChip} ${styles.chipXp}`}>⚡ +{xpReward} XP</span>
+      </div>
+
+      {/* Progress or Unlock Status */}
       {!ach.isUnlocked && !isLocked && (
         <div className={styles.progressWrap}>
           <div className={styles.progressBar}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${ach.progressPercentage}%` }}
-            />
+            <div className={styles.progressFill} style={{ width: `${ach.progressPercentage}%` }} />
           </div>
-          <span className={styles.progressLabel}>
-            {ach.progressPercentage.toFixed(0)}%
-          </span>
+          <span className={styles.progressLabel}>{ach.progressPercentage.toFixed(0)}%</span>
         </div>
       )}
-      {ach.isUnlocked && ach.unlockedAt && (
+
+      {ach.isUnlocked && (
         <span className={styles.unlockedDate}>
-          ✓ Desbloqueado em {new Date(ach.unlockedAt).toLocaleDateString("pt-BR")}
+          <CheckCircle2 size={13} /> Concluída!
         </span>
       )}
-      {isLocked && <span className={styles.lockedLabel}>🔒 Bloqueado: Requer nível anterior</span>}
+
+      {isLocked && <span className={styles.lockedLabel}>🔒 Bloqueado: Requer Nível {ach.level - 1}</span>}
     </article>
   );
 }

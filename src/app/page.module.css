@@ -69,6 +69,74 @@
   line-height: 1;
 }
 
+/* Gamification Row & Mascot Header Card */
+.gamificationRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+  align-items: stretch;
+}
+
+.mascotHeaderCard {
+  background: var(--color-bg-surface, #1e293b);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-radius: 20px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.mascotInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mascotTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+
+.mascotSubtitle {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.storeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 10px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s;
+  margin-top: 4px;
+  width: fit-content;
+}
+
+.storeBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
+}
+
+@media (max-width: 900px) {
+  .gamificationRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Month Navigation ───────────────────────────────────────────────────────── */
 .monthNav {
   display: flex;
@@ -111,6 +179,36 @@
 }
 
 /* ── Add Button ─────────────────────────────────────────────────────────────── */
+.headerRightActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.settingsBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary, #fff);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg, 12px);
+  font-size: var(--text-sm, 0.85rem);
+  font-weight: var(--font-semibold, 700);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.settingsBtn:hover {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.4);
+  color: #c084fc;
+}
+
 .addBtn {
   display: none; /* Replaced by always-visible FAB */
 }
@@ -186,16 +284,21 @@
 }
 
 .controlSelect {
-  background: var(--color-bg-surface);
+  background: var(--color-bg-surface, #1e293b);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
-  color: var(--color-text-primary);
+  color: var(--color-text-primary, #f8fafc);
   cursor: pointer;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   outline: none;
   width: auto;
+}
+
+.controlSelect option {
+  background-color: #1e293b;
+  color: #f8fafc;
 }
 
 .controlSelect:focus {
@@ -326,7 +429,6 @@
   .main {
     padding: var(--space-4) var(--space-3);
     gap: var(--space-4);
-    /* Respect safe areas on iOS notch/home indicator */
     padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
   }
 
@@ -341,7 +443,7 @@
   }
 
   .headerIcon {
-    display: none; /* Save space on mobile — title is self-explanatory */
+    display: none;
   }
 
   .appTitle {
@@ -349,7 +451,7 @@
   }
 
   .appSubtitle {
-    display: none; /* Hide subtitle on very small screens */
+    display: none;
   }
 
   .monthNav {
@@ -362,12 +464,9 @@
     flex: 1;
     min-width: 0;
     font-size: var(--text-sm);
-    /* Prevent overflow on very narrow viewports */
     white-space: normal;
     text-align: center;
   }
-
-
 
   .listHeader {
     flex-direction: column;
@@ -403,6 +502,17 @@
 
   .emptyTitle {
     font-size: var(--text-lg);
+  }
+
+  .mascotHeaderCard {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .storeBtn {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -442,6 +552,34 @@
 }
 
 .fabExtra:active {
+  transform: scale(0.95);
+}
+
+.fabSettings {
+  display: flex;
+  position: fixed;
+  bottom: calc(144px + env(safe-area-inset-bottom, 0px));
+  right: 24px;
+  z-index: 50;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #0f172a;
+  border: none;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.45), var(--shadow-lg);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.fabSettings:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(245, 158, 11, 0.65);
+}
+
+.fabSettings:active {
   transform: scale(0.95);
 }
 
@@ -545,11 +683,6 @@
 
 .submitBtn:hover {
   opacity: 0.92;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
 }
 
 .chartsRow {

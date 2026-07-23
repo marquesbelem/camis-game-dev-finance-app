@@ -97,8 +97,17 @@ model UserStats {
   // Gamification fields
   level                Int      @default(1)
   xp                   Int      @default(0)
+  capyCoins            Int      @default(50) // Starting bonus CapyCoins
+  equippedAccessory    String   @default("ORANGE")
+  equippedSkin         String   @default("DEFAULT")
+  unlockedItems        String   @default("ORANGE,DEFAULT")
+  lastZeroSpendClaim   String?  // Format: YYYY-MM-DD
+  completedQuests      String   @default("[]") // JSON string array of quest IDs completed today
   lastRegistrationDate String?  // Format: YYYY-MM-DD
   registrationStreak   Int      @default(0)
+  streakShields        Int      @default(1)
+  highestStreak        Int      @default(0)
+  lastStreakUpdateMonth String? // Format: YYYY-MM
 
   // Leisure budget
   leisureBudget            Float    @default(0.0) // Monthly leisure budget in R$

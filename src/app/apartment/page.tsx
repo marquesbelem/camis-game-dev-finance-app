@@ -15,6 +15,7 @@ import {
   FileText
 } from "lucide-react";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
+import ApartmentVoxel3D from "@/components/ApartmentVoxel/ApartmentVoxel3D";
 import styles from "./page.module.css";
 
 interface Stage {
@@ -840,6 +841,7 @@ export default function ApartmentPage() {
   const manualTotalInstCount = manualInstallments.length;
   const progressPctFin = manualTotalInstCount > 0 ? (manualPaidInstCount / manualTotalInstCount) * 100 : 0;
   const progressPctObra = project.obraBudget ? (spentOnObra / project.obraBudget) * 100 : 0;
+  const overallProgress = (progressPctFin * 0.6) + (Math.min(100, progressPctObra) * 0.4);
   const totalProjectInvestment = (project.propertyValue || 0) + spentOnObra;
 
   return (
@@ -858,6 +860,9 @@ export default function ApartmentPage() {
             <span>Configurar Orçamento</span>
           </button>
         </header>
+
+        {/* 3D Voxel Apartment Progression */}
+        <ApartmentVoxel3D progressPct={overallProgress} />
 
         {/* Overview Stats Cards */}
         <div className={styles.statsGrid}>

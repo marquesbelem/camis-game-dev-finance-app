@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Capivara3D from "@/components/Capivara3D/Capivara3D";
+import TopBar from "@/components/TopBar/TopBar";
 import { Eye, EyeOff } from "lucide-react";
 import styles from "./AuthProvider.module.css";
 
@@ -377,21 +378,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     );
   }
 
-  // Inject a small hidden session indicator/logout bar at the top or bottom of layout (discreet layout integration)
+  // Render TopBar with hamburger nav + user info, then page content
   return (
     <>
-      <div className={styles.sessionBar}>
-        <span className={styles.sessionUser}>
-          Conectado como <strong>{username}</strong>
-        </span>
-        <button
-          onClick={handleLogout}
-          className={styles.logoutBtn}
-          title="Sair desta conta"
-        >
-          Sair
-        </button>
-      </div>
+      <TopBar username={username!} onLogout={handleLogout} />
       {children}
     </>
   );

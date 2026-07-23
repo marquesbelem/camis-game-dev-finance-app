@@ -34,6 +34,7 @@ interface Props {
   onClose: () => void;
   onSave: (slip: Slip) => void;
   editingSlip?: Slip | null;
+  targetMonth?: string;
 }
 
 function getTodayDateString(): string {
@@ -44,7 +45,7 @@ function getTodayDateString(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip }: Props) {
+export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip, targetMonth }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
@@ -56,6 +57,7 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
   const [isRecurring, setIsRecurring] = useState(false);
   const [isInstallment, setIsInstallment] = useState(false);
   const [installmentsCount, setInstallmentsCount] = useState("2");
+  const [recurringScope, setRecurringScope] = useState<"SINGLE" | "FUTURE">("FUTURE");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -159,8 +161,12 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
     setTitle("");
     setAmount("");
     const today = getTodayDateString();
-    setDueDate(today);
-    setDueDateText(formatToDisplay(today));
+    let initialDate = today;
+    if (targetMonth && !today.startsWith(targetMonth)) {
+      initialDate = `${targetMonth}-05`;
+    }
+    setDueDate(initialDate);
+    setDueDateText(formatToDisplay(initialDate));
     setStatus("PENDENTE");
     setCategoryId(categories[0]?.id ?? "");
     setIsCreditCardPayment(false);
@@ -194,6 +200,17 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
     const day = parseInt(dateParts[2], 10);
     if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1900 || year > 2100) {
       setError("Data de vencimento inválida. Por favor, insira uma data correta.");
+      return;
+    }
+
+    if (targetMonth && dueDate.slice(0, 7) !== targetMonth) {
+      const [tY, tM] = targetMonth.split("-");
+      const monthNames = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+      ];
+      const mName = monthNames[parseInt(tM, 10) - 1] ?? tM;
+      setError(`A data de vencimento deve pertencer ao mês exibido na tela (${mName} de ${tY}).`);
       return;
     }
 
@@ -242,6 +259,27 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
       }
 
       const saved: Slip = await res.json();
+
+      // If editing a recurring slip and user chose FUTURE scope, update future recurrence configuration
+      if (editingSlip && (editingSlip.isRecurring || isRecurring) && recurringScope === "FUTURE") {
+        try {
+          await fetch("/api/slips/recurring", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: editingSlip.id,
+              title: title.trim(),
+              amount: parsedAmount,
+              categoryId,
+              isCreditCardPayment,
+              recurringDay: parseInt(dueDate.slice(8, 10), 10) || 5,
+            }),
+          });
+        } catch (rErr) {
+          console.error("Erro ao sincronizar recorrência futura:", rErr);
+        }
+      }
+
       onSave(saved);
       resetForm();
       onClose();
@@ -345,6 +383,8 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
                   ref={dateInputRef}
                   type="date"
                   value={dueDate}
+                  min={targetMonth ? `${targetMonth}-01` : undefined}
+                  max={targetMonth ? `${targetMonth}-${String(new Date(parseInt(targetMonth.split("-")[0], 10), parseInt(targetMonth.split("-")[1], 10), 0).getDate()).padStart(2, "0")}` : undefined}
                   onChange={(e) => handleNativeDateChange(e.target.value)}
                   className={styles.hiddenNativeDateInput}
                   tabIndex={-1}
@@ -446,6 +486,35 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip 
               <span className={styles.toggleThumb} />
             </div>
           </label>
+
+          {/* Recurring Scope Selection when editing */}
+          {editingSlip && (editingSlip.isRecurring || isRecurring) && (
+            <div className={styles.recurringOptionBox}>
+              <span className={styles.recurringOptionLabel}>Escopo das alterações:</span>
+              <div className={styles.recurringOptionList}>
+                <label className={styles.radioOption}>
+                  <input
+                    type="radio"
+                    name="recurringScope"
+                    value="SINGLE"
+                    checked={recurringScope === "SINGLE"}
+                    onChange={() => setRecurringScope("SINGLE")}
+                  />
+                  <span>Alterar apenas a conta deste mês</span>
+                </label>
+                <label className={styles.radioOption}>
+                  <input
+                    type="radio"
+                    name="recurringScope"
+                    value="FUTURE"
+                    checked={recurringScope === "FUTURE"}
+                    onChange={() => setRecurringScope("FUTURE")}
+                  />
+                  <span>Alterar esta e todas as recorrências futuras</span>
+                </label>
+              </div>
+            </div>
+          )}
 
           {/* Installment toggle */}
           {!editingSlip ? (

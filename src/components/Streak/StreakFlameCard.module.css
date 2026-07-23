@@ -1,0 +1,113 @@
+.card {
+  background: var(--color-surface, #1e293b);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.shieldBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.streakHero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: radial-gradient(circle at left, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.flameIcon {
+  font-size: 2.4rem;
+  animation: flamePulse 1.5s ease-in-out infinite;
+}
+
+.streakMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.streakDays {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #f8fafc;
+  line-height: 1;
+}
+
+.streakSub {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.milestonesList {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.milestoneItem {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-size: 0.7rem;
+}
+
+.milestoneAchieved {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.milestoneDays {
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+@keyframes flamePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}

@@ -1,14 +1,23 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, LayoutDashboard, ChevronLeft, ChevronRight, DollarSign } from "lucide-react";
+import { Plus, LayoutDashboard, ChevronLeft, ChevronRight, DollarSign, ShoppingBag, Settings } from "lucide-react";
 import AdicionarDespesa from "@/components/AdicionarDespesa/AdicionarDespesa";
+import SettingsModal from "@/components/SettingsModal/SettingsModal";
+import SpeedDialFab from "@/components/SpeedDialFab/SpeedDialFab";
 import SlipItem, { Slip } from "@/components/SlipList/SlipItem";
 import DashboardCharts from "@/components/DashboardCharts/DashboardCharts";
 import SummaryCards from "@/components/DashboardCharts/SummaryCards";
-import AchievementsPanel from "@/components/Achievements/AchievementsPanel";
+import AchievementsMiniWidget from "@/components/Achievements/AchievementsMiniWidget";
+import RecentExpensesWidget from "@/components/RecentExpensesWidget/RecentExpensesWidget";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
 import LeisureBudgetCard from "@/components/LeisureBudgetCard/LeisureBudgetCard";
+import Capivara3D from "@/components/Capivara3D/Capivara3D";
+import CapyScoreGauge, { computeCapyScore } from "@/components/CapyScore/CapyScoreGauge";
+import QuestsWidget from "@/components/Quests/QuestsWidget";
+import StreakFlameCard from "@/components/Streak/StreakFlameCard";
+import CapyStoreModal from "@/components/CapyStore/CapyStoreModal";
+import type { StoreItem } from "@/app/api/user/store/route";
 import styles from "./page.module.css";
 
 // ── Month helpers ──────────────────────────────────────────────────────────────
@@ -51,6 +60,7 @@ export default function Home() {
   const [budgetLimit, setBudgetLimit] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [editingSlip, setEditingSlip] = useState<Slip | null>(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<Record<string, boolean>>({});
@@ -58,8 +68,36 @@ export default function Home() {
   const [leisureData, setLeisureData] = useState<any>(null);
   const [leisureLoading, setLeisureLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isStoreOpen, setIsStoreOpen] = useState(false);
+  const [capyCoins, setCapyCoins] = useState(0);
+  const [equippedAccessory, setEquippedAccessory] = useState("ORANGE");
+  const [equippedSkin, setEquippedSkin] = useState("DEFAULT");
+  const [unlockedItems, setUnlockedItems] = useState<string[]>(["ORANGE", "DEFAULT"]);
+  const [catalog, setCatalog] = useState<StoreItem[]>([]);
+  const [userStats, setUserStats] = useState<any>(null);
 
   const { toasts, dismissToast, celebrateAchievement, addToast, showXpToast, showLevelUpToast } = useToasts();
+
+  const loadStoreData = useCallback(async () => {
+    try {
+      const userId = localStorage.getItem("user_id") || "demo-user";
+      const res = await fetch("/api/user/store", { headers: { "x-user-id": userId } });
+      if (res.ok) {
+        const data = await res.json();
+        setCapyCoins(data.capyCoins || 0);
+        setEquippedAccessory(data.equippedAccessory || "ORANGE");
+        setEquippedSkin(data.equippedSkin || "DEFAULT");
+        setUnlockedItems(data.unlockedItems || ["ORANGE", "DEFAULT"]);
+        setCatalog(data.catalog || []);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadStoreData();
+  }, [loadStoreData]);
 
   // ── Data loading ──────────────────────────────────────────────────────────
   const loadSlips = useCallback(async (silent = false) => {
@@ -77,6 +115,7 @@ export default function Home() {
       ]) as [any, any, any];
       setSlips(Array.isArray(slipsData) ? slipsData : []);
       setExtraIncomes(Array.isArray(extraData) ? extraData : []);
+      setUserStats(statsData);
       const salary = statsData.scheduledSalaryAmount > 0 ? statsData.scheduledSalaryAmount : 3000.0;
       const budgetPct = statsData.monthlyBudgetLimit ?? 50.0;
       const calculatedBudget = salary * (budgetPct / 100);
@@ -248,6 +287,13 @@ export default function Home() {
   async function handleDelete(id: string, deleteAll?: boolean) {
     try {
       const deleted = slips.find((s) => s.id === id);
+      if (deleteAll && deleted?.isRecurring) {
+        try {
+          await fetch(`/api/slips/recurring?id=${id}`, { method: "DELETE" });
+        } catch (rErr) {
+          console.error("Erro ao cancelar recorrência:", rErr);
+        }
+      }
       const url = `/api/slips/${id}${deleteAll ? "?deleteAll=true" : ""}`;
       const res = await fetch(url, { method: "DELETE" });
       if (!res.ok) {
@@ -385,6 +431,14 @@ export default function Home() {
   }
 
   // Filter and sort slips based on user settings
+  const capyScoreInfo = useMemo(() => {
+    return computeCapyScore(
+      slips,
+      userStats?.totalCreditLimit ?? 1000,
+      userStats?.leisureBudget ?? 0
+    );
+  }, [slips, userStats]);
+
   const filteredAndSorted = useMemo(() => {
     let result = [...slips];
 
@@ -427,28 +481,11 @@ export default function Home() {
 
   return (
     <>
-      <div className={styles.layout}>
-        {/* ── Sidebar: Achievements ─────────────────────────────────── */}
-        <aside className={styles.sidebar}>
-          <AchievementsPanel
-            selectedMonth={selectedMonth}
-            onAchievementUnlocked={celebrateAchievement}
-            onSettingsSaved={() => { loadSlips(true); loadLeisureBudget(); }}
-          />
-        </aside>
-
+      <div className={styles.container}>
         {/* ── Main content ──────────────────────────────────────────────── */}
         <main className={styles.main} id="main-content">
           {/* Header */}
           <header className={styles.header}>
-            <div className={styles.headerLeft}>
-              <LayoutDashboard size={24} className={styles.headerIcon} />
-              <div>
-                <h1 className={styles.appTitle}>Capivara Poupadora</h1>
-                <p className={styles.appSubtitle}>Gerenciador Financeiro Gamificado 🌾</p>
-              </div>
-            </div>
-
             {/* Month selector */}
             <div className={styles.monthNav} role="group" aria-label="Seletor de mês">
               <button
@@ -470,124 +507,82 @@ export default function Home() {
               </button>
             </div>
 
-            <button
-              id="add-slip-btn"
-              className={styles.addBtn}
-              onClick={() => { setEditingSlip(null); setIsFormOpen(true); }}
-              aria-label="Adicionar despesa"
-            >
-              <Plus size={18} />
-              <span>Adicionar Despesa</span>
-            </button>
+            <div className={styles.headerRightActions}>
+              <button
+                id="add-slip-btn"
+                className={styles.addBtn}
+                onClick={() => { setEditingSlip(null); setIsFormOpen(true); }}
+                aria-label="Adicionar despesa"
+              >
+                <Plus size={18} />
+                <span>Adicionar Despesa</span>
+              </button>
+            </div>
           </header>
 
-          {/* Summary Cards */}
+          {/* ① Summary Cards – most important */}
           <section aria-label="Resumo financeiro do mês">
             <SummaryCards slips={slips} budgetLimit={budgetLimit} loading={loading} />
           </section>
 
-          {/* Charts & Leisure Budget Section */}
-          <div className={styles.chartsRow}>
-            <section aria-label="Orçamento de lazer" className={styles.leisureCol}>
-              <LeisureBudgetCard data={leisureData} loading={leisureLoading} />
-            </section>
-            <section aria-label="Gráficos de gastos" className={styles.chartCol}>
-              <DashboardCharts slips={slips} />
-            </section>
-          </div>
+          {/* ② Mapa de Dano – gamified category breakdown */}
+          <section aria-label="Gastos por categoria">
+            <DashboardCharts slips={slips} />
+          </section>
 
-          {/* Slip list */}
-          <section aria-label="Lista de despesas">
-            <div className={styles.listHeader}>
-              <h2 className={styles.listTitle}>
-                Despesas
-                {slips.length > 0 && (
-                  <span className={styles.listCount}>{slips.length}</span>
-                )}
-              </h2>
+          {/* ③ Leisure Budget */}
+          <section aria-label="Orçamento de lazer">
+            <LeisureBudgetCard data={leisureData} loading={leisureLoading} />
+          </section>
 
-              {/* Filtering and sorting controls */}
-              <div className={styles.listControls}>
-                <div className={styles.controlGroup}>
-                  <label htmlFor="filter-category" className={styles.controlLabel}>Categoria:</label>
-                  <select
-                    id="filter-category"
-                    value={filterCategoryId}
-                    onChange={(e) => setFilterCategoryId(e.target.value)}
-                    className={styles.controlSelect}
-                  >
-                    <option value="ALL">Todas</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+          {/* ④ Recent Expenses */}
+          <RecentExpensesWidget
+            slips={slips}
+            onStatusToggle={handleStatusToggle}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+          />
 
-                <div className={styles.controlGroup}>
-                  <label htmlFor="filter-status" className={styles.controlLabel}>Status:</label>
-                  <select
-                    id="filter-status"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className={styles.controlSelect}
-                  >
-                    <option value="ALL">Todos</option>
-                    <option value="PENDENTE">Pendentes</option>
-                    <option value="PAGO">Pagas</option>
-                  </select>
-                </div>
-
-
-                <div className={styles.controlGroup}>
-                  <label htmlFor="sort-by" className={styles.controlLabel}>Ordenar:</label>
-                  <select
-                    id="sort-by"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className={styles.controlSelect}
-                  >
-                    <option value="DUE_DATE">Vencimento</option>
-                    <option value="STATUS">Status (Pendentes primeiro)</option>
-                  </select>
-                </div>
+          {/* ④ Gamification Section: Mascot Card & CapyScore Gauge */}
+          <div className={styles.gamificationRow}>
+            <div className={styles.mascotHeaderCard}>
+              <div className={styles.mascotInfo}>
+                <h3 className={styles.mascotTitle}>Capivara Poupadora</h3>
+                <p className={styles.mascotSubtitle}>
+                  Humor: {capyScoreInfo.statusLabel}
+                </p>
+                <button
+                  className={styles.storeBtn}
+                  onClick={() => setIsStoreOpen(true)}
+                  aria-label="Abrir loja de cosméticos"
+                >
+                  <ShoppingBag size={16} />
+                  <span>Loja 🪙 {capyCoins}</span>
+                </button>
               </div>
+
+              <Capivara3D
+                sizeMultiplier={0.8}
+                mood={capyScoreInfo.recommendedMood}
+                equippedAccessory={equippedAccessory}
+                equippedSkin={equippedSkin}
+              />
             </div>
 
-            {loading ? (
-              <div className={styles.skeletonList}>
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className={styles.skeletonItem} />
-                ))}
-              </div>
-            ) : slips.length === 0 ? (
-              <div className={styles.emptyState}>
-                <span className={styles.emptyIcon}>💸</span>
-                <p className={styles.emptyTitle}>Nenhuma despesa em {formatMonthLabel(selectedMonth)}</p>
-                <p className={styles.emptyHint}>Clique no botão de adicionar para começar.</p>
-              </div>
-            ) : filteredAndSorted.length === 0 ? (
-              <div className={styles.emptyState}>
-                <span className={styles.emptyIcon}>🔍</span>
-                <p className={styles.emptyTitle}>Nenhuma despesa encontrada com os filtros</p>
-                <p className={styles.emptyHint}>Tente mudar a categoria selecionada.</p>
-              </div>
-            ) : (
-              <ul className={styles.slipList} role="list">
-                {filteredAndSorted.map((slip) => (
-                  <li key={slip.id}>
-                    <SlipItem
-                      slip={slip}
-                      onEdit={openEdit}
-                      onDelete={handleDelete}
-                      onStatusToggle={handleStatusToggle}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+            <CapyScoreGauge
+              slips={slips}
+              totalCreditLimit={userStats?.totalCreditLimit ?? 1000}
+              leisureBudget={userStats?.leisureBudget ?? 0}
+            />
+          </div>
+
+          {/* ⑤ Quests, Streak & Achievements Mini Widget Row */}
+          <div className={styles.gamificationRow}>
+            <StreakFlameCard />
+            <QuestsWidget onRewardClaimed={() => { loadStoreData(); loadSlips(true); }} />
+            <AchievementsMiniWidget />
+          </div>
+
         </main>
       </div>
 
@@ -609,28 +604,21 @@ export default function Home() {
           }
         }}
         editingSlip={editingSlip}
+        targetMonth={selectedMonth}
       />
 
-      {/* ── FAB (mobile only) ────────────────────────────────────────── */}
-      <button
-        id="fab-add-extra"
-        className={styles.fabExtra}
-        onClick={() => setIsExtraModalOpen(true)}
-        title="Adicionar Receita Extra"
-        aria-label="Adicionar receita extra"
-      >
-        <DollarSign size={20} />
-      </button>
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onSaved={() => loadSlips()}
+      />
 
-      <button
-        id="fab-add-slip"
-        className={styles.fab}
-        onClick={() => { setEditingSlip(null); setIsFormOpen(true); }}
-        title="Adicionar Despesa"
-        aria-label="Adicionar despesa"
-      >
-        <Plus size={20} />
-      </button>
+      {/* ── Collapsible Speed Dial FAB ───────────────────────────────── */}
+      <SpeedDialFab
+        onAddExpense={() => { setEditingSlip(null); setIsFormOpen(true); }}
+        onAddIncome={() => setIsExtraModalOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
 
       {/* ── Extra Income Modal ────────────────────────────────────────── */}
       {isExtraModalOpen && (
@@ -678,6 +666,18 @@ export default function Home() {
         onDismiss={dismissToast}
         salaryToCelebrate={salaryToCelebrate}
         onDismissSalary={() => setSalaryToCelebrate(null)}
+      />
+
+      {/* ── CapyStore Modal ──────────────────────────────────────────────── */}
+      <CapyStoreModal
+        isOpen={isStoreOpen}
+        onClose={() => setIsStoreOpen(false)}
+        capyCoins={capyCoins}
+        equippedAccessory={equippedAccessory}
+        equippedSkin={equippedSkin}
+        unlockedItems={unlockedItems}
+        catalog={catalog}
+        onUpdateStore={loadStoreData}
       />
     </>
   );

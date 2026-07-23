@@ -200,6 +200,45 @@
   transform: translateX(20px);
 }
 
+.recurringOptionBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--color-bg-surface, #1e293b);
+  border: 1px solid var(--color-border-brand, rgba(168, 85, 247, 0.4));
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.recurringOptionLabel {
+  font-size: var(--text-xs, 0.78rem);
+  font-weight: var(--font-bold, 800);
+  color: var(--color-brand, #a855f7);
+}
+
+.recurringOptionList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm, 0.85rem);
+  color: var(--color-text-primary, #fff);
+  cursor: pointer;
+}
+
+.radioOption input[type="radio"] {
+  accent-color: #a855f7;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 /* ── File Drop Zone ─────────────────────────────────────────────────────────── */
 .fileDropZone {
   display: flex;

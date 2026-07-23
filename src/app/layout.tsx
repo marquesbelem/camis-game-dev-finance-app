@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Outfit, Inter } from "next/font/google";
-import Link from "next/link";
-import { LayoutDashboard, Tag, Home, Repeat } from "lucide-react";
 import AuthProvider from "@/components/AuthProvider/AuthProvider";
 import styles from "./layout.module.css";
 import "./globals.css";
@@ -56,51 +54,6 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
-          {/* ── Global Navigation ──────────────────────────────────────────── */}
-          <nav
-            id="global-nav"
-            className={styles.nav}
-            aria-label="Navegação principal"
-          >
-            <Link
-              href="/"
-              id="nav-home"
-              className={styles.navLink}
-              aria-label="Painel principal"
-            >
-              <LayoutDashboard size={18} aria-hidden="true" />
-              <span className={styles.navLinkLabel}>Dashboard</span>
-            </Link>
-
-            <Link
-              href="/categories"
-              id="nav-categories"
-              className={styles.navLink}
-              aria-label="Gerenciar categorias"
-            >
-              <Tag size={18} aria-hidden="true" />
-              <span className={styles.navLinkLabel}>Categorias</span>
-            </Link>
-            <Link
-              href="/apartment"
-              id="nav-apartment"
-              className={styles.navLink}
-              aria-label="Planejamento do apartamento"
-            >
-              <Home size={18} aria-hidden="true" />
-              <span className={styles.navLinkLabel}>Apartamento</span>
-            </Link>
-            <Link
-              href="/recurring"
-              id="nav-recurring"
-              className={styles.navLink}
-              aria-label="Despesas recorrentes"
-            >
-              <Repeat size={18} aria-hidden="true" />
-              <span className={styles.navLinkLabel}>Recorrentes</span>
-            </Link>
-          </nav>
-
           <div id="app-root">
             {children}
           </div>
