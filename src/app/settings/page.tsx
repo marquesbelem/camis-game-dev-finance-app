@@ -259,23 +259,6 @@ export default function SettingsPage() {
               <span className={styles.fieldHint}>Limite total somado de todos os seus cartões.</span>
             </div>
 
-            {/* Orçamento de Lazer (Unificado!) */}
-            <div className={styles.fieldGroup}>
-              <label className={styles.label}>
-                <HeartHandshake size={15} /> Orçamento Mensal para Lazer (R$)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                className={styles.input}
-                value={leisureBudget}
-                onChange={(e) => setLeisureBudget(e.target.value)}
-                placeholder="Ex: 300.00"
-                required
-              />
-              <span className={styles.fieldHint}>Valor reservado para gastos livres e diversão.</span>
-            </div>
-
             {/* Teto HP Capivara */}
             <div className={`${styles.fieldGroup} ${styles.fullWidth}`}>
               <label className={styles.label}>

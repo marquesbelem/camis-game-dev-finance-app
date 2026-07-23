@@ -14,7 +14,6 @@ import ExtraIncomesWidget from "@/components/ExtraIncomesWidget/ExtraIncomesWidg
 import CategoryBudgetWidget, { CategoryBudgetInfo } from "@/components/CategoryBudgetWidget/CategoryBudgetWidget";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
 import type { CategoryWithCount } from "@/lib/types";
-import LeisureBudgetCard from "@/components/LeisureBudgetCard/LeisureBudgetCard";
 import styles from "./page.module.css";
 
 // ── Month helpers ──────────────────────────────────────────────────────────────
@@ -63,8 +62,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<Record<string, boolean>>({});
   const [salaryToCelebrate, setSalaryToCelebrate] = useState<{ amount: number; month: string } | null>(null);
-  const [leisureData, setLeisureData] = useState<any>(null);
-  const [leisureLoading, setLeisureLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userStats, setUserStats] = useState<any>(null);
 
@@ -230,24 +227,6 @@ export default function Home() {
     checkUpcomingNotifications();
   }, [slips]);
 
-  // ── Leisure budget loading ───────────────────────────────────────────────
-  const loadLeisureBudget = useCallback(async () => {
-    setLeisureLoading(true);
-    try {
-      const res = await fetch(`/api/leisure-budget?month=${selectedMonth}`);
-      const data = await res.json();
-      setLeisureData(data);
-    } catch {
-      setLeisureData(null);
-    } finally {
-      setLeisureLoading(false);
-    }
-  }, [selectedMonth]);
-
-  useEffect(() => {
-    loadLeisureBudget();
-  }, [loadLeisureBudget]);
-
   const loadCategories = useCallback(async () => {
     try {
       const res = await fetch("/api/categories");
@@ -278,9 +257,6 @@ export default function Home() {
       message: saved.title,
       type: "success",
     });
-
-    // Refresh leisure budget in case this slip is in Lazer category
-    loadLeisureBudget();
 
     // Award XP and show toasts if metadata exists
     const xpDetails = (saved as any).xpDetails;
@@ -339,8 +315,6 @@ export default function Home() {
         const msg = deleteAll ? `${deleted.title} (e parcelas futuras)` : deleted.title;
         addToast({ title: "Despesa excluída", message: msg, type: "info" });
       }
-      // Refresh leisure budget in case deleted slip was Lazer
-      loadLeisureBudget();
     } catch (err) {
       console.error("Erro ao excluir despesa:", err);
       addToast({ title: "Erro", message: "Erro de conexão ao excluir despesa.", type: "danger" });
@@ -580,11 +554,6 @@ export default function Home() {
             </section>
           )}
 
-          {/* ③ Leisure Budget */}
-          <section aria-label="Orçamento de lazer">
-            <LeisureBudgetCard data={leisureData} loading={leisureLoading} />
-          </section>
-
           {/* ④ Recent Expenses */}
           <RecentExpensesWidget
             slips={slips}
@@ -615,7 +584,6 @@ export default function Home() {
               message: saved.title,
               type: "success",
             });
-            loadLeisureBudget();
           } else {
             handleSave(saved);
           }
