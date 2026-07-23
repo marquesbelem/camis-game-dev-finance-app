@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Swords } from "lucide-react";
+import { playSound } from "@/lib/sounds";
 import styles from "./MonsterCard.module.css";
 
 interface BattleSlashProps {
@@ -13,6 +14,7 @@ export function BattleSlash({ amount, onComplete }: BattleSlashProps) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
+    playSound("quest_claim");
     const timer = setTimeout(() => {
       setVisible(false);
       if (onComplete) onComplete();

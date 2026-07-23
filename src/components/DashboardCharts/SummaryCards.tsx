@@ -1,6 +1,7 @@
 "use client";
 
 import { Heart, Shield, Clock, Swords } from "lucide-react";
+import { playSound } from "@/lib/sounds";
 import styles from "./SummaryCards.module.css";
 
 interface Slip {
@@ -58,7 +59,12 @@ export default function SummaryCards({ slips, budgetLimit, loading }: Props) {
         className={`${styles.card} ${styles.rpgCard} ${isCritical ? styles.cardCritical : ""}`}
         aria-label="Pontos de vida de orçamento (HP)"
       >
-        <div className={`${styles.iconWrap} ${hpPct >= 50 ? styles.iconHpGreen : hpPct >= 20 ? styles.iconHpYellow : styles.iconHpRed} ${isCritical ? styles.pulseHeart : ""}`}>
+        <div
+          className={`${styles.iconWrap} ${hpPct >= 50 ? styles.iconHpGreen : hpPct >= 20 ? styles.iconHpYellow : styles.iconHpRed} ${isCritical ? styles.pulseHeart : ""}`}
+          onClick={() => playSound("heartbeat")}
+          style={{ cursor: "pointer" }}
+          title="Ouvir batimento cardíaco do HP"
+        >
           <Heart size={20} fill="currentColor" />
         </div>
         <div className={styles.info}>

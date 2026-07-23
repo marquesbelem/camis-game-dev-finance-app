@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Trophy, X, Sparkles, Award, Wallet } from "lucide-react";
+import { playSound } from "@/lib/sounds";
 import styles from "./Celebration.module.css";
 
 export interface Toast {
@@ -116,6 +117,13 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
   }, [onDismiss, toast.id]);
 
   useEffect(() => {
+    // Play sound when toast appears
+    if (toast.type === "levelup") playSound("toast_levelup");
+    else if (toast.type === "xp") playSound("toast_xp");
+    else if (toast.type === "danger") playSound("toast_danger");
+    else if (toast.type === "info") playSound("toast_info");
+    else playSound("toast_success");
+
     // Keep XP toasts visible for 3.5s, Levelups for 6s, others 5s
     const duration = toast.type === "levelup" ? 6000 : toast.type === "xp" ? 3500 : 5000;
     const timer = setTimeout(dismiss, duration);

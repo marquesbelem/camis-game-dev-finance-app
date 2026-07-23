@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Target, CheckCircle, Leaf } from "lucide-react";
+import { playSound } from "@/lib/sounds";
 import styles from "./QuestsWidget.module.css";
 
 export interface Quest {
@@ -66,6 +67,7 @@ export default function QuestsWidget({ onRewardClaimed }: QuestsWidgetProps) {
       }
 
       const data = await res.json();
+      playSound("quest_claim");
       setMessage(data.message || "Recompensa resgatada com sucesso!");
 
       await loadQuests();

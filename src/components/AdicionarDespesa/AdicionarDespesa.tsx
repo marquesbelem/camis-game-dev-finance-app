@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, Upload, Calendar, DollarSign, Tag, CreditCard, Repeat } from "lucide-react";
+import { playSound } from "@/lib/sounds";
 import styles from "./AdicionarDespesa.module.css";
 
 interface Category {
@@ -259,6 +260,7 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
       }
 
       const saved: Slip = await res.json();
+      playSound("add_expense");
 
       // If editing a recurring slip and user chose FUTURE scope, update future recurrence configuration
       if (editingSlip && (editingSlip.isRecurring || isRecurring) && recurringScope === "FUTURE") {

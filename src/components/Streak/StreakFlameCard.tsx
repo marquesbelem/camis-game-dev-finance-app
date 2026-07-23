@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Flame, Shield, Trophy } from "lucide-react";
+import { playSound } from "@/lib/sounds";
 import styles from "./StreakFlameCard.module.css";
 
 interface StreakData {
@@ -51,7 +52,7 @@ export default function StreakFlameCard() {
         </div>
       </div>
 
-      <div className={styles.streakHero}>
+      <div className={styles.streakHero} onClick={() => playSound("streak")} style={{ cursor: "pointer" }} title="Ouvir chama">
         <div className={styles.flameIcon}>🔥</div>
         <div className={styles.streakMeta}>
           <span className={styles.streakDays}>{data.currentStreak} dias seguidos</span>

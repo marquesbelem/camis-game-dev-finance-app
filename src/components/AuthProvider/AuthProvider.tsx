@@ -9,7 +9,7 @@ import styles from "./AuthProvider.module.css";
 
 // ── Global Fetch Interceptor ────────────────────────────────────────────────
 // Dynamically intercepts all client-side fetches to append the active x-user-id header.
-function setupFetchInterceptor(userId: string) {
+function setupFetchInterceptor(initialUserId?: string) {
   if (typeof window === "undefined") return;
 
   // Prevent duplicate interceptors
@@ -18,15 +18,31 @@ function setupFetchInterceptor(userId: string) {
 
   const originalFetch = window.fetch;
   window.fetch = async (input, init) => {
-    init = init || {};
-    init.headers = init.headers || {};
+    try {
+      const activeUserId =
+        localStorage.getItem("cami_user_id") ||
+        localStorage.getItem("user_id") ||
+        initialUserId ||
+        "";
 
-    if (init.headers instanceof Headers) {
-      init.headers.set("x-user-id", userId);
-    } else if (Array.isArray(init.headers)) {
-      init.headers.push(["x-user-id", userId]);
-    } else {
-      (init.headers as Record<string, string>)["x-user-id"] = userId;
+      if (activeUserId) {
+        const newInit: RequestInit = init ? { ...init } : {};
+        if (newInit.headers instanceof Headers) {
+          const newHeaders = new Headers(newInit.headers);
+          newHeaders.set("x-user-id", activeUserId);
+          newInit.headers = newHeaders;
+        } else if (Array.isArray(newInit.headers)) {
+          newInit.headers = [...newInit.headers, ["x-user-id", activeUserId]];
+        } else {
+          newInit.headers = {
+            ...(newInit.headers as Record<string, string>),
+            "x-user-id": activeUserId,
+          };
+        }
+        return await originalFetch(input, newInit);
+      }
+    } catch {
+      // Fallback to original fetch if header cloning fails
     }
 
     return originalFetch(input, init);
@@ -93,9 +109,20 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         const { getMessaging, getToken } = await import("firebase/messaging");
 
         if (typeof window !== "undefined" && "Notification" in window) {
-          const permission = await Notification.requestPermission();
+          // Already denied — don't ask again, just log and bail
+          if (Notification.permission === "denied") {
+            console.warn("Push notifications blocked by user. Enable in browser settings to receive alerts.");
+            return;
+          }
+
+          // Already granted — skip the prompt
+          let permission: NotificationPermission = Notification.permission;
           if (permission !== "granted") {
-            console.log("Notification permission not granted by user.");
+            permission = await Notification.requestPermission();
+          }
+
+          if (permission !== "granted") {
+            console.info("Push notifications not enabled. User can enable them in browser settings.");
             return;
           }
 
@@ -112,9 +139,15 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           const app = initializeApp(firebaseConfig);
           const messaging = getMessaging(app);
 
+          const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+          if (!vapidKey) {
+            console.warn("NEXT_PUBLIC_FIREBASE_VAPID_KEY missing. Push notification token generation skipped.");
+            return;
+          }
+
           const token = await getToken(messaging, {
             serviceWorkerRegistration: registration,
-            vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+            vapidKey,
           });
 
           if (token) {

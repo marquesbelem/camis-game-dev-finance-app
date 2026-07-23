@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pencil, Trash2, FileText, CreditCard, AlertCircle, CheckCircle2, Clock, Repeat, Calendar } from "lucide-react";
 import { MonsterBadge, BattleSlash } from "../MonsterBattle/MonsterCard";
 import DeleteRecurringModal from "../DeleteRecurringModal/DeleteRecurringModal";
+import { playSound } from "@/lib/sounds";
 import styles from "./SlipItem.module.css";
 
 interface Category {
@@ -71,6 +72,9 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
   function handleToggleClick() {
     if (slip.status === "PENDENTE") {
       setShowBattle(true);
+      playSound("paid");
+    } else {
+      playSound("toast_info");
     }
     onStatusToggle(slip);
   }
