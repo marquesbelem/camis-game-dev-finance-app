@@ -1,0 +1,94 @@
+.panel {
+  background: var(--color-bg-surface, #1e293b);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.panelTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panelIcon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.panelTitle {
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-text-primary, #f8fafc);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.panelBadge {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.collapseBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-tertiary, #94a3b8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.collapseBtn:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
+.collapseIcon {
+  font-size: 0.65rem;
+  display: inline-block;
+  transition: transform 0.25s ease;
+  line-height: 1;
+  transform: rotate(0deg);
+}
+
+.collapseIconOpen {
+  transform: rotate(180deg);
+}
+
+.categoryBudgetsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .categoryBudgetsGrid {
+    grid-template-columns: 1fr;
+  }
+}

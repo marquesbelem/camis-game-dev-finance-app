@@ -12,6 +12,7 @@ import SummaryCards from "@/components/DashboardCharts/SummaryCards";
 import RecentExpensesWidget from "@/components/RecentExpensesWidget/RecentExpensesWidget";
 import ExtraIncomesWidget from "@/components/ExtraIncomesWidget/ExtraIncomesWidget";
 import CategoryBudgetWidget, { CategoryBudgetInfo } from "@/components/CategoryBudgetWidget/CategoryBudgetWidget";
+import CategoryBudgetsSection from "@/components/CategoryBudgetWidget/CategoryBudgetsSection";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
 import FullScreenFeedback, { FeedbackType } from "@/components/FullScreenFeedback/FullScreenFeedback";
 import type { CategoryWithCount } from "@/lib/types";
@@ -549,17 +550,8 @@ export default function Home() {
             <DashboardCharts slips={slips} />
           </section>
 
-          {/* ③ Orçamentos por Categoria (Widgets minimizáveis) */}
-          {categoryBudgets.length > 0 && (
-            <section aria-label="Orçamentos de categorias configuradas" className={styles.categoryBudgetsSection}>
-              <h3 className={styles.categoryBudgetsTitle}>🎯 Orçamentos por Categoria</h3>
-              <div className={styles.categoryBudgetsGrid}>
-                {categoryBudgets.map((cat) => (
-                  <CategoryBudgetWidget key={cat.id} category={cat} />
-                ))}
-              </div>
-            </section>
-          )}
+          {/* ③ Orçamentos por Categoria (Sessão minimizável como o Mapa de Dano) */}
+          <CategoryBudgetsSection categoryBudgets={categoryBudgets} />
 
           {/* ④ Recent Expenses */}
           <RecentExpensesWidget
