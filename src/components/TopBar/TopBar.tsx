@@ -25,8 +25,8 @@ const navLinks = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/expenses", icon: Receipt, label: "Despesas" },
   { href: "/categories", icon: Tag, label: "Categorias" },
-  { href: "/apartment", icon: Home, label: "Apartamento" },
   { href: "/achievements", icon: Trophy, label: "Conquistas" },
+  { href: "/apartment", icon: Home, label: "Apartamento" },
 ];
 
 export default function TopBar({ username, onLogout, onRestartTutorial }: TopBarProps) {
@@ -53,7 +53,13 @@ export default function TopBar({ username, onLogout, onRestartTutorial }: TopBar
   return (
     <>
       <header className={styles.topBar} role="banner">
-        {/* Hamburger */}
+        {/* Logo left */}
+        <div className={styles.logoArea}>
+          <span className={styles.logoEmoji}>🦫</span>
+          <span className={styles.logoText}>Capivara Poupadora</span>
+        </div>
+
+        {/* Hamburger — right side */}
         <button
           type="button"
           className={styles.burgerBtn}
@@ -63,12 +69,6 @@ export default function TopBar({ username, onLogout, onRestartTutorial }: TopBar
         >
           <Menu size={22} />
         </button>
-
-        {/* Logo center */}
-        <div className={styles.logoArea}>
-          <span className={styles.logoEmoji}>🦫</span>
-          <span className={styles.logoText}>Capivara Poupadora</span>
-        </div>
       </header>
 
       {/* Overlay */}
