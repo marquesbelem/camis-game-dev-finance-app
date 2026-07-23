@@ -23,17 +23,13 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const existing = await prisma.extraIncome.findUnique({
-      where: { id },
+    const { count } = await prisma.extraIncome.deleteMany({
+      where: { id, userId },
     });
 
-    if (!existing || existing.userId !== userId) {
+    if (count === 0) {
       return NextResponse.json({ error: "Receita extra não encontrada" }, { status: 404 });
     }
-
-    await prisma.extraIncome.delete({
-      where: { id },
-    });
 
     return NextResponse.json({ message: "Receita extra removida com sucesso" });
   } catch (error) {

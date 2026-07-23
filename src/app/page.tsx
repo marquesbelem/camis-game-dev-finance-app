@@ -425,7 +425,24 @@ export default function Home() {
   }
 
   async function handleDeleteExtraIncome(id: string) {
+    const target = extraIncomes.find((inc) => inc.id === id);
+    const previousIncomes = extraIncomes;
+    const previousBudget = budgetLimit;
+
+    // 1. Optimistic UI update (instant response!)
+    setExtraIncomes((prev) => prev.filter((inc) => inc.id !== id));
+    if (target) {
+      setBudgetLimit((b) => Math.max(0, b - Number(target.amount)));
+    }
+    addToast({
+      title: "Receita Removida 🗑️",
+      message: "A receita extra foi excluída.",
+      type: "info",
+    });
+    playSound("toast_danger");
+
     try {
+      // 2. Server confirm in background
       const res = await fetch(`/api/extra-income/${id}`, {
         method: "DELETE",
       });
@@ -435,15 +452,11 @@ export default function Home() {
         throw new Error(err.error || "Erro ao remover receita extra.");
       }
 
-      addToast({
-        title: "Receita Removida 🗑️",
-        message: "A receita extra foi excluída.",
-        type: "info",
-      });
-
-      playSound("toast_danger");
-      loadSlips();
+      loadSlips(true); // silent background reload
     } catch (err: any) {
+      // Rollback on error
+      setExtraIncomes(previousIncomes);
+      setBudgetLimit(previousBudget);
       addToast({
         title: "Erro",
         message: err.message || "Não foi possível remover a receita extra.",
