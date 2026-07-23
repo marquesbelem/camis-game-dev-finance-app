@@ -32,9 +32,9 @@ export async function GET(request: NextRequest) {
       const start = new Date(year, mon - 1, 1);
       const end = new Date(year, mon, 1);
 
-      // Get the latest slip for each unique title + categoryId combination to determine recurrence status
+      // Get recurring slips for this user to auto-generate for the month if missing
       const allSlips = await prisma.paymentSlip.findMany({
-        where: { userId },
+        where: { userId, isRecurring: true },
         orderBy: { dueDate: "desc" },
       });
 
@@ -332,19 +332,11 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Award XP for daily registration consistency
-    const xpDetails = await handleExpenseRegistrationXp(userId).catch((err) => {
-      console.error("XP Error:", err);
-      return null;
-    });
-
-    // Recompute achievements asynchronously after mutation
+    // Recompute stats in background asynchronously after mutation
+    handleExpenseRegistrationXp(userId).catch(console.error);
     recomputeAchievements(userId).catch(console.error);
 
-    return NextResponse.json({
-      ...resultSlip,
-      xpDetails,
-    }, { status: 201 });
+    return NextResponse.json(resultSlip, { status: 201 });
   } catch (error) {
     console.error("[POST /api/slips]", error);
     return NextResponse.json(

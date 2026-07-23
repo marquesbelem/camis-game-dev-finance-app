@@ -74,21 +74,18 @@ export default function Home() {
   const loadSlips = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [slipsRes, statsRes, extraRes, catRes] = await Promise.all([
+      const [slipsRes, statsRes, extraRes] = await Promise.all([
         fetch(`/api/slips?month=${selectedMonth}`),
         fetch(`/api/stats?month=${selectedMonth}`),
         fetch(`/api/extra-income?month=${selectedMonth}`),
-        fetch("/api/categories"),
       ]);
-      const [slipsData, statsData, extraData, catData] = await Promise.all([
+      const [slipsData, statsData, extraData] = await Promise.all([
         slipsRes.ok ? slipsRes.json().catch(() => []) : [],
         statsRes.ok ? statsRes.json().catch(() => ({})) : {},
         extraRes.ok ? extraRes.json().catch(() => []) : [],
-        catRes.ok ? catRes.json().catch(() => []) : [],
-      ]) as [any, any, any, any];
+      ]) as [any, any, any];
       setSlips(Array.isArray(slipsData) ? slipsData : []);
       setExtraIncomes(Array.isArray(extraData) ? extraData : []);
-      setCategories(Array.isArray(catData) ? catData : []);
       setUserStats(statsData);
       const salary = statsData.scheduledSalaryAmount > 0 ? statsData.scheduledSalaryAmount : 3000.0;
       const budgetPct = statsData.monthlyBudgetLimit ?? 50.0;
@@ -403,12 +400,13 @@ export default function Home() {
         }),
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Erro ao adicionar receita");
-      }
-
+      const newIncome = await res.json();
+      setExtraIncomes((prev) => [newIncome, ...prev]);
+      setIsExtraModalOpen(false);
+      setExtraIncomeAmount("");
+      setExtraIncomeDesc("");
       setFeedbackType("income");
+
       addToast({
         title: "Bônus Adicionado! 💖",
         message: `Renda extra de ${parseFloat(extraIncomeAmount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} adicionada ao orçamento!`,
@@ -416,10 +414,7 @@ export default function Home() {
       });
 
       playSound("add_expense");
-      setIsExtraModalOpen(false);
-      setExtraIncomeAmount("");
-      setExtraIncomeDesc("");
-      loadSlips();
+      loadSlips(true);
     } catch (err: any) {
       addToast({
         title: "Erro",
