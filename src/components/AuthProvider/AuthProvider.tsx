@@ -252,6 +252,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   async function handleTutorialComplete() {
     setShowTutorial(false);
     localStorage.setItem("cami_tutorial_completed", "true");
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("tutorialCompleted"));
+    }
     try {
       await fetch("/api/auth/tutorial", { method: "PATCH" });
     } catch {

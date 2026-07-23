@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, LayoutDashboard, ChevronLeft, ChevronRight, DollarSign, ShoppingBag, Settings } from "lucide-react";
+import { Plus, LayoutDashboard, ChevronLeft, ChevronRight, DollarSign, ShoppingBag, Settings, Trash2, X } from "lucide-react";
+import { playSound } from "@/lib/sounds";
 import AdicionarDespesa from "@/components/AdicionarDespesa/AdicionarDespesa";
 import SettingsModal from "@/components/SettingsModal/SettingsModal";
 import SpeedDialFab from "@/components/SpeedDialFab/SpeedDialFab";
@@ -10,6 +11,7 @@ import DashboardCharts from "@/components/DashboardCharts/DashboardCharts";
 import SummaryCards from "@/components/DashboardCharts/SummaryCards";
 import AchievementsMiniWidget from "@/components/Achievements/AchievementsMiniWidget";
 import RecentExpensesWidget from "@/components/RecentExpensesWidget/RecentExpensesWidget";
+import ExtraIncomesWidget from "@/components/ExtraIncomesWidget/ExtraIncomesWidget";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
 import LeisureBudgetCard from "@/components/LeisureBudgetCard/LeisureBudgetCard";
 import Capivara3D from "@/components/Capivara3D/Capivara3D";
@@ -53,6 +55,7 @@ export default function Home() {
   const [extraIncomes, setExtraIncomes] = useState<any[]>([]);
   const [isExtraModalOpen, setIsExtraModalOpen] = useState(false);
   const [extraIncomeAmount, setExtraIncomeAmount] = useState("");
+  const [extraIncomeDesc, setExtraIncomeDesc] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [filterCategoryId, setFilterCategoryId] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
@@ -122,12 +125,15 @@ export default function Home() {
       const totalExtra = Array.isArray(extraData) ? extraData.reduce((sum: number, inc: any) => sum + inc.amount, 0) : 0;
       setBudgetLimit(calculatedBudget + totalExtra);
 
-      // Trigger retroactive salary received celebration if validated
+      // Trigger retroactive salary received celebration if validated AND tutorial is completed
       if (statsData.celebrateSalary) {
-        setSalaryToCelebrate({
-          amount: statsData.scheduledSalaryAmount,
-          month: formatMonthLabel(selectedMonth),
-        });
+        const isTutorialDone = typeof window !== "undefined" && localStorage.getItem("cami_tutorial_completed") === "true";
+        if (isTutorialDone) {
+          setSalaryToCelebrate({
+            amount: statsData.scheduledSalaryAmount,
+            month: formatMonthLabel(selectedMonth),
+          });
+        }
       }
     } catch {
       addToast({ title: "Erro", message: "Falha ao carregar despesas.", type: "danger" });
@@ -138,6 +144,15 @@ export default function Home() {
 
   useEffect(() => {
     loadSlips();
+  }, [loadSlips]);
+
+  // Re-check slips & salary celebration when tutorial completes
+  useEffect(() => {
+    function handleTutorialDone() {
+      loadSlips(true);
+    }
+    window.addEventListener("tutorialCompleted", handleTutorialDone);
+    return () => window.removeEventListener("tutorialCompleted", handleTutorialDone);
   }, [loadSlips]);
 
   // ── Native notifications verification for ALL slips & apartment expenses ──
@@ -402,7 +417,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: parseFloat(extraIncomeAmount),
-          description: "Receita Extra",
+          description: extraIncomeDesc.trim() || "Receita Extra",
           month: selectedMonth,
         }),
       });
@@ -418,13 +433,42 @@ export default function Home() {
         type: "success",
       });
       
-      setIsExtraModalOpen(false);
+      playSound("add_expense");
       setExtraIncomeAmount("");
+      setExtraIncomeDesc("");
       loadSlips();
     } catch (err: any) {
       addToast({
         title: "Erro",
         message: err.message || "Não foi possível registrar a receita extra.",
+        type: "danger",
+      });
+    }
+  }
+
+  async function handleDeleteExtraIncome(id: string) {
+    try {
+      const res = await fetch(`/api/extra-income/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Erro ao remover receita extra.");
+      }
+
+      addToast({
+        title: "Receita Removida 🗑️",
+        message: "A receita extra foi excluída.",
+        type: "info",
+      });
+
+      playSound("toast_danger");
+      loadSlips();
+    } catch (err: any) {
+      addToast({
+        title: "Erro",
+        message: err.message || "Não foi possível remover a receita extra.",
         type: "danger",
       });
     }
@@ -543,6 +587,13 @@ export default function Home() {
             onDelete={handleDelete}
           />
 
+          {/* ⑤ Extra Incomes Widget (Directly below Recent Expenses) */}
+          <ExtraIncomesWidget
+            incomes={extraIncomes}
+            onDelete={handleDeleteExtraIncome}
+            onAddIncome={() => setIsExtraModalOpen(true)}
+          />
+
           {/* ④ Gamification Section: Mascot Card & CapyScore Gauge */}
           <div id="gamification-section" className={styles.gamificationRow}>
             <div className={styles.mascotHeaderCard}>
@@ -622,10 +673,79 @@ export default function Home() {
 
       {/* ── Extra Income Modal ────────────────────────────────────────── */}
       {isExtraModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <h3 className={styles.modalTitle}>Adicionar Receita Extra</h3>
+        <div className={styles.modalOverlay} onClick={() => setIsExtraModalOpen(false)}>
+          <div className={styles.extraModalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.extraModalHeader}>
+              <h3 className={styles.modalTitle}>✨ Receitas Extras ({formatMonthLabel(selectedMonth)})</h3>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                onClick={() => {
+                  setIsExtraModalOpen(false);
+                  setExtraIncomeAmount("");
+                  setExtraIncomeDesc("");
+                }}
+                aria-label="Fechar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* List of Registered Extra Incomes */}
+            <div className={styles.extraIncomeSection}>
+              <h4 className={styles.extraSectionTitle}>Receitas Cadastradas</h4>
+              {extraIncomes.length === 0 ? (
+                <p className={styles.extraEmptyText}>Nenhuma receita extra cadastrada neste mês.</p>
+              ) : (
+                <div className={styles.extraList}>
+                  {extraIncomes.map((inc) => (
+                    <div key={inc.id} className={styles.extraCard}>
+                      <div className={styles.extraCardInfo}>
+                        <span className={styles.extraIcon}>💰</span>
+                        <div className={styles.extraDetails}>
+                          <strong className={styles.extraDesc}>{inc.description || "Receita Extra"}</strong>
+                          <span className={styles.extraDate}>
+                            {inc.createdAt ? new Date(inc.createdAt).toLocaleDateString("pt-BR") : ""}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.extraCardRight}>
+                        <span className={styles.extraAmount}>
+                          + {Number(inc.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        </span>
+                        <button
+                          type="button"
+                          className={styles.deleteExtraBtn}
+                          onClick={() => handleDeleteExtraIncome(inc.id)}
+                          title="Excluir esta receita extra"
+                          aria-label={`Excluir ${inc.description}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <hr className={styles.extraDivider} />
+
+            {/* Form to Add New Extra Income */}
             <form onSubmit={handleAddExtraIncome}>
+              <h4 className={styles.extraSectionTitle}>Adicionar Nova Receita</h4>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Descrição (opcional)</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={extraIncomeDesc}
+                  onChange={(e) => setExtraIncomeDesc(e.target.value)}
+                  placeholder="Ex: Freela, Bônus, Venda de item"
+                />
+              </div>
+
               <div className={styles.formGroup}>
                 <label className={styles.label}>Valor da Receita (R$)</label>
                 <input
@@ -636,7 +756,6 @@ export default function Home() {
                   onChange={(e) => setExtraIncomeAmount(e.target.value)}
                   placeholder="Ex: 500,00"
                   required
-                  autoFocus
                 />
               </div>
 
@@ -646,13 +765,14 @@ export default function Home() {
                   onClick={() => {
                     setIsExtraModalOpen(false);
                     setExtraIncomeAmount("");
+                    setExtraIncomeDesc("");
                   }}
                   className={styles.cancelBtn}
                 >
-                  Cancelar
+                  Fechar
                 </button>
                 <button type="submit" className={styles.submitBtn}>
-                  Adicionar Bônus
+                  + Adicionar Receita
                 </button>
               </div>
             </form>

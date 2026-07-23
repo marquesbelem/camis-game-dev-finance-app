@@ -727,3 +727,155 @@
   background: var(--color-bg-overlay);
   color: var(--color-text-primary);
 }
+
+/* ── Extra Income Modal & List ──────────────────────────────────────────────── */
+.extraModalContent {
+  background: var(--color-bg-surface, #1e293b);
+  border: 1px solid var(--color-border-strong, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-lg, 16px);
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: var(--shadow-2xl, 0 20px 25px -5px rgba(0, 0, 0, 0.5));
+  animation: slideUp var(--transition-base, 0.25s ease) both;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.extraModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.closeBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-secondary, #94a3b8);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.extraSectionTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text-secondary, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.extraEmptyText {
+  font-size: 0.85rem;
+  color: var(--color-text-tertiary, #64748b);
+  font-style: italic;
+  padding: 8px 0;
+}
+
+.extraList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.extraCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: background 0.2s ease;
+}
+
+.extraCard:hover {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.extraCardInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.extraIcon {
+  font-size: 1.2rem;
+}
+
+.extraDetails {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.extraDesc {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #f8fafc);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.extraDate {
+  font-size: 0.72rem;
+  color: var(--color-text-tertiary, #64748b);
+}
+
+.extraCardRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.extraAmount {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #34d399;
+}
+
+.deleteExtraBtn {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteExtraBtn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+}
+
+.extraDivider {
+  border: none;
+  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  margin: 4px 0;
+}
