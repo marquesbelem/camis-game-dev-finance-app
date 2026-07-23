@@ -13,6 +13,7 @@ import RecentExpensesWidget from "@/components/RecentExpensesWidget/RecentExpens
 import ExtraIncomesWidget from "@/components/ExtraIncomesWidget/ExtraIncomesWidget";
 import CategoryBudgetWidget, { CategoryBudgetInfo } from "@/components/CategoryBudgetWidget/CategoryBudgetWidget";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
+import FullScreenFeedback, { FeedbackType } from "@/components/FullScreenFeedback/FullScreenFeedback";
 import type { CategoryWithCount } from "@/lib/types";
 import styles from "./page.module.css";
 
@@ -64,6 +65,7 @@ export default function Home() {
   const [salaryToCelebrate, setSalaryToCelebrate] = useState<{ amount: number; month: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userStats, setUserStats] = useState<any>(null);
+  const [feedbackType, setFeedbackType] = useState<FeedbackType>(null);
 
   const { toasts, dismissToast, addToast, showXpToast, showLevelUpToast } = useToasts();
 
@@ -333,6 +335,10 @@ export default function Home() {
       prev.map((s) => (s.id === slip.id ? { ...s, status: newStatus } : s))
     );
 
+    if (newStatus === "PAGO") {
+      setFeedbackType("paid");
+    }
+
     try {
       // 2. Server confirm
       const form = new FormData();
@@ -401,12 +407,13 @@ export default function Home() {
         throw new Error(err.error || "Erro ao adicionar receita");
       }
 
+      setFeedbackType("income");
       addToast({
         title: "Bônus Adicionado! 💖",
-        message: `Renda extra de ${parseFloat(extraIncomeAmount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} adicionada ao HP!`,
+        message: `Renda extra de ${parseFloat(extraIncomeAmount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} adicionada ao orçamento!`,
         type: "success",
       });
-      
+
       playSound("add_expense");
       setIsExtraModalOpen(false);
       setExtraIncomeAmount("");
@@ -657,6 +664,12 @@ export default function Home() {
         onDismiss={dismissToast}
         salaryToCelebrate={salaryToCelebrate}
         onDismissSalary={() => setSalaryToCelebrate(null)}
+      />
+
+      {/* ── Full Screen Visual Feedback Overlay ────────────────────────────── */}
+      <FullScreenFeedback
+        type={feedbackType}
+        onComplete={() => setFeedbackType(null)}
       />
     </>
   );
