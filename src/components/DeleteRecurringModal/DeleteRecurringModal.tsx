@@ -39,7 +39,9 @@ export default function DeleteRecurringModal({
   const portalRoot = document.getElementById("portal-root");
   if (!portalRoot) return null;
 
-  const handleConfirm = () => {
+  const handleConfirm = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     onConfirm(deleteFuture);
     onClose();
   };
@@ -204,10 +206,22 @@ export default function DeleteRecurringModal({
         )}
 
         <div className={styles.actions}>
-          <button className={styles.cancelBtn} onClick={onClose}>
+          <button
+            type="button"
+            className={styles.cancelBtn}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
+          >
             Cancelar
           </button>
-          <button className={styles.confirmBtn} onClick={handleConfirm}>
+          <button
+            type="button"
+            className={styles.confirmBtn}
+            onClick={handleConfirm}
+          >
             Confirmar Exclusão
           </button>
         </div>
