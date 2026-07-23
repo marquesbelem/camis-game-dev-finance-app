@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Pencil, Trash2, FileText, CreditCard, AlertCircle, CheckCircle2, Clock, Repeat, Calendar } from "lucide-react";
-import { MonsterBadge, BattleSlash } from "../MonsterBattle/MonsterCard";
 import DeleteRecurringModal from "../DeleteRecurringModal/DeleteRecurringModal";
 import { playSound } from "@/lib/sounds";
 import styles from "./SlipItem.module.css";
@@ -66,12 +65,10 @@ function formatDate(iso: string): string {
 
 export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Props) {
   const state = getSlipState(slip);
-  const [showBattle, setShowBattle] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   function handleToggleClick() {
     if (slip.status === "PENDENTE") {
-      setShowBattle(true);
       playSound("paid");
     } else {
       playSound("toast_info");
@@ -94,12 +91,6 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
 
   return (
     <>
-      {showBattle && (
-        <BattleSlash
-          amount={slip.amount}
-          onComplete={() => setShowBattle(false)}
-        />
-      )}
       <DeleteRecurringModal
         isOpen={isDeleteModalOpen}
         expenseTitle={slip.title}
@@ -152,13 +143,6 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
                     <span>{slip.installmentNumber}/{slip.installmentTotal}</span>
                   </span>
                 )}
-                {slip.status === "PENDENTE" && (
-                  <MonsterBadge
-                    isOverdue={isOverdue}
-                    isCreditCard={slip.isCreditCardPayment}
-                    isRecurring={slip.isRecurring}
-                  />
-                )}
               </div>
             </div>
 
@@ -186,7 +170,7 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
               const mm = String(today.getMonth() + 1).padStart(2, "0");
               const dd = String(today.getDate()).padStart(2, "0");
               const todayStr = `${yyyy}-${mm}-${dd}`;
-              
+
               const tomorrow = new Date(today);
               tomorrow.setDate(tomorrow.getDate() + 1);
               const tyyyy = tomorrow.getFullYear();
@@ -198,10 +182,9 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
               const isOverdueTag = isPending && dueStr < todayStr;
 
               return (
-                <span className={`${styles.dueDateTag} ${
-                  isDueTomorrow ? styles.dueDateTagTomorrow :
-                  isOverdueTag ? styles.dueDateTagOverdue : ""
-                }`}>
+                <span className={`${styles.dueDateTag} ${isDueTomorrow ? styles.dueDateTagTomorrow :
+                    isOverdueTag ? styles.dueDateTagOverdue : ""
+                  }`}>
                   Vence {formatDate(slip.dueDate)}
                 </span>
               );
@@ -235,27 +218,27 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
             {state === "paid" ? <Clock size={15} /> : <CheckCircle2 size={15} />}
           </button>
 
-        <button
-          id={`edit-slip-${slip.id}`}
-          className={`${styles.actionBtn} ${styles.editBtn}`}
-          onClick={() => onEdit(slip)}
-          title="Editar despesa"
-          aria-label={`Editar ${slip.title}`}
-        >
-          <Pencil size={15} />
-        </button>
+          <button
+            id={`edit-slip-${slip.id}`}
+            className={`${styles.actionBtn} ${styles.editBtn}`}
+            onClick={() => onEdit(slip)}
+            title="Editar despesa"
+            aria-label={`Editar ${slip.title}`}
+          >
+            <Pencil size={15} />
+          </button>
 
-        <button
-          id={`delete-slip-${slip.id}`}
-          className={`${styles.actionBtn} ${styles.deleteBtn}`}
-          onClick={handleDeleteClick}
-          title="Excluir despesa"
-          aria-label={`Excluir ${slip.title}`}
-        >
-          <Trash2 size={15} />
-        </button>
-      </div>
-    </article>
-  </>
+          <button
+            id={`delete-slip-${slip.id}`}
+            className={`${styles.actionBtn} ${styles.deleteBtn}`}
+            onClick={handleDeleteClick}
+            title="Excluir despesa"
+            aria-label={`Excluir ${slip.title}`}
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      </article>
+    </>
   );
 }
