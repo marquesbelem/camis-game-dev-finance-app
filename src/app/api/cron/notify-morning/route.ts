@@ -41,53 +41,62 @@ export async function GET(request: NextRequest) {
       const tokens = user.deviceTokens.map((dt) => dt.token);
       if (tokens.length === 0) continue;
 
-      // 1. Slips due today
-      const slips = await prisma.paymentSlip.findMany({
-        where: {
-          userId: user.id,
-          status: "PENDENTE",
-        },
+      // 1. Slips due
+      const pendingSlips = await prisma.paymentSlip.findMany({
+        where: { userId: user.id, status: "PENDENTE" },
       });
-      const dueSlips = slips.filter(
-        (s) => s.dueDate.toISOString().slice(0, 10) === todayStr
-      );
 
-      // 2. Apartment items due today
-      const dueAptExpenses = (user.apartmentProject?.expenses || []).filter(
-        (exp) => exp.status === "PENDENTE" && exp.date.toISOString().slice(0, 10) === todayStr
-      );
-      const dueAptInstallments = (user.apartmentProject?.installments || []).filter(
-        (inst) => inst.status === "PENDENTE" && inst.dueDate.toISOString().slice(0, 10) === todayStr
-      );
+      // 2. Apartment items due
+      const pendingAptExpenses = (user.apartmentProject?.expenses || []).filter(exp => exp.status === "PENDENTE");
+      const pendingAptInstallments = (user.apartmentProject?.installments || []).filter(inst => inst.status === "PENDENTE");
 
-      const totalItemsCount = dueSlips.length + dueAptExpenses.length + dueAptInstallments.length;
+      const allPending = [
+        ...pendingSlips.map(s => ({ name: s.title, amount: s.amount, date: s.dueDate })),
+        ...pendingAptExpenses.map(e => ({ name: `[Apê] ${e.description}`, amount: e.amount, date: e.date })),
+        ...pendingAptInstallments.map(i => ({ name: `[Apê] Parcela #${i.installmentNumber}`, amount: i.amount, date: i.dueDate }))
+      ];
+
+      const tomorrowSP = new Date(todaySP.getTime() + 24 * 60 * 60 * 1000);
+      const tomorrowStr = tomorrowSP.toISOString().slice(0, 10);
+
+      const overdueItems = allPending.filter(i => i.date.toISOString().slice(0, 10) < todayStr);
+      const todayItems = allPending.filter(i => i.date.toISOString().slice(0, 10) === todayStr);
+      const tomorrowItems = allPending.filter(i => i.date.toISOString().slice(0, 10) === tomorrowStr);
+
+      const totalItemsCount = overdueItems.length + todayItems.length + tomorrowItems.length;
       if (totalItemsCount === 0) continue;
 
-      const totalAmount =
-        dueSlips.reduce((sum, s) => sum + s.amount, 0) +
-        dueAptExpenses.reduce((sum, s) => sum + s.amount, 0) +
-        dueAptInstallments.reduce((sum, s) => sum + s.amount, 0);
+      const formatCurrency = (val: number) => val.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      const formatDateBR = (d: Date) => {
+        const [year, month, day] = d.toISOString().slice(0, 10).split('-');
+        return `${day}/${month}/${year}`;
+      };
 
-      // Construct dynamic message body
-      let title = "Contas Vencendo Hoje ⚠️";
+      let title = "Lembrete Financeiro 📊";
       let body = "";
 
       if (totalItemsCount === 1) {
-        let name = "";
-        if (dueSlips.length > 0) name = dueSlips[0].title;
-        else if (dueAptExpenses.length > 0) name = `[Apê] ${dueAptExpenses[0].description}`;
-        else name = `[Apê] Parcela #${dueAptInstallments[0].installmentNumber}`;
-
-        title = "Aviso de Vencimento ⚠️";
-        body = `A despesa "${name}" de ${totalAmount.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        })} vence hoje. Lembre-se de pagar!`;
+        if (overdueItems.length === 1) {
+          title = "Conta Atrasada! 🚨";
+          body = `A despesa "${overdueItems[0].name}" de ${formatCurrency(overdueItems[0].amount)} venceu em ${formatDateBR(overdueItems[0].date)}. Pague para evitar juros!`;
+        } else if (todayItems.length === 1) {
+          title = "Vencimento Hoje ⚠️";
+          body = `A despesa "${todayItems[0].name}" de ${formatCurrency(todayItems[0].amount)} vence hoje. Não esqueça de pagar!`;
+        } else {
+          title = "Vencimento Amanhã 📅";
+          body = `A despesa "${tomorrowItems[0].name}" de ${formatCurrency(tomorrowItems[0].amount)} vence amanhã.`;
+        }
       } else {
-        body = `Você tem ${totalItemsCount} despesas vencendo hoje no total de ${totalAmount.toLocaleString(
-          "pt-BR",
-          { style: "currency", currency: "BRL" }
-        )}. Abra o app para conferir!`;
+        const parts = [];
+        if (overdueItems.length > 0) parts.push(`${overdueItems.length} atrasada(s)`);
+        if (todayItems.length > 0) parts.push(`${todayItems.length} vencendo hoje`);
+        if (tomorrowItems.length > 0) parts.push(`${tomorrowItems.length} para amanhã`);
+
+        if (overdueItems.length > 0) title = "Aviso de Contas Atrasadas! 🚨";
+        else if (todayItems.length > 0) title = "Contas Vencendo Hoje ⚠️";
+        else title = "Contas Vencendo Amanhã 📅";
+
+        body = `Você tem pendências: ${parts.join(', ')}. Abra o app para organizar suas finanças!`;
       }
 
       // Dispatch multicast message
