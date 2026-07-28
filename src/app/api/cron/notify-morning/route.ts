@@ -58,8 +58,12 @@ export async function GET(request: NextRequest) {
 
       const tomorrowSP = new Date(todaySP.getTime() + 24 * 60 * 60 * 1000);
       const tomorrowStr = tomorrowSP.toISOString().slice(0, 10);
+      const currentMonthPrefix = todayStr.slice(0, 7);
 
-      const overdueItems = allPending.filter(i => i.date.toISOString().slice(0, 10) < todayStr);
+      const overdueItems = allPending.filter(i => {
+        const itemDateStr = i.date.toISOString().slice(0, 10);
+        return itemDateStr < todayStr && itemDateStr.startsWith(currentMonthPrefix);
+      });
       const todayItems = allPending.filter(i => i.date.toISOString().slice(0, 10) === todayStr);
       const tomorrowItems = allPending.filter(i => i.date.toISOString().slice(0, 10) === tomorrowStr);
 
@@ -96,7 +100,11 @@ export async function GET(request: NextRequest) {
         else if (todayItems.length > 0) title = "Contas Vencendo Hoje ⚠️";
         else title = "Contas Vencendo Amanhã 📅";
 
-        body = `Você tem pendências: ${parts.join(', ')}. Abra o app para organizar suas finanças!`;
+        const allItems = [...overdueItems, ...todayItems, ...tomorrowItems];
+        const itemNames = allItems.slice(0, 3).map(i => i.name).join(', ');
+        const hasMore = allItems.length > 3 ? ` e mais ${allItems.length - 3}` : '';
+
+        body = `Você tem pendências (${parts.join(', ')}): ${itemNames}${hasMore}. Abra o app para organizar suas finanças!`;
       }
 
       // Dispatch multicast message
