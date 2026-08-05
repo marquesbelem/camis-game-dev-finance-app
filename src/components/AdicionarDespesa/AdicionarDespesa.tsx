@@ -20,6 +20,7 @@ interface Slip {
   dueDate: string;
   status: string;
   isCreditCardPayment: boolean;
+  isDebt?: boolean;
   isRecurring: boolean;
   isInstallment?: boolean;
   installmentNumber?: number;
@@ -55,6 +56,7 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
   const [status, setStatus] = useState("PENDENTE");
   const [categoryId, setCategoryId] = useState("");
   const [isCreditCardPayment, setIsCreditCardPayment] = useState(false);
+  const [isDebt, setIsDebt] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [isInstallment, setIsInstallment] = useState(false);
   const [installmentsCount, setInstallmentsCount] = useState("2");
@@ -143,9 +145,13 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
       setStatus(editingSlip.status);
       setCategoryId(editingSlip.categoryId);
       setIsCreditCardPayment(editingSlip.isCreditCardPayment);
+      setIsDebt(editingSlip.isDebt ?? false);
       setIsRecurring((editingSlip as any).isRecurring ?? false);
       setIsInstallment((editingSlip as any).isInstallment ?? false);
       setInstallmentsCount(((editingSlip as any).installmentTotal ?? 2).toString());
+      if (editingSlip.isDebt) {
+        setRecurringScope("SINGLE");
+      }
     } else {
       resetForm();
     }
@@ -171,6 +177,7 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
     setStatus("PENDENTE");
     setCategoryId(categories[0]?.id ?? "");
     setIsCreditCardPayment(false);
+    setIsDebt(false);
     setIsRecurring(false);
     setIsInstallment(false);
     setInstallmentsCount("2");
@@ -238,6 +245,7 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
     formData.append("dueDate", dueDate);
     formData.append("status", status);
     formData.append("isCreditCardPayment", isCreditCardPayment.toString());
+    formData.append("isDebt", isDebt.toString());
     formData.append("isRecurring", isRecurring.toString());
     formData.append("isInstallment", isInstallment.toString());
     if (isInstallment && !editingSlip) {
@@ -460,6 +468,45 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
             </div>
           </label>
 
+          {/* Debt toggle */}
+          <label className={styles.toggleRow} htmlFor="slip-debt">
+            <div className={styles.toggleInfo}>
+              <DollarSign size={16} />
+              <span>É uma dívida?</span>
+            </div>
+            <div
+              id="slip-debt"
+              role="switch"
+              aria-checked={isDebt}
+              className={`${styles.toggle} ${isDebt ? styles.toggleOn : ""}`}
+              onClick={() => {
+                setIsDebt((v) => {
+                  const newVal = !v;
+                  if (newVal) {
+                    setIsRecurring(true);
+                    setRecurringScope("SINGLE");
+                  }
+                  return newVal;
+                });
+              }}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === " ") {
+                  setIsDebt((v) => {
+                    const newVal = !v;
+                    if (newVal) {
+                      setIsRecurring(true);
+                      setRecurringScope("SINGLE");
+                    }
+                    return newVal;
+                  });
+                }
+              }}
+            >
+              <span className={styles.toggleThumb} />
+            </div>
+          </label>
+
           {/* Recurring toggle */}
           <label className={styles.toggleRow} htmlFor="slip-recurring">
             <div className={styles.toggleInfo}>
@@ -504,16 +551,18 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
                   />
                   <span>Alterar apenas a conta deste mês</span>
                 </label>
-                <label className={styles.radioOption}>
-                  <input
-                    type="radio"
-                    name="recurringScope"
-                    value="FUTURE"
-                    checked={recurringScope === "FUTURE"}
-                    onChange={() => setRecurringScope("FUTURE")}
-                  />
-                  <span>Alterar esta e todas as recorrências futuras</span>
-                </label>
+                {!isDebt && (
+                  <label className={styles.radioOption}>
+                    <input
+                      type="radio"
+                      name="recurringScope"
+                      value="FUTURE"
+                      checked={recurringScope === "FUTURE"}
+                      onChange={() => setRecurringScope("FUTURE")}
+                    />
+                    <span>Alterar esta e todas as recorrências futuras</span>
+                  </label>
+                )}
               </div>
             </div>
           )}

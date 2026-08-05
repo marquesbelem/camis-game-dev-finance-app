@@ -115,6 +115,9 @@ export async function PUT(
     const rawCredit = formData.get("isCreditCardPayment");
     const isCreditCardPayment =
       rawCredit !== null ? rawCredit === "true" : existing.isCreditCardPayment;
+    const rawDebt = formData.get("isDebt");
+    const isDebt =
+      rawDebt !== null ? rawDebt === "true" : (existing as any).isDebt;
     const rawRecurring = formData.get("isRecurring");
     const isRecurring =
       rawRecurring !== null ? rawRecurring === "true" : existing.isRecurring;
@@ -161,6 +164,7 @@ export async function PUT(
                 dueDate: d,
                 status: "PENDENTE",
                 isCreditCardPayment,
+                isDebt,
                 isRecurring: false,
                 isInstallment: true,
                 installmentNumber: i,
@@ -203,6 +207,7 @@ export async function PUT(
         dueDate,
         status,
         isCreditCardPayment,
+        isDebt,
         isRecurring,
         recurringDay: isRecurring ? dueDate.getUTCDate() : null,
         categoryId,

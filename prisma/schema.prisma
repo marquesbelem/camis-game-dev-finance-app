@@ -58,6 +58,7 @@ model PaymentSlip {
   dueDate             DateTime
   status              SlipStatus @default(PENDENTE)
   isCreditCardPayment Boolean    @default(false)
+  isDebt              Boolean    @default(false)
   isRecurring         Boolean    @default(false)  // Repeats monthly
   recurringDay        Int?       // Day of month (1-31) for recurring generation
   isInstallment       Boolean    @default(false)

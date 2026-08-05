@@ -273,6 +273,9 @@ export default function Home() {
         }, 1200);
       }
     }
+
+    // Refresh slips from server so interest rate is calculated
+    loadSlips(true);
   }
 
   async function handleDelete(id: string, deleteAll?: boolean) {

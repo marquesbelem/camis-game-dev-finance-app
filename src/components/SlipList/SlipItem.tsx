@@ -20,6 +20,8 @@ export interface Slip {
   dueDate: string;
   status: string;
   isCreditCardPayment: boolean;
+  isDebt?: boolean;
+  interestRate?: number;
   isRecurring: boolean;
   isInstallment?: boolean;
   installmentNumber?: number;
@@ -132,6 +134,11 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
                     <CreditCard size={12} />
                   </span>
                 )}
+                {slip.isDebt && (
+                  <span className={styles.debtBadge} title="Dívida">
+                    Dívida
+                  </span>
+                )}
                 {slip.isRecurring && (
                   <span className={styles.recurringBadge} title="Despesa Recorrente">
                     <Repeat size={12} />
@@ -141,6 +148,19 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
                   <span className={styles.installmentBadge} title={`Parcela ${slip.installmentNumber}/${slip.installmentTotal}`}>
                     <Calendar size={12} />
                     <span>{slip.installmentNumber}/{slip.installmentTotal}</span>
+                  </span>
+                )}
+                {slip.isDebt && slip.interestRate !== undefined && (
+                  <span 
+                    className={slip.interestRate === 0 ? styles.interestNeutralBadge : (slip.interestRate > 0 ? styles.interestUpBadge : styles.interestDownBadge)} 
+                    title={slip.interestRate === 0 ? "Sem juros aplicado" : `Juros: ${slip.interestRate.toFixed(1)}%`}
+                  >
+                    {slip.interestRate === 0 ? 'Sem juros aplicado' : `${slip.interestRate > 0 ? '↑' : '↓'} ${Math.abs(slip.interestRate).toFixed(1)}% juros`}
+                  </span>
+                )}
+                {!slip.isDebt && slip.interestRate !== undefined && slip.interestRate !== 0 && (
+                  <span className={slip.interestRate > 0 ? styles.interestUpBadge : styles.interestDownBadge} title={`Juros: ${slip.interestRate.toFixed(1)}%`}>
+                    {slip.interestRate > 0 ? '↑' : slip.interestRate < 0 ? '↓' : ''} {Math.abs(slip.interestRate).toFixed(1)}% juros
                   </span>
                 )}
               </div>

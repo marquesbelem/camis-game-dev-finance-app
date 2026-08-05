@@ -86,6 +86,7 @@ export async function PUT(request: NextRequest) {
     const newAmount = body.amount !== undefined ? parseFloat(body.amount) : existing.amount;
     const newCategoryId = body.categoryId !== undefined ? body.categoryId : existing.categoryId;
     const newIsCreditCardPayment = body.isCreditCardPayment !== undefined ? !!body.isCreditCardPayment : existing.isCreditCardPayment;
+    const newIsDebt = body.isDebt !== undefined ? !!body.isDebt : existing.isDebt;
     const newRecurringDay = body.recurringDay !== undefined ? parseInt(body.recurringDay, 10) : (existing.recurringDay ?? existing.dueDate.getDate());
 
     if (!newTitle || isNaN(newAmount) || newAmount <= 0 || !newCategoryId) {
@@ -97,14 +98,23 @@ export async function PUT(request: NextRequest) {
     const nextMonthYear = now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear();
     const nextMonth = (now.getMonth() + 1) % 12; // 0-11
 
-    const nextMonthStart = new Date(nextMonthYear, nextMonth, 1);
-    const nextMonthEnd = new Date(nextMonthYear, nextMonth + 1, 1);
-
     const maxDayInNextMonth = new Date(nextMonthYear, nextMonth + 1, 0).getDate();
+    const nextMonthStart = new Date(nextMonthYear, nextMonth, 1);
+    nextMonthStart.setUTCHours(0, 0, 0, 0);
+    
+    let endMonth = nextMonth + 1;
+    let endYear = nextMonthYear;
+    if (endMonth > 11) {
+      endMonth = 0;
+      endYear++;
+    }
+    const nextMonthEnd = new Date(endYear, endMonth, 1);
+    nextMonthEnd.setUTCHours(23, 59, 59, 999);
+
     const clampedDay = Math.min(newRecurringDay, maxDayInNextMonth);
     const targetDueDate = new Date(nextMonthYear, nextMonth, clampedDay);
 
-    const keyChanged = newTitle !== existing.title || newCategoryId !== existing.categoryId;
+    const keyChanged = newTitle.trim().toLowerCase() !== existing.title.trim().toLowerCase() || newCategoryId !== existing.categoryId;
 
     if (keyChanged) {
       // Key changed: stop old recurrence, start new one in next month
@@ -154,6 +164,7 @@ export async function PUT(request: NextRequest) {
           dueDate: targetDueDate,
           status: "PENDENTE",
           isCreditCardPayment: newIsCreditCardPayment,
+          isDebt: newIsDebt,
           isRecurring: true,
           recurringDay: newRecurringDay,
           categoryId: newCategoryId,
@@ -176,6 +187,7 @@ export async function PUT(request: NextRequest) {
         data: {
           amount: newAmount,
           isCreditCardPayment: newIsCreditCardPayment,
+          isDebt: newIsDebt,
           recurringDay: newRecurringDay,
           isRecurring: true,
         },
@@ -187,7 +199,7 @@ export async function PUT(request: NextRequest) {
           userId,
           title: existing.title,
           categoryId: existing.categoryId,
-          dueDate: { gte: nextMonthStart, lt: nextMonthEnd },
+          dueDate: { gte: nextMonthStart, lte: nextMonthEnd },
         },
       });
 
@@ -210,6 +222,7 @@ export async function PUT(request: NextRequest) {
             dueDate: targetDueDate,
             status: "PENDENTE",
             isCreditCardPayment: newIsCreditCardPayment,
+            isDebt: newIsDebt,
             isRecurring: true,
             recurringDay: newRecurringDay,
             categoryId: newCategoryId,
