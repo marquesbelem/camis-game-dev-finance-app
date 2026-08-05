@@ -556,28 +556,32 @@ export default function Home() {
             <SummaryCards slips={slips} budgetLimit={budgetLimit} loading={loading} />
           </section>
 
-          {/* ② Mapa de Dano – gamified category breakdown */}
-          <section aria-label="Gastos por categoria">
-            <DashboardCharts slips={slips} />
-          </section>
+          {!loading && (
+            <>
+              {/* ② Mapa de Dano – gamified category breakdown */}
+              <section aria-label="Gastos por categoria">
+                <DashboardCharts slips={slips} />
+              </section>
 
-          {/* ③ Orçamentos por Categoria (Sessão minimizável como o Mapa de Dano) */}
-          <CategoryBudgetsSection categoryBudgets={categoryBudgets} />
+              {/* ③ Orçamentos por Categoria (Sessão minimizável como o Mapa de Dano) */}
+              <CategoryBudgetsSection categoryBudgets={categoryBudgets} />
 
-          {/* ④ Recent Expenses */}
-          <RecentExpensesWidget
-            slips={slips}
-            onStatusToggle={handleStatusToggle}
-            onEdit={openEdit}
-            onDelete={handleDelete}
-          />
+              {/* ④ Recent Expenses */}
+              <RecentExpensesWidget
+                slips={slips}
+                onStatusToggle={handleStatusToggle}
+                onEdit={openEdit}
+                onDelete={handleDelete}
+              />
 
-          {/* ⑤ Extra Incomes Widget (Directly below Recent Expenses) */}
-          <ExtraIncomesWidget
-            incomes={extraIncomes}
-            onDelete={handleDeleteExtraIncome}
-            onAddIncome={() => setIsExtraModalOpen(true)}
-          />
+              {/* ⑤ Extra Incomes Widget (Directly below Recent Expenses) */}
+              <ExtraIncomesWidget
+                incomes={extraIncomes}
+                onDelete={handleDeleteExtraIncome}
+                onAddIncome={() => setIsExtraModalOpen(true)}
+              />
+            </>
+          )}
 
         </main>
       </div>

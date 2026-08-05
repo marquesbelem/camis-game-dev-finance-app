@@ -57,10 +57,10 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
     <>
       <header className={styles.topBar} role="banner">
         {/* Logo left */}
-        <div className={styles.logoArea}>
+        <Link href="/" className={styles.logoArea} style={{ textDecoration: 'none' }}>
           <span className={styles.logoEmoji}>🦫</span>
           <span className={styles.logoText}>Capivara Poupadora</span>
-        </div>
+        </Link>
 
         {/* Hamburger — right side */}
         <button
@@ -92,10 +92,10 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
         >
           {/* Drawer Header */}
           <div className={styles.drawerHeader}>
-            <div className={styles.drawerLogoArea}>
+            <Link href="/" className={styles.drawerLogoArea} style={{ textDecoration: 'none' }} onClick={() => setIsOpen(false)}>
               <span className={styles.drawerLogoEmoji}>🦫</span>
               <span className={styles.drawerLogoText}>Capivara Poupadora</span>
-            </div>
+            </Link>
             <button
               type="button"
               className={styles.drawerCloseBtn}
