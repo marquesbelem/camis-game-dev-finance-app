@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       const allSlips = await prisma.paymentSlip.findMany({
         where: { userId, isRecurring: true },
         orderBy: { dueDate: "desc" },
+        distinct: ['title', 'categoryId'],
       });
 
       const latestSlipsMap = new Map<string, typeof allSlips[0]>();
