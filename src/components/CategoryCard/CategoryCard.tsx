@@ -27,7 +27,7 @@ export default function CategoryCard({ category, onEdit, onDelete }: Props) {
   const slipCount = category._count.slips;
 
   const handleDeleteClick = useCallback(() => {
-    if (category.isSystemDefault) return;
+    if (category.name === "Sem Categoria") return;
     if (confirming) {
       setDeleting(true);
       onDelete(category.id);
@@ -35,9 +35,10 @@ export default function CategoryCard({ category, onEdit, onDelete }: Props) {
       setConfirming(true);
       setTimeout(() => setConfirming(false), 4000);
     }
-  }, [category.id, category.isSystemDefault, confirming, onDelete]);
+  }, [category.id, category.name, confirming, onDelete]);
 
   const handleEditClick = useCallback(() => {
+    if (category.name === "Sem Categoria") return;
     setConfirming(false);
     onEdit(category);
   }, [category, onEdit]);
@@ -102,17 +103,19 @@ export default function CategoryCard({ category, onEdit, onDelete }: Props) {
           onClick={handleEditClick}
           aria-label={`Editar ${category.name}`}
           title="Editar categoria"
+          disabled={category.name === "Sem Categoria"}
+          style={category.name === "Sem Categoria" ? { opacity: 0.5, cursor: "not-allowed" } : {}}
         >
           <Pencil size={15} />
         </button>
 
-        {category.isSystemDefault ? (
+        {category.name === "Sem Categoria" ? (
           <button
             id={`delete-category-${category.id}-btn`}
             className={`${styles.actionBtn} ${styles.deleteDisabled}`}
             disabled
-            aria-label="Categorias padrão não podem ser excluídas"
-            title="Categorias padrão do sistema não podem ser excluídas"
+            aria-label="A categoria 'Sem Categoria' não pode ser excluída"
+            title="A categoria 'Sem Categoria' não pode ser excluída"
           >
             <Trash2 size={15} />
           </button>

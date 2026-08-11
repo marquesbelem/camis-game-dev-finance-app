@@ -69,7 +69,7 @@ export default function CategoriesPage() {
       const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
       if (res.status === 403) {
         const data = await res.json();
-        setError(data.error ?? "Categorias padrão não podem ser excluídas.");
+        setError(data.error ?? "Ação não permitida.");
         return;
       }
       if (!res.ok) {

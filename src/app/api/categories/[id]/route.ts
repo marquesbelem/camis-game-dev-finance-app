@@ -95,6 +95,13 @@ export async function PUT(request: Request, context: RouteContext) {
       );
     }
 
+    if (category.name === "Sem Categoria" && (sanitizedName !== undefined && sanitizedName !== "Sem Categoria")) {
+      return NextResponse.json(
+        { error: "A categoria 'Sem Categoria' não pode ser renomeada." },
+        { status: 403 }
+      );
+    }
+
     // ── Apply update ────────────────────────────────────────────────────────
     const updateData: Record<string, string> = {};
     if (sanitizedName !== undefined) updateData.name = sanitizedName;
@@ -149,9 +156,9 @@ export async function DELETE(request: Request, context: RouteContext) {
     }
 
     // ── Block system-default deletion ───────────────────────────────────────
-    if (category.isSystemDefault) {
+    if (category.name === "Sem Categoria") {
       return NextResponse.json(
-        { error: "Categorias padrão do sistema não podem ser excluídas." },
+        { error: "A categoria 'Sem Categoria' não pode ser excluída." },
         { status: 403 }
       );
     }
