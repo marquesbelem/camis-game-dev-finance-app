@@ -244,5 +244,5 @@ model MonthlyCategoryBudget {
   category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([categoryId, month])
+  @@unique([categoryId, month, userId])
 }

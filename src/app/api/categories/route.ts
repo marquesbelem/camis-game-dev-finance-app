@@ -207,7 +207,7 @@ export async function PUT(request: NextRequest) {
             });
           } else {
             await prisma.monthlyCategoryBudget.upsert({
-              where: { categoryId_month: { categoryId: item.id, month } },
+              where: { categoryId_month_userId: { categoryId: item.id, month, userId } },
               update: { budgetLimit: val },
               create: { categoryId: item.id, month, userId, budgetLimit: val },
             });

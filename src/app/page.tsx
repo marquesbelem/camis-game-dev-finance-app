@@ -229,13 +229,13 @@ export default function Home() {
 
   const loadCategories = useCallback(async () => {
     try {
-      const res = await fetch("/api/categories");
+      const res = await fetch(`/api/categories?month=${selectedMonth}`);
       const data = await res.json();
       setCategories(data);
     } catch (error) {
       console.error("Error loading categories:", error);
     }
-  }, []);
+  }, [selectedMonth]);
 
   useEffect(() => {
     loadCategories();
