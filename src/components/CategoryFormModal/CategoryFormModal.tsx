@@ -11,7 +11,15 @@ const ICON_OPTIONS = [
   "Home", "ShoppingCart", "Zap", "Car", "Heart", "Utensils", "CreditCard",
   "Briefcase", "Plane", "Dumbbell", "GraduationCap", "Music", "Gift", "Tv",
   "Wifi", "Coffee", "Baby", "Dog", "Wrench", "Landmark", "Shirt", "Pill",
-  "TreePine", "Star", "FolderOpen", "Bus", "Bike",
+  "TreePine", "Star", "FolderOpen", "Bus", "Bike", "Scissors", "Smartphone",
+  "Gamepad2", "Headphones", "Camera", "Mic", "Monitor", "BookOpen", "Book",
+  "FileText", "Film", "Video", "Map", "MapPin", "Compass", "Train", "Ship",
+  "Truck", "PenTool", "Hammer", "Shield", "Cross", "Activity", "Stethoscope",
+  "Eye", "Ticket", "Cake", "Pizza", "Wine", "Beer", "UtensilsCrossed",
+  "Cigarette", "Flame", "Droplet", "Umbrella", "Moon", "Sun", "Cloud",
+  "Snowflake", "Wind", "Thermometer", "Globe", "Anchor", "Bell", "Key",
+  "Lock", "Unlock", "Battery", "BatteryFull", "Wallet", "Banknote", "Coins",
+  "Bitcoin", "PieChart", "BarChart", "TrendingUp"
 ];
 
 // ── Preset color palette (from globals.css design tokens + extras) ─────────

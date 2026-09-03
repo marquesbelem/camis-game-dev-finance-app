@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Tags } from "lucide-react";
 import CategoryList from "@/components/CategoryList/CategoryList";
 import CategoryFormModal from "@/components/CategoryFormModal/CategoryFormModal";
 import type { CategoryWithCount } from "@/lib/types";
@@ -93,23 +93,19 @@ export default function CategoriesPage() {
       <main className={styles.page} id="categories-main">
         {/* ── Page header ───────────────────────────────────────────────── */}
         <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <h1 className={styles.pageTitle}>Gerenciar Categorias</h1>
-            <p className={styles.pageSubtitle}>
-              {categories.length > 0
-                ? `${categories.length} ${categories.length === 1 ? "categoria" : "categorias"}`
-                : "Organize suas despesas por tipo de gasto"}
-            </p>
+          <div className={styles.titleWrapper}>
+            <div className={styles.iconBadge}>
+              <Tags size={26} />
+            </div>
+            <div>
+              <h1 className={styles.pageTitle}>Gerenciar Categorias</h1>
+              <p className={styles.pageSubtitle}>
+                {categories.length > 0
+                  ? `${categories.length} ${categories.length === 1 ? "categoria" : "categorias"}`
+                  : "Organize suas despesas por tipo de gasto"}
+              </p>
+            </div>
           </div>
-          <button
-            id="add-category-btn"
-            className={styles.addBtn}
-            onClick={handleAdd}
-            aria-label="Adicionar nova categoria"
-          >
-            <Plus size={18} />
-            Adicionar Categoria
-          </button>
         </header>
 
         {/* ── Error banner ──────────────────────────────────────────────── */}
@@ -142,6 +138,19 @@ export default function CategoriesPage() {
             onDelete={handleDelete}
           />
         )}
+
+        {/* ── Floating Add Button ───────────────────────────────────────── */}
+        <div className={styles.bottomBar}>
+          <button
+            id="add-category-fab"
+            className={styles.addBtn}
+            onClick={handleAdd}
+            aria-label="Adicionar nova categoria"
+            title="Adicionar nova categoria"
+          >
+            <Plus size={24} />
+          </button>
+        </div>
       </main>
 
       {/* ── Modal ─────────────────────────────────────────────────────────── */}

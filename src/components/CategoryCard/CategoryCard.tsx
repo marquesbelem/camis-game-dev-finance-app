@@ -61,63 +61,53 @@ export default function CategoryCard({ category, onEdit, onDelete }: Props) {
       className={`${styles.card} ${deleting ? styles.cardDeleting : ""}`}
       aria-label={`Categoria: ${category.name}`}
     >
-      {/* Color accent bar */}
-      <span className={styles.accentBar} style={accentStyle} aria-hidden="true" />
-
-      {/* Card body */}
-      <div className={styles.body}>
-        {/* Icon + color swatch row */}
-        <div className={styles.topRow}>
-          <div className={styles.iconWrap} style={{ color: category.colorCode }}>
-            <CategoryIcon name={category.iconRef} size={22} />
+      <div className={styles.cardInner}>
+        {/* Left Side: Icon */}
+        <div className={styles.iconWrap} style={{ backgroundColor: `${category.colorCode}15`, color: category.colorCode }}>
+          <CategoryIcon name={category.iconRef} size={20} />
+        </div>
+        
+        {/* Middle: Info */}
+        <div className={styles.content}>
+          <div className={styles.nameRow}>
+            <h3 className={styles.name}>{category.name}</h3>
+            {category.isSystemDefault && (
+              <span className={styles.systemBadge} title="Categoria padrão do sistema">
+                <ShieldCheck size={14} />
+              </span>
+            )}
           </div>
-          <span
-            className={styles.swatch}
-            style={swatchStyle}
-            title={category.colorCode}
-            aria-label={`Cor: ${category.colorCode}`}
-          />
-          {category.isSystemDefault && (
-            <span className={styles.systemBadge} title="Categoria padrão do sistema">
-              <ShieldCheck size={13} />
-            </span>
-          )}
+          <span className={styles.slipCount} style={{ color: category.colorCode }}>
+            {slipCount} {slipCount === 1 ? "despesa" : "despesas"}
+          </span>
         </div>
 
-        {/* Category name */}
-        <h3 className={styles.name}>{category.name}</h3>
-
-        {/* Slip count */}
-        <span className={styles.slipCount} style={badgeStyle}>
-          {slipCount} {slipCount === 1 ? "despesa" : "despesas"}
-        </span>
-      </div>
-
-      {/* Actions */}
-      <div className={styles.actions}>
-        <button
-          id={`edit-category-${category.id}-btn`}
-          className={`${styles.actionBtn} ${styles.editBtn}`}
-          onClick={handleEditClick}
-          aria-label={`Editar ${category.name}`}
-          title="Editar categoria"
-          disabled={category.name === "Sem Categoria"}
-          style={category.name === "Sem Categoria" ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-        >
-          <Pencil size={15} />
-        </button>
-
-        {!category.isSystemDefault && (
+        {/* Right Side: Actions */}
+        <div className={styles.actions}>
           <button
-            id={`delete-category-${category.id}-btn`}
-            className={`${styles.actionBtn} ${styles.deleteBtn}`}
-            onClick={handleDeleteClick}
-            aria-label={`Excluir ${category.name}`}
-            title="Excluir categoria"
+            id={`edit-category-${category.id}-btn`}
+            className={`${styles.actionBtn} ${styles.editBtn}`}
+            onClick={handleEditClick}
+            aria-label={`Editar ${category.name}`}
+            title="Editar categoria"
+            disabled={category.name === "Sem Categoria"}
+            style={category.name === "Sem Categoria" ? { opacity: 0.5, cursor: "not-allowed" } : {}}
           >
-            <Trash2 size={15} />
+            <Pencil size={16} />
           </button>
-        )}
+
+          {!category.isSystemDefault && (
+            <button
+              id={`delete-category-${category.id}-btn`}
+              className={`${styles.actionBtn} ${styles.deleteBtn}`}
+              onClick={handleDeleteClick}
+              aria-label={`Excluir ${category.name}`}
+              title="Excluir categoria"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
       </div>
 
     </article>

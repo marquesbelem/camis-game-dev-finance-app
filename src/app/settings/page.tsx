@@ -444,9 +444,10 @@ export default function SettingsPage() {
             type="submit"
             disabled={saving}
             className={styles.mainSaveBtn}
+            aria-label="Salvar Todos os Parâmetros"
+            title="Salvar Todos os Parâmetros"
           >
-            <Save size={20} />
-            <span>{saving ? "Salvando Parâmetros..." : "Salvar Todos os Parâmetros"}</span>
+            {saving ? <div className={styles.spinnerSmall} /> : <Save size={24} />}
           </button>
         </div>
       </form>

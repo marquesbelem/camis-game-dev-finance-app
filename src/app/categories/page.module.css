@@ -19,10 +19,23 @@
   flex-wrap: wrap;
 }
 
-.headerLeft {
+.titleWrapper {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  align-items: center;
+  gap: 14px;
+}
+
+.iconBadge {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: #c084fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
 }
 
 .pageTitle {
@@ -41,31 +54,38 @@
   margin: 0;
 }
 
+.bottomBar {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: 24px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .addBtn {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-5);
-  background: var(--gradient-brand);
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
   color: #fff;
   border: none;
-  border-radius: var(--radius-lg);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
+  border-radius: 9999px;
   cursor: pointer;
-  box-shadow: var(--shadow-brand);
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .addBtn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(168, 85, 247, 0.65);
 }
 
 .addBtn:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
 }
 
 /* ── Error banner ─────────────────────────────────────────────────────────── */

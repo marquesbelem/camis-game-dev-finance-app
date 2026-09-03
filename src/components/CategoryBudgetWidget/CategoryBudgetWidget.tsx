@@ -130,7 +130,7 @@ export default function CategoryBudgetWidget({ category }: CategoryBudgetWidgetP
           {/* 3-Column Summary Stats */}
           <div className={styles.statsGrid}>
             <div className={styles.statCol}>
-              <span className={styles.statLabel}>Orçamento</span>
+              <span className={styles.statLabel}>Orçamento ({category.budgetLimitPct}%)</span>
               <strong className={styles.statValBudget}>{formatCurrency(budgetAmount)}</strong>
             </div>
 

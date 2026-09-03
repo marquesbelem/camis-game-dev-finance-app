@@ -199,15 +199,37 @@
 /* ── Icon grid ────────────────────────────────────────────────────────────── */
 .iconGrid {
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(3, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: 44px;
   gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  /* Custom scrollbar for horizontal scroll */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+.iconGrid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.iconGrid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.iconGrid::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
 }
 
 .iconOption {
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 1;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: var(--color-bg-elevated);
