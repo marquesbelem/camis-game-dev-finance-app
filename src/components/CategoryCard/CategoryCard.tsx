@@ -21,25 +21,23 @@ function CategoryIcon({ name, size = 20 }: { name: string; size?: number }) {
 }
 
 export default function CategoryCard({ category, onEdit, onDelete }: Props) {
-  const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const slipCount = category._count.slips;
 
   const handleDeleteClick = useCallback(() => {
     if (category.name === "Sem Categoria") return;
-    if (confirming) {
+    const isConfirmed = window.confirm(
+      `Tem certeza que deseja excluir a categoria "${category.name}"?\nTodas as despesas associadas a ela serão movidas para "Sem Categoria".`
+    );
+    if (isConfirmed) {
       setDeleting(true);
       onDelete(category.id);
-    } else {
-      setConfirming(true);
-      setTimeout(() => setConfirming(false), 4000);
     }
-  }, [category.id, category.name, confirming, onDelete]);
+  }, [category.id, category.name, onDelete]);
 
   const handleEditClick = useCallback(() => {
     if (category.name === "Sem Categoria") return;
-    setConfirming(false);
     onEdit(category);
   }, [category, onEdit]);
 
@@ -109,43 +107,19 @@ export default function CategoryCard({ category, onEdit, onDelete }: Props) {
           <Pencil size={15} />
         </button>
 
-        {category.name === "Sem Categoria" ? (
+        {!category.isSystemDefault && (
           <button
             id={`delete-category-${category.id}-btn`}
-            className={`${styles.actionBtn} ${styles.deleteDisabled}`}
-            disabled
-            aria-label="A categoria 'Sem Categoria' não pode ser excluída"
-            title="A categoria 'Sem Categoria' não pode ser excluída"
-          >
-            <Trash2 size={15} />
-          </button>
-        ) : (
-          <button
-            id={`delete-category-${category.id}-btn`}
-            className={`${styles.actionBtn} ${confirming ? styles.deleteConfirm : styles.deleteBtn}`}
+            className={`${styles.actionBtn} ${styles.deleteBtn}`}
             onClick={handleDeleteClick}
-            aria-label={confirming ? "Confirmar exclusão da categoria" : `Excluir ${category.name}`}
-            title={confirming ? "Clique novamente para confirmar a exclusão" : "Excluir categoria"}
+            aria-label={`Excluir ${category.name}`}
+            title="Excluir categoria"
           >
             <Trash2 size={15} />
           </button>
         )}
       </div>
 
-      {/* Inline confirmation message */}
-      {confirming && (
-        <div className={styles.confirmBanner} role="alert">
-          <span>Despesas serão movidas para &quot;Sem Categoria&quot;. Clique em excluir novamente para confirmar.</span>
-          <button
-            id={`delete-cancel-btn`}
-            className={styles.cancelConfirmBtn}
-            onClick={() => setConfirming(false)}
-            aria-label="Cancelar exclusão"
-          >
-            Cancelar
-          </button>
-        </div>
-      )}
     </article>
   );
 }

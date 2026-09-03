@@ -43,7 +43,10 @@ export async function PUT(request: Request, context: RouteContext) {
 
     // ── Verify existence and ownership ──────────────────────────────────────
     const category = await prisma.category.findFirst({
-      where: { id, userId },
+      where: {
+        id,
+        OR: [{ userId }, { userId: null }],
+      },
     });
     if (!category) {
       return NextResponse.json({ error: "Categoria não encontrada ou não autorizada." }, { status: 404 });
@@ -149,7 +152,10 @@ export async function DELETE(request: Request, context: RouteContext) {
 
     // ── Verify existence and ownership ──────────────────────────────────────
     const category = await prisma.category.findFirst({
-      where: { id, userId },
+      where: {
+        id,
+        OR: [{ userId }, { userId: null }],
+      },
     });
     if (!category) {
       return NextResponse.json({ error: "Categoria não encontrada ou não autorizada." }, { status: 404 });
