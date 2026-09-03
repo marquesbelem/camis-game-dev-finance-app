@@ -185,21 +185,21 @@ export default function ExpensesPage() {
     return result;
   }, [slips, filterCategoryId, filterStatus, sortBy]);
 
+  const totalAmount = useMemo(() => {
+    return filteredAndSorted.reduce((sum, slip) => sum + slip.amount, 0);
+  }, [filteredAndSorted]);
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <Link href="/" className={styles.backBtn} title="Voltar ao Dashboard">
-            <ArrowLeft size={20} />
-          </Link>
-          <div>
-            <h1 className={styles.title}>
-              <Receipt size={28} className="text-blue-400" />
-              Todas as Despesas 💸
-            </h1>
-            <p className={styles.subtitle}>
-              Gerencie, filtre e quite suas contas do mês.
-            </p>
+
+          <h1 className={styles.title}>
+            <Receipt size={28} className="text-blue-400" />
+            Todas as Despesas 💸
+          </h1>
+          <div className={styles.totalBadge}>
+            Total (Filtro Atual): {totalAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </div>
         </div>
 
@@ -219,14 +219,6 @@ export default function ExpensesPage() {
               <ChevronRight size={18} />
             </button>
           </div>
-
-          <button
-            className={styles.addBtn}
-            onClick={() => { setEditingSlip(null); setIsFormOpen(true); }}
-          >
-            <Plus size={18} />
-            <span>Adicionar Despesa</span>
-          </button>
         </div>
       </header>
 
@@ -310,7 +302,17 @@ export default function ExpensesPage() {
         )}
       </main>
 
-      {/* Modal */}
+      {/* Floating Action Button */}
+      <button
+        className={styles.fab}
+        onClick={() => { setEditingSlip(null); setIsFormOpen(true); }}
+        aria-label="Adicionar Despesa"
+        title="Adicionar Despesa"
+      >
+        <Plus size={24} />
+      </button>
+
+      {/* Forms & Celebrations */}
       <AdicionarDespesa
         isOpen={isFormOpen}
         onClose={closeForm}
