@@ -13,14 +13,36 @@ import {
   CheckCircle2,
   AlertTriangle,
   PieChart,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { playSound } from "@/lib/sounds";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
 import type { CategoryWithCount } from "@/lib/types";
 import styles from "./settings.module.css";
 
+// ── Month helpers ──────────────────────────────────────────────────────────────
+function formatMonthLabel(ym: string): string {
+  const [year, month] = ym.split("-");
+  return new Date(Number(year), Number(month) - 1, 1).toLocaleDateString("pt-BR", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function shiftMonth(ym: string, delta: number): string {
+  const [year, month] = ym.split("-").map(Number);
+  const d = new Date(year, month - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
 export default function SettingsPage() {
   const { toasts, addToast, dismissToast } = useToasts();
+
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
 
   // General Stats / Budget parameters
   const [scheduledSalaryAmount, setScheduledSalaryAmount] = useState<string>("3000");
@@ -42,8 +64,8 @@ export default function SettingsPage() {
       setLoading(true);
       try {
         const [statsRes, catRes] = await Promise.all([
-          fetch("/api/stats"),
-          fetch("/api/categories"),
+          fetch(`/api/stats?month=${selectedMonth}`),
+          fetch(`/api/categories?month=${selectedMonth}`),
         ]);
 
         if (statsRes.ok) {
@@ -73,7 +95,7 @@ export default function SettingsPage() {
     }
 
     loadData();
-  }, []);
+  }, [selectedMonth]);
 
   const salaryNum = useMemo(() => {
     const parsed = parseFloat(scheduledSalaryAmount);
@@ -103,15 +125,21 @@ export default function SettingsPage() {
 
     try {
       // 1. Save general stats & leisure budget (using PUT or PATCH)
+      const pSalary = parseFloat(scheduledSalaryAmount);
+      const pDay = parseInt(salaryPaymentDay, 10);
+      const pCredit = parseFloat(totalCreditLimit);
+      const pLeisure = parseFloat(leisureBudget);
+      const pMonthly = parseFloat(monthlyBudgetLimit);
+
       const statsPayload = {
-        scheduledSalaryAmount: parseFloat(scheduledSalaryAmount) || 3000,
-        salaryPaymentDay: parseInt(salaryPaymentDay, 10) || 5,
-        totalCreditLimit: parseFloat(totalCreditLimit) || 1000,
-        leisureBudget: parseFloat(leisureBudget) || 300,
-        monthlyBudgetLimit: parseFloat(monthlyBudgetLimit) || 50,
+        scheduledSalaryAmount: isNaN(pSalary) ? 3000 : pSalary,
+        salaryPaymentDay: isNaN(pDay) ? 5 : pDay,
+        totalCreditLimit: isNaN(pCredit) ? 1000 : pCredit,
+        leisureBudget: isNaN(pLeisure) ? 300 : pLeisure,
+        monthlyBudgetLimit: isNaN(pMonthly) ? 50 : pMonthly,
       };
 
-      const statsRes = await fetch("/api/stats", {
+      const statsRes = await fetch(`/api/stats?month=${selectedMonth}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(statsPayload),
@@ -119,20 +147,13 @@ export default function SettingsPage() {
 
       if (!statsRes.ok) throw new Error("Erro ao salvar parâmetros gerais.");
 
-      // Also sync leisure budget API route
-      await fetch("/api/leisure-budget", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leisureBudget: parseFloat(leisureBudget) || 300 }),
-      }).catch(() => {});
-
       // 2. Save category percentage limits
       const categoryLimitsPayload = Object.entries(categoryLimits).map(([id, val]) => ({
         id,
         budgetLimit: val && !isNaN(parseFloat(val)) && parseFloat(val) > 0 ? parseFloat(val) : null,
       }));
 
-      const catRes = await fetch("/api/categories", {
+      const catRes = await fetch(`/api/categories?month=${selectedMonth}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ categoryLimits: categoryLimitsPayload }),
@@ -184,16 +205,29 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSaveAll}
-          disabled={saving}
-          className={styles.topSaveBtn}
-        >
-          <Save size={18} />
-          <span>{saving ? "Salvando..." : "Salvar Alterações"}</span>
-        </button>
       </header>
+
+      <div className="mb-6 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center justify-center flex-wrap gap-4">
+        <div className={styles.monthNav} role="group" aria-label="Seletor de mês">
+          <button
+            type="button"
+            className={styles.monthBtn}
+            onClick={() => setSelectedMonth((m) => shiftMonth(m, -1))}
+            aria-label="Mês anterior"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <span className={styles.monthLabel}>{formatMonthLabel(selectedMonth)}</span>
+          <button
+            type="button"
+            className={styles.monthBtn}
+            onClick={() => setSelectedMonth((m) => shiftMonth(m, 1))}
+            aria-label="Próximo mês"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      </div>
 
       <form onSubmit={handleSaveAll} className={styles.formContent}>
         {/* Section 1: Orçamento e Parâmetros Gerais */}

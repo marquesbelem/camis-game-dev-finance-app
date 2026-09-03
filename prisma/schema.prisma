@@ -31,6 +31,7 @@ model User {
   apartmentProject ApartmentProject?
   deviceTokens     DeviceToken[]
   monthlyBudgets   MonthlyBudget[]
+  categoryBudgets  MonthlyCategoryBudget[]
 }
 
 model Category {
@@ -47,6 +48,7 @@ model Category {
   user            User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   slips           PaymentSlip[]
+  monthlyBudgets  MonthlyCategoryBudget[]
 
   @@unique([name, userId])
 }
@@ -223,9 +225,24 @@ model MonthlyBudget {
   monthlyBudgetLimit    Float    @default(50.0) // Percentage (0-100)
   scheduledSalaryAmount Float    @default(3000.0)
   leisureBudget         Float    @default(0.0)
+  totalCreditLimit      Float    @default(1000.0)
   createdAt             DateTime @default(now())
 
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, month])
+}
+
+model MonthlyCategoryBudget {
+  id          String   @id @default(uuid())
+  categoryId  String
+  userId      String
+  month       String   // Format: YYYY-MM
+  budgetLimit Float
+  createdAt   DateTime @default(now())
+
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, month])
 }

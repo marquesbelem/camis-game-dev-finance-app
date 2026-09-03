@@ -32,6 +32,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get("month");
+
     const categories: CategoryWithCount[] = await prisma.category.findMany({
       where: {
         OR: [
@@ -50,6 +53,19 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { name: "asc" },
     });
+
+    if (month) {
+      const monthlyBudgets = await prisma.monthlyCategoryBudget.findMany({
+        where: { userId, month },
+      });
+      const budgetMap = new Map(monthlyBudgets.map(mb => [mb.categoryId, mb.budgetLimit]));
+      for (const cat of categories) {
+        if (budgetMap.has(cat.id)) {
+          cat.budgetLimit = budgetMap.get(cat.id)!;
+        }
+      }
+    }
+
     return NextResponse.json(categories);
   } catch (error) {
     console.error("[GET /api/categories]", error);
@@ -162,6 +178,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get("month");
+
     const body = await request.json();
     const { categoryLimits } = body as {
       categoryLimits: Array<{ id: string; budgetLimit: number | null }>;
@@ -181,10 +200,24 @@ export async function PUT(request: NextRequest) {
           ? Number(item.budgetLimit)
           : null;
 
-        await prisma.category.updateMany({
-          where: { id: item.id },
-          data: { budgetLimit: val },
-        });
+        if (month) {
+          if (val === null) {
+            await prisma.monthlyCategoryBudget.deleteMany({
+              where: { categoryId: item.id, month, userId },
+            });
+          } else {
+            await prisma.monthlyCategoryBudget.upsert({
+              where: { categoryId_month: { categoryId: item.id, month } },
+              update: { budgetLimit: val },
+              create: { categoryId: item.id, month, userId, budgetLimit: val },
+            });
+          }
+        } else {
+          await prisma.category.updateMany({
+            where: { id: item.id },
+            data: { budgetLimit: val },
+          });
+        }
       })
     );
 
