@@ -1,4 +1,4 @@
-import { writeFile } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 
@@ -31,8 +31,16 @@ export async function saveUploadedFile(file: File): Promise<string> {
     );
   }
 
+  // Ensure directory exists
+  try {
+    await mkdir(UPLOAD_DIR, { recursive: true });
+  } catch (err) {
+    // ignore
+  }
+
   const ext = getExtension(file.type);
-  const filename = `${randomUUID()}-${slugify(file.name)}${ext}`;
+  const safeName = file.name || "document";
+  const filename = `${randomUUID()}-${slugify(safeName)}${ext}`;
   const dest = path.join(UPLOAD_DIR, filename);
 
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -55,9 +63,11 @@ function getExtension(mimeType: string): string {
 }
 
 function slugify(name: string): string {
+  if (!name) return "file";
   return name
     .replace(/\.[^/.]+$/, "") // remove extension
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .slice(0, 40);
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 40) || "file";
 }
