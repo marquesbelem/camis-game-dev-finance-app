@@ -1,7 +1,7 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 20px 60px;
+  padding: 24px 20px 90px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -226,7 +226,7 @@
 
 @media (max-width: 640px) {
   .container {
-    padding: 16px 12px 80px;
+    padding: 16px 12px 100px;
     gap: 16px;
   }
 
@@ -281,17 +281,39 @@
 
 /* ── Badge ─────────────────────────────────────────────────────────────── */
 .totalBadge {
-  margin-top: 8px;
+  position: fixed;
+  bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 85;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
-  padding: 6px 14px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #d8b4fe;
+  padding: 10px 22px;
   border-radius: 9999px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  font-size: 0.95rem;
+  font-weight: 800;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(168, 85, 247, 0.2);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none; /* Allows clicking through if it overlaps something */
+}
+
+.totalBadge:hover {
+  transform: translateX(-50%) scale(1.02);
+}
+
+@media (max-width: 640px) {
+  .totalBadge {
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    font-size: 0.9rem;
+    padding: 8px 18px;
+    /* Adjust left position slightly if the FAB overlaps on very small screens, but center is usually best */
+  }
 }
 
 /* ── FAB ─────────────────────────────────────────────────────────────── */
