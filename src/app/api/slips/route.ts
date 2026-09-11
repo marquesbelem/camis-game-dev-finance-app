@@ -405,7 +405,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[POST /api/slips]", error);
     return NextResponse.json(
-      { error: "Falha ao criar despesa" },
+      { error: error instanceof Error ? error.message : "Falha ao criar despesa" },
       { status: 500 }
     );
   }

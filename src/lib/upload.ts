@@ -31,11 +31,12 @@ export async function saveUploadedFile(file: File): Promise<string> {
     );
   }
 
-  // Ensure directory exists
   try {
     await mkdir(UPLOAD_DIR, { recursive: true });
-  } catch (err) {
-    // ignore
+  } catch (err: any) {
+    if (err.code !== "EEXIST") {
+      console.error("Failed to create upload directory:", err);
+    }
   }
 
   const ext = getExtension(file.type);

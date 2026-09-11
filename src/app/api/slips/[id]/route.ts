@@ -239,7 +239,7 @@ export async function PUT(
   } catch (error) {
     console.error("[PUT /api/slips/:id]", error);
     return NextResponse.json(
-      { error: "Falha ao atualizar a despesa" },
+      { error: error instanceof Error ? error.message : "Falha ao atualizar a despesa" },
       { status: 500 }
     );
   }
