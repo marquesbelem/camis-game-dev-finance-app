@@ -367,7 +367,7 @@ export async function POST(request: NextRequest) {
             installmentTotal: installmentsCount,
             installmentGroupId,
             categoryId,
-            documentPath,
+            documentPath: i === 1 ? documentPath : null,
             userId,
           },
           include: { category: true },

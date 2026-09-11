@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { saveUploadedFile } from "@/lib/upload";
+import { saveUploadedFile, deleteUploadedFile } from "@/lib/upload";
 import { recomputeAchievements, awardXp } from "@/lib/achievements";
 import { isRateLimited, getClientIp } from "@/lib/rate-limit";
 import { sanitizeInput } from "@/lib/security";
@@ -125,9 +125,19 @@ export async function PUT(
       (formData.get("categoryId") as string) || existing.categoryId;
     const file = formData.get("document") as File | null;
 
+    const removeDocument = formData.get("removeDocument") === "true";
     let documentPath = existing.documentPath;
-    if (file && file.size > 0) {
-      documentPath = await saveUploadedFile(file);
+
+    if (removeDocument && documentPath) {
+      // Deletar o arquivo do storage antigo se estiver sendo removido (fogo e esquece pra não travar a requisição)
+      deleteUploadedFile(documentPath).catch(console.error);
+      documentPath = null;
+    } else if (file && file.size > 0) {
+      const newPath = await saveUploadedFile(file);
+      if (documentPath && documentPath !== newPath) {
+        deleteUploadedFile(documentPath).catch(console.error);
+      }
+      documentPath = newPath;
     }
 
     const rawInstallmentsCount = formData.get("installmentsCount");
@@ -171,7 +181,7 @@ export async function PUT(
                 installmentTotal: newTotal,
                 installmentGroupId: existing.installmentGroupId,
                 categoryId,
-                documentPath,
+                documentPath: null,
                 userId,
               },
             });

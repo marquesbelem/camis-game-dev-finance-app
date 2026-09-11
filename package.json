@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.9.0",
+    "@supabase/supabase-js": "^2.116.0",
     "firebase": "^12.16.0",
     "firebase-admin": "^14.1.0",
     "lucide-react": "^0.513.0",

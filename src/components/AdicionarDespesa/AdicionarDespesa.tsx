@@ -62,6 +62,7 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
   const [installmentsCount, setInstallmentsCount] = useState("2");
   const [recurringScope, setRecurringScope] = useState<"SINGLE" | "FUTURE">("FUTURE");
   const [file, setFile] = useState<File | null>(null);
+  const [removeDocument, setRemoveDocument] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -149,6 +150,7 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
       setIsRecurring((editingSlip as any).isRecurring ?? false);
       setIsInstallment((editingSlip as any).isInstallment ?? false);
       setInstallmentsCount(((editingSlip as any).installmentTotal ?? 2).toString());
+      setRemoveDocument(false);
       if (editingSlip.isDebt) {
         setRecurringScope("SINGLE");
       }
@@ -182,6 +184,7 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
     setIsInstallment(false);
     setInstallmentsCount("2");
     setFile(null);
+    setRemoveDocument(false);
     setError("");
   }
 
@@ -255,6 +258,7 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
     }
     formData.append("categoryId", categoryId);
     if (file) formData.append("document", file);
+    if (removeDocument) formData.append("removeDocument", "true");
 
     setLoading(true);
     try {
@@ -644,24 +648,37 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
             <label className={styles.label}>
               <Upload size={14} /> Documento (PDF/Imagem)
             </label>
-            <div
-              className={styles.fileDropZone}
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const dropped = e.dataTransfer.files[0];
-                if (dropped) setFile(dropped);
-              }}
-            >
-              {file ? (
-                <span className={styles.fileName}>📎 {file.name}</span>
-              ) : (
-                <span className={styles.fileHint}>
-                  Arraste ou clique para anexar
-                </span>
-              )}
-            </div>
+            {editingSlip && editingSlip.documentPath && !removeDocument ? (
+              <div className={styles.existingDocument}>
+                <span className={styles.fileName}>📎 Documento Anexado</span>
+                <button
+                  type="button"
+                  className={styles.removeDocumentBtn}
+                  onClick={() => setRemoveDocument(true)}
+                >
+                  Remover
+                </button>
+              </div>
+            ) : (
+              <div
+                className={styles.fileDropZone}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const dropped = e.dataTransfer.files[0];
+                  if (dropped) setFile(dropped);
+                }}
+              >
+                {file ? (
+                  <span className={styles.fileName}>📎 {file.name}</span>
+                ) : (
+                  <span className={styles.fileHint}>
+                    Arraste ou clique para anexar
+                  </span>
+                )}
+              </div>
+            )}
             <input
               id="slip-document"
               ref={fileInputRef}
