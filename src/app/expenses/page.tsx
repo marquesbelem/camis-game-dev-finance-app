@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, ChevronLeft, ChevronRight, Receipt, ArrowLeft } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Plus, ChevronLeft, ChevronRight, Receipt, ArrowLeft, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import AdicionarDespesa from "@/components/AdicionarDespesa/AdicionarDespesa";
 import SlipItem, { Slip } from "@/components/SlipList/SlipItem";
@@ -40,9 +40,29 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
 
   // Filter & Sorting state
-  const [filterCategoryId, setFilterCategoryId] = useState("ALL");
+  const [filterCategoryIds, setFilterCategoryIds] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [sortBy, setSortBy] = useState("DUE_DATE");
+
+  // Multi-select dropdown state
+  const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
+  const catDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (catDropdownRef.current && !catDropdownRef.current.contains(event.target as Node)) {
+        setIsCatDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function toggleCategory(id: string) {
+    setFilterCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
+  }
 
   // Modal states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -161,8 +181,8 @@ export default function ExpensesPage() {
   const filteredAndSorted = useMemo(() => {
     let result = [...slips];
 
-    if (filterCategoryId !== "ALL") {
-      result = result.filter((s) => s.categoryId === filterCategoryId);
+    if (filterCategoryIds.length > 0) {
+      result = result.filter((s) => filterCategoryIds.includes(s.categoryId));
     }
 
     if (filterStatus !== "ALL") {
@@ -188,7 +208,7 @@ export default function ExpensesPage() {
     }
 
     return result;
-  }, [slips, filterCategoryId, filterStatus, sortBy]);
+  }, [slips, filterCategoryIds, filterStatus, sortBy]);
 
   const totalAmount = useMemo(() => {
     return filteredAndSorted.reduce((sum, slip) => sum + slip.amount, 0);
@@ -229,20 +249,41 @@ export default function ExpensesPage() {
 
       {/* Filter and Sorting Controls */}
       <div className={styles.controlsRow}>
-        <div className={styles.controlGroup}>
+        <div className={styles.controlGroup} ref={catDropdownRef}>
           <label className={styles.controlLabel}>Categoria:</label>
-          <select
-            value={filterCategoryId}
-            onChange={(e) => setFilterCategoryId(e.target.value)}
-            className={styles.controlSelect}
-          >
-            <option value="ALL">Todas ({slips.length})</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+          <div className={styles.multiSelectWrapper}>
+            <button
+              className={styles.controlSelect}
+              onClick={() => setIsCatDropdownOpen(!isCatDropdownOpen)}
+            >
+              {filterCategoryIds.length === 0
+                ? `Todas (${slips.length})`
+                : `${filterCategoryIds.length} selecionada${filterCategoryIds.length > 1 ? 's' : ''}`}
+              <ChevronDown size={14} />
+            </button>
+            {isCatDropdownOpen && (
+              <div className={styles.multiSelectPopup}>
+                <label className={styles.multiSelectItem}>
+                  <input
+                    type="checkbox"
+                    checked={filterCategoryIds.length === 0}
+                    onChange={() => setFilterCategoryIds([])}
+                  />
+                  <span>Todas</span>
+                </label>
+                {categories.map((cat) => (
+                  <label key={cat.id} className={styles.multiSelectItem}>
+                    <input
+                      type="checkbox"
+                      checked={filterCategoryIds.includes(cat.id)}
+                      onChange={() => toggleCategory(cat.id)}
+                    />
+                    <span>{cat.name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className={styles.controlGroup}>

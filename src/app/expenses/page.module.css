@@ -163,6 +163,62 @@
   padding: 8px;
 }
 
+.multiSelectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.multiSelectWrapper button.controlSelect {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.multiSelectPopup {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  min-width: 180px;
+  background-color: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 50;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.multiSelectItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f8fafc;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.multiSelectItem:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.multiSelectItem input[type="checkbox"] {
+  accent-color: #3b82f6;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 .mainContent {
   width: 100%;
 }
