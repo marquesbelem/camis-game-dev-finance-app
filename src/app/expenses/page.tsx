@@ -86,7 +86,12 @@ export default function ExpensesPage() {
   }, [loadSlips]);
 
   async function handleStatusToggle(slip: Slip) {
-    const nextStatus = slip.status === "PAGO" ? "PENDENTE" : "PAGO";
+    const nextStatusMap: Record<string, string> = {
+      PENDENTE: "RESERVADO",
+      RESERVADO: "PAGO",
+      PAGO: "PENDENTE"
+    };
+    const nextStatus = nextStatusMap[slip.status] || "PAGO";
     setSlips((prev) =>
       prev.map((s) => (s.id === slip.id ? { ...s, status: nextStatus } : s))
     );
@@ -249,6 +254,7 @@ export default function ExpensesPage() {
           >
             <option value="ALL">Todos</option>
             <option value="PENDENTE">Pendentes</option>
+            <option value="RESERVADO">Reservadas</option>
             <option value="PAGO">Pagas</option>
             <option value="RECURRING">Somente Recorrentes</option>
           </select>

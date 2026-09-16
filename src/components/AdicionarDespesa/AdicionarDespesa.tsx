@@ -448,6 +448,7 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
                 className={styles.input}
               >
                 <option value="PENDENTE">Pendente</option>
+                <option value="RESERVADO">Reservado</option>
                 <option value="PAGO">Pago</option>
               </select>
             </div>

@@ -20,11 +20,13 @@ export default function RecentExpensesWidget({
   onDelete,
 }: RecentExpensesWidgetProps) {
   // Sort pending / due soon slips first and take top 3
-  const pendingSlips = slips.filter((s) => s.status === "PENDENTE");
+  const pendingSlips = slips.filter((s) => s.status !== "PAGO");
   const recentSlips = [...slips]
     .sort((a, b) => {
-      if (a.status === "PENDENTE" && b.status !== "PENDENTE") return -1;
-      if (a.status !== "PENDENTE" && b.status === "PENDENTE") return 1;
+      const aPending = a.status !== "PAGO";
+      const bPending = b.status !== "PAGO";
+      if (aPending && !bPending) return -1;
+      if (!aPending && bPending) return 1;
       return a.dueDate.slice(0, 10).localeCompare(b.dueDate.slice(0, 10));
     })
     .slice(0, 3);

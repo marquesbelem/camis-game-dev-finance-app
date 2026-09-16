@@ -68,7 +68,7 @@ export default function CalendarPage() {
       const tomorrowStr = `${yyyy}-${mm}-${dd}`;
 
       const upcoming = slips.filter((s) => {
-        if (s.status !== "PENDENTE") return false;
+        if (s.status === "PAGO") return false;
         const dateStr = s.dueDate.slice(0, 10);
         return dateStr === tomorrowStr;
       });
@@ -167,7 +167,12 @@ export default function CalendarPage() {
   async function handleStatusToggle(slip: Slip) {
     if (toggling[slip.id]) return; // debounce
 
-    const newStatus = slip.status === "PAGO" ? "PENDENTE" : "PAGO";
+    const nextStatusMap: Record<string, string> = {
+      PENDENTE: "RESERVADO",
+      RESERVADO: "PAGO",
+      PAGO: "PENDENTE"
+    };
+    const newStatus = nextStatusMap[slip.status] || "PAGO";
     const previous = slips;
 
     // 1. Optimistic update

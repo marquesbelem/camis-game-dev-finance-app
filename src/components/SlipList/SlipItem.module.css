@@ -25,6 +25,15 @@
   opacity: 0.72;
 }
 
+.state_reserved {
+  border-color: var(--color-brand-dim);
+  background: linear-gradient(
+    90deg,
+    var(--color-brand-subtle) 0%,
+    var(--color-bg-surface) 60%
+  );
+}
+
 .state_overdue {
   border-color: var(--color-danger-dim);
   background: linear-gradient(
@@ -98,6 +107,7 @@
 .stateIcon_paid { color: var(--color-success); }
 .stateIcon_overdue { color: var(--color-danger); }
 .stateIcon_pending { color: var(--color-warning); }
+.stateIcon_reserved { color: var(--color-brand); }
 
 .creditBadge {
   display: inline-flex;
@@ -286,8 +296,14 @@
   color: var(--color-success);
 }
 
+.reservedBtn {
+  background: var(--color-brand-subtle);
+  color: var(--color-brand);
+}
+
 .paidBtn:hover { background: var(--color-success-dim); color: white; }
 .pendingBtn:hover { background: var(--color-success-dim); color: white; }
+.reservedBtn:hover { background: var(--color-brand-dim); color: white; }
 
 .editBtn {
   background: var(--color-bg-overlay);

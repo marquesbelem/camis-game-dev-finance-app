@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, FileText, CreditCard, AlertCircle, CheckCircle2, Clock, Repeat, Calendar } from "lucide-react";
+import { Pencil, Trash2, FileText, CreditCard, AlertCircle, CheckCircle2, Clock, Repeat, Calendar, Lock } from "lucide-react";
 import DeleteRecurringModal from "../DeleteRecurringModal/DeleteRecurringModal";
 import { playSound } from "@/lib/sounds";
 import styles from "./SlipItem.module.css";
@@ -39,8 +39,9 @@ interface Props {
   onStatusToggle: (slip: Slip) => void;
 }
 
-function getSlipState(slip: Slip): "paid" | "overdue" | "pending" {
+function getSlipState(slip: Slip): "paid" | "overdue" | "pending" | "reserved" {
   if (slip.status === "PAGO") return "paid";
+  if (slip.status === "RESERVADO") return "reserved";
   const dueStr = slip.dueDate.slice(0, 10);
   const today = new Date();
   const yyyy = today.getFullYear();
@@ -85,11 +86,13 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
   const StateIcon =
     state === "paid"
       ? CheckCircle2
-      : state === "overdue"
-        ? AlertCircle
-        : Clock;
+      : state === "reserved"
+        ? Lock
+        : state === "overdue"
+          ? AlertCircle
+          : Clock;
 
-  const isOverdue = slip.status === "PENDENTE" && slip.dueDate.slice(0, 10) < new Date().toISOString().slice(0, 10);
+  const isOverdue = slip.status !== "PAGO" && slip.dueDate.slice(0, 10) < new Date().toISOString().slice(0, 10);
 
   return (
     <>
@@ -183,7 +186,7 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
             </span>
 
             {(() => {
-              const isPending = slip.status === "PENDENTE";
+              const isPending = slip.status === "PENDENTE" || slip.status === "RESERVADO";
               const dueStr = slip.dueDate.slice(0, 10);
               const today = new Date();
               const yyyy = today.getFullYear();
@@ -230,12 +233,12 @@ export default function SlipItem({ slip, onEdit, onDelete, onStatusToggle }: Pro
           {/* Status toggle */}
           <button
             id={`toggle-status-${slip.id}`}
-            className={`${styles.actionBtn} ${state === "paid" ? styles.paidBtn : styles.pendingBtn}`}
+            className={`${styles.actionBtn} ${state === "paid" ? styles.paidBtn : state === "reserved" ? styles.reservedBtn : styles.pendingBtn}`}
             onClick={handleToggleClick}
-            title={state === "paid" ? "Marcar como pendente" : "Marcar como pago"}
-            aria-label={state === "paid" ? "Marcar como pendente" : "Marcar como pago"}
+            title={state === "paid" ? "Marcar como pendente" : state === "reserved" ? "Marcar como pago" : "Marcar como reservado"}
+            aria-label={state === "paid" ? "Marcar como pendente" : state === "reserved" ? "Marcar como pago" : "Marcar como reservado"}
           >
-            {state === "paid" ? <Clock size={15} /> : <CheckCircle2 size={15} />}
+            {state === "paid" ? <Clock size={15} /> : state === "reserved" ? <CheckCircle2 size={15} /> : <Lock size={15} />}
           </button>
 
           <button

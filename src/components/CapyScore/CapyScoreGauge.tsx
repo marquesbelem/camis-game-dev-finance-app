@@ -28,7 +28,7 @@ export function computeCapyScore(
 
   // 1. Contas em dia (+40 max)
   const overdueCount = slips.filter(
-    (s) => s.status === "PENDENTE" && s.dueDate.slice(0, 10) < todayStr
+    (s) => s.status !== "PAGO" && s.dueDate.slice(0, 10) < todayStr
   ).length;
 
   let billsPts = 40;
