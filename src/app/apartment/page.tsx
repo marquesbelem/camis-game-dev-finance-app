@@ -759,7 +759,11 @@ export default function ApartmentPage() {
     let result = [...project.expenses];
 
     if (filterStageId !== "ALL") {
-      result = result.filter(e => e.stageId === filterStageId);
+      if (filterStageId === "NONE") {
+        result = result.filter(e => !e.stageId);
+      } else {
+        result = result.filter(e => e.stageId === filterStageId);
+      }
     }
     if (filterStatus !== "ALL") {
       result = result.filter(e => e.status === filterStatus);
@@ -772,6 +776,18 @@ export default function ApartmentPage() {
     result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return result;
   }, [project, filterStageId, filterStatus, filterExpenseType]);
+
+  const filteredSpent = useMemo(() => {
+    return filteredExpenses.reduce((sum, e) => e.status === "PAGO" ? sum + e.amount : sum, 0);
+  }, [filteredExpenses]);
+
+  const filteredPending = useMemo(() => {
+    return filteredExpenses.reduce((sum, e) => e.status === "PENDENTE" ? sum + e.amount : sum, 0);
+  }, [filteredExpenses]);
+
+  const filteredTotal = useMemo(() => {
+    return filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+  }, [filteredExpenses]);
 
   // Formatted currencies helper
   function fmtBrl(val: number | undefined) {
