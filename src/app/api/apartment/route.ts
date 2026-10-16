@@ -23,11 +23,14 @@ export async function GET(request: NextRequest) {
       include: {
         stages: {
           include: {
-            expenses: true,
+            expenses: {
+              include: { options: true },
+            },
           },
           orderBy: { createdAt: "asc" },
         },
         expenses: {
+          include: { options: true },
           orderBy: { date: "desc" },
         },
         installments: {

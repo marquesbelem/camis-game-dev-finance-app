@@ -35,7 +35,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { description, amount, status, type, date, stageId } = body;
+    const { description, amount, status, type, date, stageId, notes, options } = body;
 
     const data: {
       description?: string;
@@ -44,6 +44,7 @@ export async function PUT(
       type?: string;
       date?: Date;
       stageId?: string | null;
+      notes?: string | null;
     } = {};
     if (description !== undefined) {
       const sanitized = sanitizeInput(description);
@@ -67,6 +68,9 @@ export async function PUT(
     if (date !== undefined) {
       data.date = new Date(date);
     }
+    if (notes !== undefined) {
+      data.notes = notes ? sanitizeInput(notes) : null;
+    }
     if (stageId !== undefined) {
       if (stageId === null) {
         data.stageId = null;
@@ -82,9 +86,57 @@ export async function PUT(
       }
     }
 
+    // Helper to sanitize URL
+    const sanitizeUrl = (rawUrl: any): string | null => {
+      if (!rawUrl || typeof rawUrl !== "string") return null;
+      const trimmed = rawUrl.trim();
+      if (!trimmed) return null;
+      let parsed = trimmed;
+      if (!/^https?:\/\//i.test(parsed)) {
+        parsed = `https://${parsed}`;
+      }
+      try {
+        const u = new URL(parsed);
+        if (u.protocol === "http:" || u.protocol === "https:") {
+          return u.toString();
+        }
+      } catch {
+        return null;
+      }
+      return null;
+    };
+
+    if (options !== undefined && Array.isArray(options)) {
+      const sanitizedOptions = options
+        .filter((o: any) => o && typeof o.name === "string" && o.name.trim().length > 0)
+        .map((o: any) => ({
+          expenseId,
+          name: sanitizeInput(o.name),
+          price: Math.max(0, parseFloat(o.price) || 0),
+          url: sanitizeUrl(o.url),
+          selected: Boolean(o.selected),
+        }));
+
+      await prisma.$transaction([
+        prisma.apartmentExpenseOption.deleteMany({
+          where: { expenseId },
+        }),
+        ...(sanitizedOptions.length > 0
+          ? [
+              prisma.apartmentExpenseOption.createMany({
+                data: sanitizedOptions,
+              }),
+            ]
+          : []),
+      ]);
+    }
+
     const updated = await prisma.apartmentExpense.update({
       where: { id: expenseId },
       data,
+      include: {
+        options: true,
+      },
     });
 
     return NextResponse.json(updated);

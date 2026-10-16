@@ -176,6 +176,7 @@ model ApartmentExpense {
   status      String             @default("PENDENTE")
   type        String             @default("OBRA") // "OBRA" | "DOCUMENTACAO" | "MOVEIS" | "DECORACAO" | "GERAL"
   date        DateTime           @default(now())
+  notes       String?
   
   projectId   String
   project     ApartmentProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -183,7 +184,27 @@ model ApartmentExpense {
   stageId     String?
   stage       ApartmentStage?    @relation(fields: [stageId], references: [id], onDelete: SetNull)
   
+  options     ApartmentExpenseOption[]
+
   createdAt   DateTime           @default(now())
+
+  @@index([projectId])
+  @@index([stageId])
+}
+
+model ApartmentExpenseOption {
+  id        String           @id @default(uuid())
+  name      String
+  price     Float
+  url       String?
+  selected  Boolean          @default(false)
+  
+  expenseId String
+  expense   ApartmentExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime         @default(now())
+
+  @@index([expenseId])
 }
 
 model ApartmentInstallment {

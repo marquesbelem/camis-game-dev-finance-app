@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { description, amount, status = "PENDENTE", type = "OBRA", date, stageId } = body;
+    const { description, amount, status = "PENDENTE", type = "OBRA", date, stageId, notes, options } = body;
 
     const sanitizedDesc = sanitizeInput(description);
     if (!sanitizedDesc) {
@@ -49,6 +49,37 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Helper to sanitize URL
+    const sanitizeUrl = (rawUrl: any): string | null => {
+      if (!rawUrl || typeof rawUrl !== "string") return null;
+      const trimmed = rawUrl.trim();
+      if (!trimmed) return null;
+      let parsed = trimmed;
+      if (!/^https?:\/\//i.test(parsed)) {
+        parsed = `https://${parsed}`;
+      }
+      try {
+        const u = new URL(parsed);
+        if (u.protocol === "http:" || u.protocol === "https:") {
+          return u.toString();
+        }
+      } catch {
+        return null;
+      }
+      return null;
+    };
+
+    const sanitizedOptions = Array.isArray(options)
+      ? options
+          .filter((o: any) => o && typeof o.name === "string" && o.name.trim().length > 0)
+          .map((o: any) => ({
+            name: sanitizeInput(o.name),
+            price: Math.max(0, parseFloat(o.price) || 0),
+            url: sanitizeUrl(o.url),
+            selected: Boolean(o.selected),
+          }))
+      : [];
+
     const expense = await prisma.apartmentExpense.create({
       data: {
         description: sanitizedDesc,
@@ -56,8 +87,15 @@ export async function POST(request: NextRequest) {
         status,
         type,
         date: date ? new Date(date) : new Date(),
+        notes: notes ? sanitizeInput(notes) : null,
         projectId: project.id,
         stageId: stageId || null,
+        options: sanitizedOptions.length > 0 ? {
+          create: sanitizedOptions,
+        } : undefined,
+      },
+      include: {
+        options: true,
       },
     });
 

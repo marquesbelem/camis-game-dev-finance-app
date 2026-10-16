@@ -12,11 +12,27 @@ import {
   Calendar,
   CheckCircle,
   Landmark,
-  FileText
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Scale,
+  Check,
+  ShoppingBag,
+  Info,
+  Sparkles
 } from "lucide-react";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
 import ApartmentVoxel3D from "@/components/ApartmentVoxel/ApartmentVoxel3D";
 import styles from "./page.module.css";
+
+export interface PurchaseOption {
+  id?: string;
+  name: string;
+  price: number;
+  url?: string | null;
+  selected?: boolean;
+}
 
 interface Stage {
   id: string;
@@ -34,6 +50,8 @@ interface Expense {
   type: string; // "OBRA" | "DOCUMENTACAO" | "MOVEIS" | "DECORACAO" | "GERAL"
   date: string;
   stageId?: string | null;
+  notes?: string | null;
+  options?: PurchaseOption[];
 }
 
 interface ApartmentInstallment {
@@ -106,6 +124,45 @@ export default function ApartmentPage() {
   const [expenseType, setExpenseType] = useState("OBRA");
   const [expenseDate, setExpenseDate] = useState("");
   const [expenseStageId, setExpenseStageId] = useState("");
+  const [expenseNotes, setExpenseNotes] = useState("");
+  const [purchaseOptions, setPurchaseOptions] = useState<PurchaseOption[]>([]);
+  const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
+  const [expandedExpenses, setExpandedExpenses] = useState<Record<string, boolean>>({});
+
+  const toggleExpandExpense = (id: string) => {
+    setExpandedExpenses(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  function handleAddOption() {
+    setPurchaseOptions(prev => [
+      ...prev,
+      { name: "", price: 0, url: "", selected: false }
+    ]);
+    setIsMoreInfoOpen(true);
+  }
+
+  function handleUpdateOption(index: number, field: keyof PurchaseOption, value: any) {
+    setPurchaseOptions(prev => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], [field]: value };
+      return copy;
+    });
+  }
+
+  function handleRemoveOption(index: number) {
+    setPurchaseOptions(prev => prev.filter((_, i) => i !== index));
+  }
+
+  function handleApplyOptionPrice(opt: PurchaseOption) {
+    if (opt.price !== undefined && !isNaN(opt.price) && opt.price > 0) {
+      setExpenseAmount(opt.price);
+      addToast({
+        title: "Valor Aplicado",
+        message: `${fmtBrl(opt.price)} definido como valor da despesa.`,
+        type: "success"
+      });
+    }
+  }
 
   // Installment form state
   const [isInstallmentModalOpen, setIsInstallmentModalOpen] = useState(false);
@@ -468,6 +525,8 @@ export default function ApartmentPage() {
           type: expenseType,
           date: expenseDate ? new Date(expenseDate).toISOString() : new Date().toISOString(),
           stageId: expenseStageId || null,
+          notes: expenseNotes.trim() || null,
+          options: purchaseOptions.filter(o => o.name.trim().length > 0),
         }),
       });
 
@@ -562,6 +621,15 @@ export default function ApartmentPage() {
       setExpenseType(expense.type || "OBRA");
       setExpenseDate(expense.date.substring(0, 10));
       setExpenseStageId(expense.stageId || "");
+      setExpenseNotes(expense.notes || "");
+      setPurchaseOptions(expense.options?.map(o => ({
+        id: o.id,
+        name: o.name,
+        price: o.price,
+        url: o.url || "",
+        selected: o.selected || false,
+      })) || []);
+      setIsMoreInfoOpen(Boolean((expense.notes && expense.notes.length > 0) || (expense.options && expense.options.length > 0)));
     } else {
       setEditingExpense(null);
       setExpenseDesc("");
@@ -570,6 +638,9 @@ export default function ApartmentPage() {
       setExpenseType("OBRA");
       setExpenseDate(new Date().toISOString().substring(0, 10));
       setExpenseStageId("");
+      setExpenseNotes("");
+      setPurchaseOptions([]);
+      setIsMoreInfoOpen(false);
     }
     setIsExpenseModalOpen(true);
   }
@@ -1208,77 +1279,197 @@ export default function ApartmentPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {filteredExpenses.map((expense) => {
                     const linkedStage = project.stages?.find(s => s.id === expense.stageId);
-                    return (
-                      <div
-                        key={expense.id}
-                        className={`${styles.expenseRow} ${expense.status === "PAGO" ? styles.expenseRowChecked : ""}`}
-                      >
-                        <div className={styles.expenseLeft}>
-                          <input
-                            type="checkbox"
-                            className={styles.expenseCheckbox}
-                            checked={expense.status === "PAGO"}
-                            onChange={() => handleToggleExpenseStatus(expense)}
-                            title="Marcar como paga"
-                          />
-                          <div className={styles.expenseMeta}>
-                            <span className={styles.expenseDesc}>{expense.description}</span>
-                            <div className={styles.expenseDetails}>
-                              <span className={`${styles.typeBadge} ${
-                                expense.type === "OBRA" ? styles.badgeObra :
-                                expense.type === "DOCUMENTACAO" ? styles.badgeDocumentacao :
-                                expense.type === "MOVEIS" ? styles.badgeMoveis :
-                                expense.type === "DECORACAO" ? styles.badgeDecoracao :
-                                styles.badgeGeral
-                              }`}>
-                                {expense.type === "OBRA" ? "Obra" :
-                                 expense.type === "DOCUMENTACAO" ? "Documentação" :
-                                 expense.type === "MOVEIS" ? "Móveis" :
-                                 expense.type === "DECORACAO" ? "Decoração" : "Geral"}
-                              </span>
-                              {linkedStage && (
-                                <span className={styles.expenseStageTag}>{linkedStage.name}</span>
-                              )}
-                              {(() => {
-                                const isPending = expense.status === "PENDENTE";
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0);
-                                
-                                const tomorrow = new Date(today);
-                                tomorrow.setDate(tomorrow.getDate() + 1);
-                                const yyyy = tomorrow.getFullYear();
-                                const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
-                                const dd = String(tomorrow.getDate()).padStart(2, "0");
-                                const tomorrowStr = `${yyyy}-${mm}-${dd}`;
-                                
-                                const isDueTomorrow = isPending && expense.date.slice(0, 10) === tomorrowStr;
-                                const isOverdue = isPending && new Date(expense.date) < today;
+                    const hasMoreInfo = Boolean((expense.options && expense.options.length > 0) || expense.notes);
+                    const isExpanded = Boolean(expandedExpenses[expense.id]);
 
-                                return (
-                                  <span className={`${styles.dueDateTag} ${
-                                    isDueTomorrow ? styles.dueDateTagTomorrow :
-                                    isOverdue ? styles.dueDateTagOverdue : ""
-                                  }`}>
-                                    <Calendar size={12} />
-                                    <span>Vence {new Date(expense.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}</span>
-                                  </span>
-                                );
-                              })()}
+                    return (
+                      <div key={expense.id} className={styles.expenseCard}>
+                        <div
+                          className={`${styles.expenseRow} ${expense.status === "PAGO" ? styles.expenseRowChecked : ""}`}
+                        >
+                          <div className={styles.expenseLeft}>
+                            <input
+                              type="checkbox"
+                              className={styles.expenseCheckbox}
+                              checked={expense.status === "PAGO"}
+                              onChange={() => handleToggleExpenseStatus(expense)}
+                              title="Marcar como paga"
+                            />
+                            <div className={styles.expenseMeta}>
+                              <span className={styles.expenseDesc}>{expense.description}</span>
+                              <div className={styles.expenseDetails}>
+                                <span className={`${styles.typeBadge} ${
+                                  expense.type === "OBRA" ? styles.badgeObra :
+                                  expense.type === "DOCUMENTACAO" ? styles.badgeDocumentacao :
+                                  expense.type === "MOVEIS" ? styles.badgeMoveis :
+                                  expense.type === "DECORACAO" ? styles.badgeDecoracao :
+                                  styles.badgeGeral
+                                }`}>
+                                  {expense.type === "OBRA" ? "Obra" :
+                                   expense.type === "DOCUMENTACAO" ? "Documentação" :
+                                   expense.type === "MOVEIS" ? "Móveis" :
+                                   expense.type === "DECORACAO" ? "Decoração" : "Geral"}
+                                </span>
+                                {linkedStage && (
+                                  <span className={styles.expenseStageTag}>{linkedStage.name}</span>
+                                )}
+                                {(() => {
+                                  const isPending = expense.status === "PENDENTE";
+                                  const today = new Date();
+                                  today.setHours(0, 0, 0, 0);
+                                  
+                                  const tomorrow = new Date(today);
+                                  tomorrow.setDate(tomorrow.getDate() + 1);
+                                  const yyyy = tomorrow.getFullYear();
+                                  const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
+                                  const dd = String(tomorrow.getDate()).padStart(2, "0");
+                                  const tomorrowStr = `${yyyy}-${mm}-${dd}`;
+                                  
+                                  const isDueTomorrow = isPending && expense.date.slice(0, 10) === tomorrowStr;
+                                  const isOverdue = isPending && new Date(expense.date) < today;
+
+                                  return (
+                                    <span className={`${styles.dueDateTag} ${
+                                      isDueTomorrow ? styles.dueDateTagTomorrow :
+                                      isOverdue ? styles.dueDateTagOverdue : ""
+                                    }`}>
+                                      <Calendar size={12} />
+                                      <span>Vence {new Date(expense.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}</span>
+                                    </span>
+                                  );
+                                })()}
+
+                                {hasMoreInfo && (
+                                  <button
+                                    type="button"
+                                    className={styles.expandComparisonBtn}
+                                    onClick={() => toggleExpandExpense(expense.id)}
+                                    title="Ver opções de compra e detalhes"
+                                  >
+                                    {expense.options && expense.options.length > 0 ? (
+                                      <>
+                                        <Scale size={12} />
+                                        <span>
+                                          {expense.options.length} {expense.options.length === 1 ? "opção" : "opções"}
+                                        </span>
+                                        {(() => {
+                                          const prices = expense.options.map(o => o.price).filter(p => p > 0);
+                                          if (prices.length > 0) {
+                                            return (
+                                              <span className={styles.minPricePill}>
+                                                Menor: {fmtBrl(Math.min(...prices))}
+                                              </span>
+                                            );
+                                          }
+                                          return null;
+                                        })()}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FileText size={12} />
+                                        <span>Detalhes</span>
+                                      </>
+                                    )}
+                                    <ChevronDown
+                                      size={12}
+                                      className={isExpanded ? styles.rotateChevron : ""}
+                                    />
+                                  </button>
+                                )}
+                              </div>
                             </div>
+                          </div>
+
+                          <div className={styles.expenseRight}>
+                            <span className={`${styles.expenseAmount} ${expense.status === "PAGO" ? styles.paidAmount : styles.pendingAmount}`}>
+                              {fmtBrl(expense.amount)}
+                            </span>
+                            <button onClick={() => openExpenseModal(expense)} className={styles.iconBtn} title="Editar despesa">
+                              <Edit2 size={12} />
+                            </button>
+                            <button onClick={() => handleDeleteExpense(expense.id, expense.description)} className={`${styles.iconBtn} ${styles.dangerIconBtn}`} title="Excluir despesa">
+                              <Trash2 size={12} />
+                            </button>
                           </div>
                         </div>
 
-                        <div className={styles.expenseRight}>
-                          <span className={`${styles.expenseAmount} ${expense.status === "PAGO" ? styles.paidAmount : styles.pendingAmount}`}>
-                            {fmtBrl(expense.amount)}
-                          </span>
-                          <button onClick={() => openExpenseModal(expense)} className={styles.iconBtn} title="Editar despesa">
-                            <Edit2 size={12} />
-                          </button>
-                          <button onClick={() => handleDeleteExpense(expense.id, expense.description)} className={`${styles.iconBtn} ${styles.dangerIconBtn}`} title="Excluir despesa">
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
+                        {/* Expandable Comparison & Notes Drawer */}
+                        {isExpanded && (
+                          <div className={styles.expenseExpandedContent}>
+                            {expense.notes && (
+                              <div className={styles.notesBlock}>
+                                <div className={styles.notesBlockHeader}>
+                                  <FileText size={12} />
+                                  <span>Descrição / Observações</span>
+                                </div>
+                                <p className={styles.notesText}>{expense.notes}</p>
+                              </div>
+                            )}
+
+                            {expense.options && expense.options.length > 0 && (
+                              <div className={styles.comparisonBlock}>
+                                <div className={styles.comparisonHeader}>
+                                  <div className={styles.comparisonTitle}>
+                                    <Scale size={13} />
+                                    <span>
+                                      Comparação de Preços ({expense.options.length} {expense.options.length === 1 ? "cotação" : "cotações"})
+                                    </span>
+                                  </div>
+                                  {(() => {
+                                    const prices = expense.options.map(o => o.price).filter(p => p > 0);
+                                    if (prices.length > 1) {
+                                      const minP = Math.min(...prices);
+                                      const maxP = Math.max(...prices);
+                                      const diff = maxP - minP;
+                                      if (diff > 0) {
+                                        return (
+                                          <span className={styles.savingsBadge}>
+                                            Economia de até {fmtBrl(diff)}
+                                          </span>
+                                        );
+                                      }
+                                    }
+                                    return null;
+                                  })()}
+                                </div>
+
+                                <div className={styles.comparisonGrid}>
+                                  {expense.options.map((opt, i) => {
+                                    const prices = expense.options!.map(o => o.price).filter(p => p > 0);
+                                    const isLowest = prices.length > 1 && opt.price > 0 && opt.price === Math.min(...prices);
+                                    const href = opt.url ? (opt.url.startsWith("http") ? opt.url : `https://${opt.url}`) : null;
+
+                                    return (
+                                      <div
+                                        key={opt.id || i}
+                                        className={`${styles.comparisonCard} ${isLowest ? styles.comparisonCardLowest : ""}`}
+                                      >
+                                        <div className={styles.comparisonCardTop}>
+                                          <div className={styles.optionName} title={opt.name}>{opt.name}</div>
+                                          {isLowest && <span className={styles.bestPriceTag}>🏆 Menor</span>}
+                                        </div>
+                                        <div className={styles.optionPrice}>{fmtBrl(opt.price)}</div>
+                                        {href ? (
+                                          <a
+                                            href={href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={styles.optionLinkBtn}
+                                          >
+                                            <span>Acessar site</span>
+                                            <ExternalLink size={12} />
+                                          </a>
+                                        ) : (
+                                          <span className={styles.optionNoLink}>Sem link cadastrado</span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1451,11 +1642,11 @@ export default function ApartmentPage() {
         {/* 3. Expense Modal */}
         {isExpenseModalOpen && (
           <div className={styles.modalOverlay}>
-            <div className={styles.modalContent}>
+            <div className={`${styles.modalContent} ${styles.modalContentExpense}`}>
               <h3 className={styles.modalTitle}>{editingExpense ? "Editar Despesa" : "Nova Despesa"}</h3>
               <form onSubmit={handleSaveExpense} className={styles.form}>
                 <div className={styles.formGroup}>
-                  <label className={styles.label}>Descrição</label>
+                  <label className={styles.label}>Descrição / Item</label>
                   <input
                     type="text"
                     className={styles.input}
@@ -1530,6 +1721,199 @@ export default function ApartmentPage() {
                     <option value="DECORACAO">Decoração/Acabamento</option>
                     <option value="GERAL">Outros/Geral</option>
                   </select>
+                </div>
+
+                {/* Seção Mais Informações: Descrição e Comparador de Opções de Compra */}
+                <div className={styles.moreInfoSection}>
+                  <button
+                    type="button"
+                    className={styles.moreInfoToggle}
+                    onClick={() => setIsMoreInfoOpen(prev => !prev)}
+                    aria-expanded={isMoreInfoOpen}
+                  >
+                    <div className={styles.moreInfoToggleLeft}>
+                      <Info size={16} className={styles.moreInfoIcon} />
+                      <span className={styles.moreInfoToggleTitle}>Mais Informações</span>
+                      <span className={styles.moreInfoToggleSubtitle}>(Descrição detalhada e cotação de preços)</span>
+                      {purchaseOptions.length > 0 && (
+                        <span className={styles.optionsBadgeCount}>
+                          {purchaseOptions.length} {purchaseOptions.length === 1 ? "opção" : "opções"}
+                        </span>
+                      )}
+                    </div>
+                    {isMoreInfoOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </button>
+
+                  {isMoreInfoOpen && (
+                    <div className={styles.moreInfoContent}>
+                      <div className={styles.formGroup}>
+                        <label className={styles.label}>
+                          <FileText size={13} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} />
+                          Descrição Detalhada / Observações
+                        </label>
+                        <textarea
+                          className={styles.textarea}
+                          value={expenseNotes}
+                          onChange={e => setExpenseNotes(e.target.value)}
+                          placeholder="Ex: Medidas 60x60cm, acabamento acetinado, código do modelo, detalhes de entrega ou observações gerais..."
+                          rows={2}
+                        />
+                      </div>
+
+                      <div className={styles.optionsSection}>
+                        <div className={styles.optionsSectionHeader}>
+                          <div>
+                            <div className={styles.optionsTitle}>
+                              <Scale size={15} />
+                              <span>Opções de Compra para Comparar Preços</span>
+                            </div>
+                            <p className={styles.optionsHelp}>
+                              Cadastre diferentes lojas, modelos e sites para comparar valores e escolher a melhor oferta.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleAddOption}
+                            className={styles.addOptionBtn}
+                          >
+                            <Plus size={14} />
+                            <span>Adicionar Opção</span>
+                          </button>
+                        </div>
+
+                        {purchaseOptions.length === 0 ? (
+                          <div className={styles.emptyOptionsState}>
+                            <ShoppingBag size={20} className={styles.emptyOptionsIcon} />
+                            <p>Nenhuma opção de compra adicionada ainda.</p>
+                            <button
+                              type="button"
+                              onClick={handleAddOption}
+                              className={styles.emptyOptionsBtn}
+                            >
+                              + Adicionar primeira loja/cotação
+                            </button>
+                          </div>
+                        ) : (
+                          <div className={styles.optionsList}>
+                            {/* Resumo de economia potencial caso haja 2+ opções com preços */}
+                            {(() => {
+                              const prices = purchaseOptions
+                                .map(o => Number(o.price))
+                                .filter(p => !isNaN(p) && p > 0);
+                              if (prices.length > 1) {
+                                const minP = Math.min(...prices);
+                                const maxP = Math.max(...prices);
+                                const diff = maxP - minP;
+                                if (diff > 0) {
+                                  return (
+                                    <div className={styles.savingsBanner}>
+                                      <Sparkles size={14} />
+                                      <span>
+                                        Economia potencial de até <strong>{fmtBrl(diff)}</strong> ({((diff / maxP) * 100).toFixed(0)}%) escolhendo a melhor cotação!
+                                      </span>
+                                    </div>
+                                  );
+                                }
+                              }
+                              return null;
+                            })()}
+
+                            {purchaseOptions.map((opt, index) => {
+                              const prices = purchaseOptions
+                                .map(o => Number(o.price))
+                                .filter(p => !isNaN(p) && p > 0);
+                              const isLowest = prices.length > 1 && Number(opt.price) > 0 && Number(opt.price) === Math.min(...prices);
+
+                              return (
+                                <div
+                                  key={opt.id || index}
+                                  className={`${styles.optionItem} ${isLowest ? styles.optionItemLowest : ""}`}
+                                >
+                                  <div className={styles.optionItemHeader}>
+                                    <span className={styles.optionItemIndex}>
+                                      Opção {index + 1}
+                                      {isLowest && <span className={styles.bestPriceBadge}>🏆 Menor Preço</span>}
+                                    </span>
+                                    <div className={styles.optionItemActions}>
+                                      {Number(opt.price) > 0 && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleApplyOptionPrice(opt)}
+                                          className={styles.applyPriceBtn}
+                                          title="Definir este valor como o preço principal da despesa"
+                                        >
+                                          <Check size={12} />
+                                          <span>Usar este valor</span>
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveOption(index)}
+                                        className={styles.removeOptionBtn}
+                                        title="Remover esta opção"
+                                      >
+                                        <Trash2 size={13} />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <div className={styles.optionItemGrid}>
+                                    <div className={styles.formGroup}>
+                                      <label className={styles.subLabel}>Loja / Modelo</label>
+                                      <input
+                                        type="text"
+                                        className={styles.input}
+                                        placeholder="Ex: Leroy Merlin, Mercado Livre, Tok&Stok..."
+                                        value={opt.name}
+                                        onChange={e => handleUpdateOption(index, "name", e.target.value)}
+                                        required
+                                      />
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                      <label className={styles.subLabel}>Valor (R$)</label>
+                                      <input
+                                        type="number"
+                                        step="0.01"
+                                        className={styles.input}
+                                        placeholder="0,00"
+                                        value={opt.price === 0 ? "" : opt.price}
+                                        onChange={e => handleUpdateOption(index, "price", parseFloat(e.target.value) || 0)}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className={styles.formGroup}>
+                                    <label className={styles.subLabel}>Site / Link do Produto</label>
+                                    <div className={styles.urlInputRow}>
+                                      <input
+                                        type="text"
+                                        className={styles.input}
+                                        placeholder="https://exemplo.com.br/produto"
+                                        value={opt.url || ""}
+                                        onChange={e => handleUpdateOption(index, "url", e.target.value)}
+                                      />
+                                      {opt.url && (
+                                        <a
+                                          href={opt.url.startsWith("http") ? opt.url : `https://${opt.url}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className={styles.externalLinkBtn}
+                                          title="Testar link em nova aba"
+                                        >
+                                          <ExternalLink size={14} />
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.modalActions}>
