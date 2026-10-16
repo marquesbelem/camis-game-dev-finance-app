@@ -15,6 +15,9 @@ import {
   PieChart,
   ChevronLeft,
   ChevronRight,
+  RotateCcw,
+  Eraser,
+  X,
 } from "lucide-react";
 import { playSound } from "@/lib/sounds";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
@@ -57,6 +60,8 @@ export default function SettingsPage() {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false);
+  const [resetting, setResetting] = useState<boolean>(false);
 
   // Load initial data
   useEffect(() => {
@@ -83,7 +88,10 @@ export default function SettingsPage() {
 
           const initialLimits: Record<string, string> = {};
           catData.forEach((cat) => {
-            initialLimits[cat.id] = cat.budgetLimit ? String(cat.budgetLimit) : "";
+            initialLimits[cat.id] =
+              cat.budgetLimit !== null && cat.budgetLimit !== undefined && cat.budgetLimit > 0
+                ? String(cat.budgetLimit)
+                : "";
           });
           setCategoryLimits(initialLimits);
         }
@@ -98,7 +106,8 @@ export default function SettingsPage() {
   }, [selectedMonth]);
 
   const salaryNum = useMemo(() => {
-    const parsed = parseFloat(scheduledSalaryAmount);
+    const clean = scheduledSalaryAmount.replace(",", ".");
+    const parsed = parseFloat(clean);
     return isNaN(parsed) || parsed < 0 ? 0 : parsed;
   }, [scheduledSalaryAmount]);
 
@@ -106,7 +115,8 @@ export default function SettingsPage() {
   const { totalPercentage, totalAllocatedAmount } = useMemo(() => {
     let pctSum = 0;
     Object.values(categoryLimits).forEach((val) => {
-      const num = parseFloat(val);
+      const clean = String(val).replace(",", ".");
+      const num = parseFloat(clean);
       if (!isNaN(num) && num > 0) {
         pctSum += num;
       }
@@ -119,23 +129,109 @@ export default function SettingsPage() {
     setCategoryLimits((prev) => ({ ...prev, [catId]: value }));
   }
 
+  function handleClearCategoryLimits() {
+    const cleared: Record<string, string> = {};
+    categories.forEach((cat) => {
+      cleared[cat.id] = "";
+    });
+    setCategoryLimits(cleared);
+    playSound("toast_info");
+    addToast({
+      title: "Limites zerados! 🧹",
+      message: "Todos os limites foram limpos na tela. Clique em Salvar para persistir.",
+      type: "info",
+    });
+  }
+
+  async function handleConfirmResetAll() {
+    setResetting(true);
+    try {
+      const defaultSalary = 3000;
+      const defaultDay = 5;
+      const defaultCredit = 1000;
+      const defaultMonthly = 50;
+      const defaultLeisure = 0;
+
+      // 1. Reset general stats
+      const statsPayload = {
+        scheduledSalaryAmount: defaultSalary,
+        salaryPaymentDay: defaultDay,
+        totalCreditLimit: defaultCredit,
+        leisureBudget: defaultLeisure,
+        monthlyBudgetLimit: defaultMonthly,
+      };
+
+      const statsRes = await fetch(`/api/stats?month=${selectedMonth}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(statsPayload),
+      });
+
+      if (!statsRes.ok) throw new Error("Erro ao redefinir parâmetros gerais.");
+
+      // 2. Clear all category limits in DB
+      const categoryLimitsPayload = categories.map((cat) => ({
+        id: cat.id,
+        budgetLimit: null,
+      }));
+
+      const catRes = await fetch(`/api/categories?month=${selectedMonth}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categoryLimits: categoryLimitsPayload }),
+      });
+
+      if (!catRes.ok) throw new Error("Erro ao limpar limites das categorias.");
+
+      // Update local state
+      setScheduledSalaryAmount("3000");
+      setSalaryPaymentDay("5");
+      setTotalCreditLimit("1000");
+      setLeisureBudget("0");
+      setMonthlyBudgetLimit("50");
+
+      const clearedLimits: Record<string, string> = {};
+      categories.forEach((cat) => {
+        clearedLimits[cat.id] = "";
+      });
+      setCategoryLimits(clearedLimits);
+      setCategories((prev) => prev.map((cat) => ({ ...cat, budgetLimit: null })));
+
+      setIsResetModalOpen(false);
+      playSound("toast_info");
+      addToast({
+        title: "Parâmetros Redefinidos! 🧹",
+        message: "Todos os parâmetros e limites de categoria foram limpos e salvos com sucesso.",
+        type: "success",
+      });
+    } catch (err: any) {
+      addToast({
+        title: "Erro ao resetar",
+        message: err.message || "Não foi possível resetar os parâmetros.",
+        type: "danger",
+      });
+    } finally {
+      setResetting(false);
+    }
+  }
+
   async function handleSaveAll(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
 
     try {
       // 1. Save general stats & leisure budget (using PUT or PATCH)
-      const pSalary = parseFloat(scheduledSalaryAmount);
+      const pSalary = parseFloat(scheduledSalaryAmount.replace(",", "."));
       const pDay = parseInt(salaryPaymentDay, 10);
-      const pCredit = parseFloat(totalCreditLimit);
-      const pLeisure = parseFloat(leisureBudget);
-      const pMonthly = parseFloat(monthlyBudgetLimit);
+      const pCredit = parseFloat(totalCreditLimit.replace(",", "."));
+      const pLeisure = parseFloat(leisureBudget.replace(",", "."));
+      const pMonthly = parseFloat(monthlyBudgetLimit.replace(",", "."));
 
       const statsPayload = {
         scheduledSalaryAmount: isNaN(pSalary) ? 3000 : pSalary,
         salaryPaymentDay: isNaN(pDay) ? 5 : pDay,
         totalCreditLimit: isNaN(pCredit) ? 1000 : pCredit,
-        leisureBudget: isNaN(pLeisure) ? 300 : pLeisure,
+        leisureBudget: isNaN(pLeisure) ? 0 : pLeisure,
         monthlyBudgetLimit: isNaN(pMonthly) ? 50 : pMonthly,
       };
 
@@ -147,11 +243,19 @@ export default function SettingsPage() {
 
       if (!statsRes.ok) throw new Error("Erro ao salvar parâmetros gerais.");
 
-      // 2. Save category percentage limits
-      const categoryLimitsPayload = Object.entries(categoryLimits).map(([id, val]) => ({
-        id,
-        budgetLimit: val && !isNaN(parseFloat(val)) && parseFloat(val) > 0 ? parseFloat(val) : null,
-      }));
+      // 2. Save category percentage limits (handles all categories, proper comma parsing)
+      const categoryLimitsPayload = categories.map((cat) => {
+        const raw = categoryLimits[cat.id];
+        if (!raw || String(raw).trim() === "") {
+          return { id: cat.id, budgetLimit: null };
+        }
+        const clean = String(raw).replace(",", ".");
+        const parsed = parseFloat(clean);
+        return {
+          id: cat.id,
+          budgetLimit: !isNaN(parsed) && parsed > 0 ? parsed : null,
+        };
+      });
 
       const catRes = await fetch(`/api/categories?month=${selectedMonth}`, {
         method: "PUT",
@@ -160,6 +264,14 @@ export default function SettingsPage() {
       });
 
       if (!catRes.ok) throw new Error("Erro ao salvar limites das categorias.");
+
+      // Synchronize category state locally
+      setCategories((prev) =>
+        prev.map((cat) => {
+          const matching = categoryLimitsPayload.find((p) => p.id === cat.id);
+          return matching ? { ...cat, budgetLimit: matching.budgetLimit } : cat;
+        })
+      );
 
       playSound("add_expense");
       addToast({
@@ -205,6 +317,18 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        <div className={styles.headerActions}>
+          <button
+            type="button"
+            className={styles.resetBtn}
+            onClick={() => setIsResetModalOpen(true)}
+            title="Limpar e redefinir todos os parâmetros"
+            aria-label="Limpar e redefinir todos os parâmetros"
+          >
+            <RotateCcw size={16} />
+            <span>Limpar Parâmetros</span>
+          </button>
+        </div>
       </header>
 
       <div className="mb-6 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center justify-center flex-wrap gap-4">
@@ -329,6 +453,16 @@ export default function SettingsPage() {
                 Defina a porcentagem (%) do seu salário base (R$ {salaryNum.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}) que será reservada para cada categoria.
               </p>
             </div>
+            <button
+              type="button"
+              className={styles.clearCatBtn}
+              onClick={handleClearCategoryLimits}
+              title="Limpar todos os campos de limite de categorias"
+              aria-label="Limpar todos os limites de categorias"
+            >
+              <Eraser size={14} />
+              <span>Zerar Limites</span>
+            </button>
           </div>
 
           {/* Allocation Summary Card */}
@@ -451,6 +585,97 @@ export default function SettingsPage() {
           </button>
         </div>
       </form>
+
+      {/* Confirmation Modal for Resetting Parameters */}
+      {isResetModalOpen && (
+        <div
+          className={styles.modalOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reset-modal-title"
+          onClick={() => {
+            if (!resetting) setIsResetModalOpen(false);
+          }}
+        >
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalBadgeWarn}>
+                <RotateCcw size={22} />
+              </div>
+              <div className={styles.modalHeaderInfo}>
+                <h3 id="reset-modal-title" className={styles.modalTitle}>
+                  Limpar e Redefinir Parâmetros?
+                </h3>
+                <p className={styles.modalSubtitle}>
+                  Esta ação redefinirá os parâmetros do mês ({formatMonthLabel(selectedMonth)}).
+                </p>
+              </div>
+              <button
+                type="button"
+                className={styles.modalCloseBtn}
+                onClick={() => setIsResetModalOpen(false)}
+                disabled={resetting}
+                aria-label="Fechar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <p className={styles.modalText}>Os seguintes valores padrão serão aplicados:</p>
+              <ul className={styles.resetList}>
+                <li>
+                  <span className={styles.bullet}>•</span> Salário Agendado: <strong>R$ 3.000,00</strong>
+                </li>
+                <li>
+                  <span className={styles.bullet}>•</span> Dia do Pagamento: <strong>Dia 5</strong>
+                </li>
+                <li>
+                  <span className={styles.bullet}>•</span> Limite do Cartão: <strong>R$ 1.000,00</strong>
+                </li>
+                <li>
+                  <span className={styles.bullet}>•</span> Teto HP Capivara: <strong>50%</strong>
+                </li>
+                <li>
+                  <span className={styles.bullet}>•</span> Orçamento Lazer: <strong>R$ 0,00</strong>
+                </li>
+                <li>
+                  <span className={styles.bullet}>•</span> Limites de Categorias: <strong className={styles.clearedHighlight}>Todos removidos (Livre)</strong>
+                </li>
+              </ul>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                className={styles.modalCancelBtn}
+                onClick={() => setIsResetModalOpen(false)}
+                disabled={resetting}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.modalConfirmBtn}
+                onClick={handleConfirmResetAll}
+                disabled={resetting}
+              >
+                {resetting ? (
+                  <>
+                    <div className={styles.spinnerSmall} />
+                    <span>Limpando...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw size={16} />
+                    <span>Confirmar e Limpar</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

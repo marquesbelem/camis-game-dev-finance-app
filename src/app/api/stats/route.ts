@@ -154,13 +154,10 @@ export async function PUT(request: NextRequest) {
     const updateStatsData: any = {};
     if (currentStreakDays !== undefined) updateStatsData.currentStreakDays = currentStreakDays;
     if (salaryPaymentDay !== undefined) updateStatsData.salaryPaymentDay = salaryPaymentDay;
-
-    if (!month) {
-      if (monthlyBudgetLimit !== undefined) updateStatsData.monthlyBudgetLimit = monthlyBudgetLimit;
-      if (scheduledSalaryAmount !== undefined) updateStatsData.scheduledSalaryAmount = scheduledSalaryAmount;
-      if (leisureBudget !== undefined) updateStatsData.leisureBudget = leisureBudget;
-      if (totalCreditLimit !== undefined) updateStatsData.totalCreditLimit = totalCreditLimit;
-    }
+    if (monthlyBudgetLimit !== undefined) updateStatsData.monthlyBudgetLimit = monthlyBudgetLimit;
+    if (scheduledSalaryAmount !== undefined) updateStatsData.scheduledSalaryAmount = scheduledSalaryAmount;
+    if (leisureBudget !== undefined) updateStatsData.leisureBudget = leisureBudget;
+    if (totalCreditLimit !== undefined) updateStatsData.totalCreditLimit = totalCreditLimit;
 
     const updated = await prisma.userStats.upsert({
       where: { id: userId },

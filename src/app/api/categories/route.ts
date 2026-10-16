@@ -212,12 +212,16 @@ export async function PUT(request: NextRequest) {
               create: { categoryId: item.id, month, userId, budgetLimit: val },
             });
           }
-        } else {
-          await prisma.category.updateMany({
-            where: { id: item.id },
-            data: { budgetLimit: val },
-          });
         }
+
+        // Always update baseline Category budgetLimit so that default limits persist across months and clearing stays cleared
+        await prisma.category.updateMany({
+          where: {
+            id: item.id,
+            OR: [{ userId }, { userId: null }],
+          },
+          data: { budgetLimit: val },
+        });
       })
     );
 
