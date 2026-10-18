@@ -220,24 +220,7 @@ export async function PUT(
       include: { category: true },
     });
 
-    // Award XP if changing status to PAGO
-    const isPayingNow = status === "PAGO" && existing.status !== "PAGO";
-    let xpDetails = null;
-
-    if (isPayingNow) {
-      xpDetails = await awardXp(userId, 25).catch((err) => {
-        console.error("XP Error:", err);
-        return null;
-      });
-    }
-
-    // Recompute achievements asynchronously after mutation
-    recomputeAchievements(userId).catch(console.error);
-
-    return NextResponse.json({
-      ...updated,
-      xpDetails,
-    });
+    return NextResponse.json(updated);
   } catch (error) {
     console.error("[PUT /api/slips/:id]", error);
     return NextResponse.json(

@@ -117,9 +117,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Fetch all slips for the target year
-    const yearStart = new Date(targetYear, 0, 1);
-    const yearEnd = new Date(targetYear + 1, 0, 1);
+    // 3. Fetch all slips for the target year (UTC bounds to avoid timezone shift)
+    const yearStart = new Date(Date.UTC(targetYear, 0, 1, 0, 0, 0));
+    const yearEnd = new Date(Date.UTC(targetYear + 1, 0, 1, 0, 0, 0));
 
     const slips = await prisma.paymentSlip.findMany({
       where: {
@@ -171,10 +171,10 @@ export async function GET(request: NextRequest) {
       const extraTotal = monthExtras.reduce((sum, item) => sum + item.amount, 0);
       const totalIncome = effectiveSalary + extraTotal;
 
-      // Expenses for month
+      // Expenses for month (using UTC to match stored date exactly)
       const monthSlips = slips.filter(slip => {
         const d = new Date(slip.dueDate);
-        return d.getMonth() + 1 === m && d.getFullYear() === targetYear;
+        return d.getUTCFullYear() === targetYear && d.getUTCMonth() + 1 === m;
       });
 
       let monthExpenses = 0;
@@ -212,7 +212,7 @@ export async function GET(request: NextRequest) {
       totalYearlyIncome += totalIncome;
       totalYearlyExpenses += monthExpenses;
       totalYearlyPaid += monthPaid;
-      totalYearlyPending += monthPending;
+      totalYearlyPending += (monthPending + monthReserved);
 
       monthlyData.push({
         month: monthStr,
@@ -226,6 +226,7 @@ export async function GET(request: NextRequest) {
         paidExpenses: monthPaid,
         pendingExpenses: monthPending,
         reservedExpenses: monthReserved,
+        unpaidExpenses: monthPending + monthReserved,
         netBalance,
         savingsRate,
         slipsCount: monthSlips.length,

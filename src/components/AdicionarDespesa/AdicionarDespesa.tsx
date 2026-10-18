@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, Upload, Calendar, DollarSign, Tag, Repeat } from "lucide-react";
 import { playSound } from "@/lib/sounds";
+import DateInput from "@/components/ui/DateInput";
 import styles from "./AdicionarDespesa.module.css";
 
 interface Category {
@@ -360,38 +361,14 @@ export default function AdicionarDespesa({ isOpen, onClose, onSave, editingSlip,
               <label htmlFor="slip-due-date" className={styles.label}>
                 <Calendar size={14} /> Vencimento <span className={styles.requiredAsterisk}>*</span>
               </label>
-              <div className={styles.dateInputWrapper}>
-                <input
-                  id="slip-due-date"
-                  type="text"
-                  placeholder="DD/MM/AAAA"
-                  value={dueDateText}
-                  onChange={(e) => handleDateTextChange(e.target.value)}
-                  className={styles.input}
-                  maxLength={10}
-                  required
-                />
-                <button
-                  type="button"
-                  className={styles.calendarPickerBtn}
-                  onClick={handleCalendarClick}
-                  aria-label="Abrir calendário"
-                >
-                  <Calendar size={16} />
-                </button>
-                {/* Hidden native input for date picker invocation */}
-                <input
-                  ref={dateInputRef}
-                  type="date"
-                  value={dueDate}
-                  min={targetMonth ? `${targetMonth}-01` : undefined}
-                  max={targetMonth ? `${targetMonth}-${String(new Date(parseInt(targetMonth.split("-")[0], 10), parseInt(targetMonth.split("-")[1], 10), 0).getDate()).padStart(2, "0")}` : undefined}
-                  onChange={(e) => handleNativeDateChange(e.target.value)}
-                  className={styles.hiddenNativeDateInput}
-                  tabIndex={-1}
-                  aria-hidden="true"
-                />
-              </div>
+              <DateInput
+                id="slip-due-date"
+                value={dueDate}
+                onChange={(val) => setDueDate(val)}
+                min={targetMonth ? `${targetMonth}-01` : undefined}
+                max={targetMonth ? `${targetMonth}-${String(new Date(parseInt(targetMonth.split("-")[0], 10), parseInt(targetMonth.split("-")[1], 10), 0).getDate()).padStart(2, "0")}` : undefined}
+                required
+              />
             </div>
           </div>
 

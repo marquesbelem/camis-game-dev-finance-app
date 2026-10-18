@@ -1,0 +1,58 @@
+.dateInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.textInput {
+  width: 100%;
+  padding-right: 38px !important;
+  background: var(--color-bg-input, hsl(228, 13%, 14%));
+  border: 1px solid var(--color-border, hsl(228, 13%, 20%));
+  border-radius: var(--radius-lg, 12px);
+  color: var(--color-text-primary, #f8fafc);
+  padding: 10px 14px;
+  font-size: var(--text-base, 0.95rem);
+  outline: none;
+  transition: border-color var(--transition-fast, 0.15s ease), box-shadow var(--transition-fast, 0.15s ease);
+}
+
+.textInput:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px var(--color-brand-glow, rgba(124, 92, 252, 0.25));
+}
+
+.calendarBtn {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md, 8px);
+  background: transparent;
+  border: none;
+  color: var(--color-brand) !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.calendarBtn svg {
+  color: var(--color-brand) !important;
+}
+
+.calendarBtn:hover {
+  background: rgba(168, 85, 247, 0.15);
+  color: var(--color-brand) !important;
+}
+
+.hiddenNativeInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  border: 0;
+}

@@ -108,10 +108,6 @@ export async function POST(
       });
 
       createdSlipId = slip.id;
-
-      // Recompute stats and gamification in background
-      handleExpenseRegistrationXp(userId).catch(console.error);
-      recomputeAchievements(userId).catch(console.error);
     }
 
     const vaccine = await prisma.petVaccine.create({

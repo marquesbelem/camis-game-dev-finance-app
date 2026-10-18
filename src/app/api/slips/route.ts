@@ -348,10 +348,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Recompute stats in background asynchronously after mutation
-    handleExpenseRegistrationXp(userId).catch(console.error);
-    recomputeAchievements(userId).catch(console.error);
-
     return NextResponse.json(resultSlip, { status: 201 });
   } catch (error) {
     console.error("[POST /api/slips]", error);

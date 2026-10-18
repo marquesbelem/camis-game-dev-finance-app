@@ -196,17 +196,6 @@ export default function CalendarPage() {
       setSlips((prev) =>
         prev.map((s) => (s.id === updated.id ? updated : s))
       );
-
-      // Check XP metadata for debit/PIX payment
-      const xpDetails = (updated as any).xpDetails;
-      if (xpDetails) {
-        showXpToast(xpDetails.xpGained, "Despesa paga no Débito ou PIX!");
-        if (xpDetails.leveledUp) {
-          setTimeout(() => {
-            showLevelUpToast(xpDetails.newLevel);
-          }, 1200);
-        }
-      }
     } catch {
       // 4. Rollback on error
       setSlips(previous);
@@ -244,22 +233,6 @@ export default function CalendarPage() {
       message: saved.title,
       type: "success",
     });
-
-    // Award XP and show toasts if metadata exists
-    const xpDetails = (saved as any).xpDetails;
-    if (xpDetails) {
-      showXpToast(
-        xpDetails.xpGained,
-        xpDetails.bonusAwarded
-          ? `Bônus de consistência diária! Combo: ${xpDetails.streak} dias 🔥`
-          : "Despesa registrada!"
-      );
-      if (xpDetails.leveledUp) {
-        setTimeout(() => {
-          showLevelUpToast(xpDetails.newLevel);
-        }, 1200);
-      }
-    }
   }
 
   function closeForm() {

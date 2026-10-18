@@ -32,7 +32,7 @@ export default function ExtraIncomesWidget({
         <div className={styles.header}>
           <div className={styles.titleArea}>
             <Sparkles size={20} className="text-emerald-400" />
-            <h3 className={styles.title}>Receitas Extras</h3>
+            <h3 className={styles.title}>RECEITAS EXTRAS</h3>
           </div>
           {incomes.length > 0 && (
             <span className={styles.totalBadge}>

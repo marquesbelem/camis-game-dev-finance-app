@@ -215,6 +215,8 @@ function ExpensesContent() {
     if (filterStatus !== "ALL") {
       if (filterStatus === "RECURRING") {
         result = result.filter((s) => s.isRecurring);
+      } else if (filterStatus === "RESERVADO_PENDENTE") {
+        result = result.filter((s) => s.status === "PENDENTE" || s.status === "RESERVADO");
       } else {
         result = result.filter((s) => s.status === filterStatus);
       }
@@ -323,6 +325,7 @@ function ExpensesContent() {
             className={styles.controlSelect}
           >
             <option value="ALL">Todos</option>
+            <option value="RESERVADO_PENDENTE">Reservado + Pendentes</option>
             <option value="PENDENTE">Pendentes</option>
             <option value="RESERVADO">Reservadas</option>
             <option value="PAGO">Pagas</option>

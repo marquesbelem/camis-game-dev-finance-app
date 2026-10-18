@@ -261,6 +261,83 @@
   color: var(--color-text-secondary, #94a3b8);
 }
 
+.drawerLinkActive {
+  background: rgba(168, 85, 247, 0.18) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+.drawerLinkActive .drawerLinkIcon {
+  background: var(--color-brand) !important;
+  color: #fff !important;
+}
+
+/* ── Sub-menu Grouping ────────────────────────────────────────────────────── */
+.navGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navGroupHeaderBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary, #f8fafc);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+}
+
+.navGroupHeaderBtn:hover {
+  background: rgba(168, 85, 247, 0.1);
+  color: #c084fc;
+}
+
+.navGroupHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.navGroupChevron {
+  color: var(--color-text-tertiary, #94a3b8);
+  transition: transform 0.25s ease;
+}
+
+.navGroupChevronOpen {
+  transform: rotate(180deg);
+}
+
+.subMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-left: 12px;
+  margin-left: 18px;
+  border-left: 2px solid rgba(168, 85, 247, 0.25);
+  margin-bottom: 6px;
+}
+
+.subDrawerLink {
+  padding: 8px 10px;
+  font-size: 0.88rem;
+  gap: 10px;
+}
+
+.subDrawerLink .drawerLinkIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
 .drawerLink:hover .drawerLinkIcon {
   background: rgba(168, 85, 247, 0.2);
   color: #c084fc;

@@ -19,7 +19,7 @@ export default function CategoryBudgetsSection({ categoryBudgets }: Props) {
       <div className={styles.panelHeader}>
         <div className={styles.panelTitleRow}>
           <span className={styles.panelIcon}>🎯</span>
-          <h3 className={styles.panelTitle}>Orçamentos por Categoria</h3>
+          <h3 className={styles.panelTitle}>ORÇAMENTOS POR CATEGORIA</h3>
           <span className={styles.panelBadge}>
             {categoryBudgets.length} {categoryBudgets.length === 1 ? "configurado" : "configurados"}
           </span>

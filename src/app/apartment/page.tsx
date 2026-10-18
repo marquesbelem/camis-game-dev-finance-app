@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
 import ApartmentVoxel3D from "@/components/ApartmentVoxel/ApartmentVoxel3D";
+import DateInput from "@/components/ui/DateInput";
 import styles from "./page.module.css";
 
 export interface PurchaseOption {
@@ -1687,11 +1688,9 @@ export default function ApartmentPage() {
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Data</label>
-                    <input
-                      type="date"
-                      className={styles.input}
+                    <DateInput
                       value={expenseDate}
-                      onChange={e => setExpenseDate(e.target.value)}
+                      onChange={val => setExpenseDate(val)}
                       required
                     />
                   </div>
@@ -1978,11 +1977,9 @@ export default function ApartmentPage() {
                 <div className={styles.formGrid}>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Data de Vencimento</label>
-                    <input
-                      type="date"
-                      className={styles.input}
+                    <DateInput
                       value={instDueDate}
-                      onChange={e => setInstDueDate(e.target.value)}
+                      onChange={val => setInstDueDate(val)}
                       required
                     />
                   </div>

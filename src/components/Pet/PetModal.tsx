@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Pet } from "@/lib/types";
 import { X } from "lucide-react";
+import DateInput from "@/components/ui/DateInput";
 import styles from "./PetModal.module.css";
 
 interface PetModalProps {
@@ -195,12 +196,10 @@ export default function PetModal({
               <label htmlFor="pet-birth-input" className={styles.label}>
                 Data de Nascimento
               </label>
-              <input
+              <DateInput
                 id="pet-birth-input"
-                type="date"
-                className={styles.input}
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
+                onChange={(val) => setBirthDate(val)}
               />
             </div>
 

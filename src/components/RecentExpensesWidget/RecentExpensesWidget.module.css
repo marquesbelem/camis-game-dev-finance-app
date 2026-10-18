@@ -2,7 +2,7 @@
   background: var(--color-bg-surface, #1e293b);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
-  padding: 16px 20px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -21,10 +21,18 @@
   gap: 8px;
 }
 
+.panelIcon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
 .title {
-  font-size: 1.05rem;
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: 1rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--color-text-primary, #f8fafc);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   margin: 0;
 }
 
@@ -32,9 +40,9 @@
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #f87171;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  padding: 3px 10px;
+  padding: 2px 10px;
   border-radius: 12px;
 }
 
@@ -44,7 +52,142 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+}
+
+/* Compact charts-style slip row */
+.compactSlipItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--color-bg-elevated, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.06));
+  border-radius: var(--radius-md, 10px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.compactSlipItem:hover {
+  background: var(--color-bg-overlay, rgba(255, 255, 255, 0.06));
+  border-color: var(--color-border-brand, rgba(124, 92, 252, 0.3));
+  transform: translateY(-1px);
+}
+
+.slipLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.slipCategoryPill {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.slipTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.slipTitle {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f8fafc);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+@media (min-width: 640px) {
+  .slipTitle {
+    max-width: 320px;
+  }
+}
+
+.slipDate {
+  font-size: 0.72rem;
+  color: var(--color-text-tertiary, #94a3b8);
+}
+
+.slipRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.slipStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.statusText {
+  letter-spacing: 0.02em;
+}
+
+.statusToggleCue {
+  font-size: 0.75rem;
+  opacity: 0.65;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+  line-height: 1;
+}
+
+.slipStatusPaid {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px dashed rgba(34, 197, 94, 0.5);
+}
+
+.slipStatusReserved {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px dashed rgba(59, 130, 246, 0.5);
+}
+
+.slipStatusPending {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px dashed rgba(239, 68, 68, 0.5);
+}
+
+.slipStatusBadge:hover {
+  transform: translateY(-1px) scale(1.05);
+  filter: brightness(1.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.slipStatusBadge:hover .statusToggleCue {
+  opacity: 1;
+  transform: rotate(180deg);
+}
+
+.slipStatusBadge:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.slipAmount {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #f8fafc);
+  font-variant-numeric: tabular-nums;
+  min-width: 75px;
+  text-align: right;
 }
 
 .actionBtn {
@@ -52,21 +195,23 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #60a5fa;
+  background: linear-gradient(135deg, rgba(124, 92, 252, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+  border: 1px solid rgba(124, 92, 252, 0.3);
+  color: #c084fc;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 10px 16px;
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.2s ease;
+  margin-top: 4px;
 }
 
 .actionBtn:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.25) 100%);
-  border-color: #3b82f6;
+  background: linear-gradient(135deg, rgba(124, 92, 252, 0.25) 0%, rgba(99, 102, 241, 0.25) 100%);
+  border-color: var(--color-brand);
   color: #fff;
+  transform: translateY(-1px);
 }
 
 .emptyText {

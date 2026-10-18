@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
@@ -9,13 +10,13 @@ import {
   Receipt,
   Tag,
   Home,
-  Trophy,
   LogOut,
   GraduationCap,
-  Trash2,
   Sliders,
   Dog,
   BarChart3,
+  Wallet,
+  ChevronDown,
 } from "lucide-react";
 import styles from "./TopBar.module.css";
 
@@ -26,18 +27,23 @@ interface TopBarProps {
   onDeleteAccount?: () => void;
 }
 
-const navLinks = [
+const financeLinks = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/charts", icon: BarChart3, label: "Gráficos" },
   { href: "/expenses", icon: Receipt, label: "Despesas" },
-  { href: "/pets", icon: Dog, label: "Pets" },
   { href: "/categories", icon: Tag, label: "Categorias" },
-  { href: "/apartment", icon: Home, label: "Apartamento" },
   { href: "/settings", icon: Sliders, label: "Parâmetros" },
+];
+
+const moduleLinks = [
+  { href: "/pets", icon: Dog, label: "Pets" },
+  { href: "/apartment", icon: Home, label: "Apartamento" },
 ];
 
 export default function TopBar({ username, onLogout, onRestartTutorial, onDeleteAccount }: TopBarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [financeOpen, setFinanceOpen] = useState(true);
+  const pathname = usePathname();
   const drawerRef = useRef<HTMLDivElement>(null);
 
   // close on outside click
@@ -54,6 +60,11 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
+
+  // Ensure drawer closes and scroll unlocks when route changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   const initials = username ? username.slice(0, 2).toUpperCase() : "??";
 
@@ -111,22 +122,71 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
             </button>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links with Sub-menu Grouping */}
           <div className={styles.drawerNav}>
-            <p className={styles.drawerNavLabel}>Navegação</p>
-            {navLinks.map(({ href, icon: Icon, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className={styles.drawerLink}
-                onClick={() => setIsOpen(false)}
+            <p className={styles.drawerNavLabel}>Menu Principal</p>
+
+            {/* Sub-menu Finanças */}
+            <div className={styles.navGroup}>
+              <button
+                type="button"
+                className={styles.navGroupHeaderBtn}
+                onClick={() => setFinanceOpen((prev) => !prev)}
+                aria-expanded={financeOpen}
+                aria-label="Abrir ou fechar submenu de Finanças"
               >
-                <span className={styles.drawerLinkIcon}>
-                  <Icon size={18} />
-                </span>
-                {label}
-              </Link>
-            ))}
+                <div className={styles.navGroupHeaderLeft}>
+                  <span className={styles.drawerLinkIcon}>
+                    <Wallet size={18} />
+                  </span>
+                  <span>Finanças</span>
+                </div>
+                <ChevronDown
+                  size={16}
+                  className={`${styles.navGroupChevron} ${financeOpen ? styles.navGroupChevronOpen : ""}`}
+                />
+              </button>
+
+              {financeOpen && (
+                <div className={styles.subMenu}>
+                  {financeLinks.map(({ href, icon: Icon, label }) => {
+                    const isActive = pathname === href;
+                    return (
+                      <Link
+                        key={href}
+                        href={href}
+                        className={`${styles.drawerLink} ${styles.subDrawerLink} ${isActive ? styles.drawerLinkActive : ""}`}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <span className={styles.drawerLinkIcon}>
+                          <Icon size={16} />
+                        </span>
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Outros Módulos */}
+            <p className={styles.drawerNavLabel} style={{ marginTop: "10px" }}>Outros Módulos</p>
+            {moduleLinks.map(({ href, icon: Icon, label }) => {
+              const isActive = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`${styles.drawerLink} ${isActive ? styles.drawerLinkActive : ""}`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span className={styles.drawerLinkIcon}>
+                    <Icon size={18} />
+                  </span>
+                  {label}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Drawer Footer – user info + logout */}
@@ -154,18 +214,8 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
               onClick={() => { setIsOpen(false); onLogout(); }}
             >
               <LogOut size={16} />
-              Sair da conta
+              Sair da Conta
             </button>
-            {onDeleteAccount && (
-              <button
-                type="button"
-                className={styles.drawerDeleteBtn}
-                onClick={() => { setIsOpen(false); onDeleteAccount(); }}
-              >
-                <Trash2 size={16} />
-                Excluir minha conta
-              </button>
-            )}
           </div>
         </nav>
       )}

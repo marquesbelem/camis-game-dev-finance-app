@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { PetVaccine } from "@/lib/types";
 import { X, Bell, DollarSign } from "lucide-react";
+import DateInput from "@/components/ui/DateInput";
 import styles from "./VaccineModal.module.css";
 
 interface VaccineModalProps {
@@ -211,12 +212,10 @@ export default function VaccineModal({
               <label htmlFor="vaccine-app-date" className={styles.label}>
                 Data da Aplicação *
               </label>
-              <input
+              <DateInput
                 id="vaccine-app-date"
-                type="date"
-                className={styles.input}
                 value={applicationDate}
-                onChange={(e) => setApplicationDate(e.target.value)}
+                onChange={(val) => setApplicationDate(val)}
                 required
               />
             </div>
@@ -226,12 +225,10 @@ export default function VaccineModal({
             <label htmlFor="vaccine-booster-date" className={styles.label}>
               Data do Próximo Reforço (Opcional)
             </label>
-            <input
+            <DateInput
               id="vaccine-booster-date"
-              type="date"
-              className={styles.input}
               value={boosterDate}
-              onChange={(e) => setBoosterDate(e.target.value)}
+              onChange={(val) => setBoosterDate(val)}
             />
             <span className={styles.helperText}>
               <Bell size={13} />

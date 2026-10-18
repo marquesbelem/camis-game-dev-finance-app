@@ -202,38 +202,9 @@ export function useToasts() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const celebrateAchievement = useCallback(
-    (title: string) => {
-      addToast({
-        title: "🏆 Conquista Desbloqueada!",
-        message: title,
-        type: "success",
-      });
-    },
-    [addToast]
-  );
-
-  const showXpToast = useCallback(
-    (xpGained: number, message: string) => {
-      addToast({
-        title: `✨ +${xpGained} XP obtidos!`,
-        message: message,
-        type: "xp",
-      });
-    },
-    [addToast]
-  );
-
-  const showLevelUpToast = useCallback(
-    (newLevel: number) => {
-      addToast({
-        title: `🌟 LEVEL UP! Nível ${newLevel}`,
-        message: "Você subiu de nível! Seus poderes de economia aumentaram!",
-        type: "levelup",
-      });
-    },
-    [addToast]
-  );
+  const celebrateAchievement = useCallback((_title: string) => {}, []);
+  const showXpToast = useCallback((_xpGained: number, _message: string) => {}, []);
+  const showLevelUpToast = useCallback((_newLevel: number) => {}, []);
 
   return {
     toasts,

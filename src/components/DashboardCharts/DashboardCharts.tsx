@@ -68,14 +68,10 @@ export default function DashboardCharts({ slips }: Props) {
       <div className={styles.panelHeader}>
         <div className={styles.panelTitleRow}>
           <span className={styles.panelIcon}>⚔️</span>
-          <h3 className={styles.panelTitle}>Mapa de Dano</h3>
+          <h3 className={styles.panelTitle}>MAPA DE DANO</h3>
           <span className={styles.panelBadge}>{sorted.length} categorias</span>
         </div>
         <div className={styles.panelHeaderRight}>
-          <div className={styles.panelTotal}>
-            <span className={styles.panelTotalLabel}>Total do mês</span>
-            <span className={styles.panelTotalValue}>{formatCurrency(grandTotal)}</span>
-          </div>
           <button
             type="button"
             className={styles.collapseBtn}

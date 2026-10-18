@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { PetAppointment, AppointmentStatusType } from "@/lib/types";
 import { X, Bell } from "lucide-react";
+import DateInput from "@/components/ui/DateInput";
 import styles from "./AppointmentModal.module.css";
 
 interface AppointmentModalProps {
@@ -174,12 +175,10 @@ export default function AppointmentModal({
               <label htmlFor="appointment-date" className={styles.label}>
                 Data *
               </label>
-              <input
+              <DateInput
                 id="appointment-date"
-                type="date"
-                className={styles.input}
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(val) => setDate(val)}
                 required
               />
             </div>

@@ -14,6 +14,8 @@ import {
   PieChart as PieIcon,
   Receipt,
   ExternalLink,
+  ArrowRight,
+  ChevronDown,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -94,6 +96,7 @@ interface CategoryDistItem {
   total: number;
   count: number;
   percentage: number;
+  slips?: MonthSlip[];
 }
 
 interface AnalyticsData {
@@ -138,6 +141,7 @@ export default function ChartsPage() {
   const [viewMode, setViewMode] = useState<"MONTHLY" | "YEARLY" | "ACCUMULATED">("MONTHLY");
   const [selectedMonthIdx, setSelectedMonthIdx] = useState<number>(currentMonthIdx);
   const [catScope, setCatScope] = useState<"MONTH" | "YEAR">("MONTH");
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -186,18 +190,25 @@ export default function ChartsPage() {
   // Active category distribution based on scope toggle ("MONTH" vs "YEAR")
   const activeCategoryDist = useMemo(() => {
     if (catScope === "YEAR") {
-      return data?.categoryDistribution ?? [];
+      return (data?.categoryDistribution ?? []).map(cat => ({
+        ...cat,
+        slips: [] as MonthSlip[],
+      }));
     }
     // Scope is MONTH
     if (!activeMonthData?.categories) return [];
     const totalExp = activeMonthData.expenses;
-    return activeMonthData.categories.map(c => ({
-      name: c.name,
-      color: c.color,
-      total: c.total,
-      count: 0,
-      percentage: totalExp > 0 ? Math.round((c.total / totalExp) * 100) : 0,
-    }));
+    return activeMonthData.categories.map(c => {
+      const catSlips = activeMonthData.slips?.filter(s => s.category?.name === c.name) || [];
+      return {
+        name: c.name,
+        color: c.color,
+        total: c.total,
+        count: catSlips.length,
+        percentage: totalExp > 0 ? Math.round((c.total / totalExp) * 100) : 0,
+        slips: catSlips,
+      };
+    });
   }, [catScope, data, activeMonthData]);
 
   // Capivara insight message generator
@@ -706,12 +717,15 @@ export default function ChartsPage() {
                       <div className={styles.metricRowLeft}>
                         <span className={styles.metricRowTitle}>Status das Contas</span>
                         <span className={styles.metricRowSub}>
-                          Pagas: {formatCurrency(activeMonthData.paidExpenses)} · Pendentes:{" "}
-                          {formatCurrency(activeMonthData.pendingExpenses)}
+                          Pagas: {formatCurrency(activeMonthData.paidExpenses)}
+                          {activeMonthData.reservedExpenses > 0 && (
+                            <> · Reservadas: {formatCurrency(activeMonthData.reservedExpenses)}</>
+                          )}
+                          {" · Pendentes: "}{formatCurrency(activeMonthData.pendingExpenses)}
                         </span>
                       </div>
                       <span className={styles.metricRowValue} style={{ color: "var(--color-text-secondary)" }}>
-                        {activeMonthData.pendingExpenses === 0 && activeMonthData.expenses > 0
+                        {activeMonthData.pendingExpenses === 0 && activeMonthData.reservedExpenses === 0 && activeMonthData.expenses > 0
                           ? "Tudo Pago! ✅"
                           : `${Math.round(
                               activeMonthData.expenses > 0
@@ -730,57 +744,6 @@ export default function ChartsPage() {
                       <p className={styles.capyInsightText}>{capyInsight.text}</p>
                     </div>
                   </div>
-
-                  {/* ── Monthly Slips Breakdown List ──────────────────────── */}
-                  {activeMonthData.slips && activeMonthData.slips.length > 0 && (
-                    <div className={styles.slipsBreakdownSection}>
-                      <div className={styles.slipsBreakdownHeader}>
-                        <span className={styles.slipsBreakdownTitle}>
-                          Despesas de {activeMonthData.monthName} ({activeMonthData.slips.length})
-                        </span>
-                        <Link
-                          href={`/expenses?month=${activeMonthData.month}`}
-                          className={styles.manageExpensesLink}
-                        >
-                          Gerenciar Contas →
-                        </Link>
-                      </div>
-
-                      <ul className={styles.slipsList}>
-                        {activeMonthData.slips.map(slip => (
-                          <li key={slip.id} className={styles.slipItem}>
-                            <div className={styles.slipLeft}>
-                              <span
-                                className={styles.slipCategoryPill}
-                                style={{ background: slip.category.color }}
-                              />
-                              <div className={styles.slipTitleGroup}>
-                                <span className={styles.slipTitle}>{slip.title}</span>
-                                <span className={styles.slipDate}>
-                                  Vencimento: {formatDate(slip.dueDate)} · {slip.category.name}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className={styles.slipRight}>
-                              <span
-                                className={`${styles.slipStatusBadge} ${
-                                  slip.status === "PAGO"
-                                    ? styles.slipStatusPaid
-                                    : styles.slipStatusPending
-                                }`}
-                              >
-                                {slip.status === "PAGO" ? "Pago" : "Pendente"}
-                              </span>
-                              <span className={styles.slipAmount}>
-                                {formatCurrency(slip.amount)}
-                              </span>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
 
                   {/* Rendas Extras if any */}
                   {activeMonthData.extraIncomesList && activeMonthData.extraIncomesList.length > 0 && (
@@ -823,14 +786,20 @@ export default function ChartsPage() {
                   <button
                     type="button"
                     className={`${styles.subPillBtn} ${catScope === "MONTH" ? styles.subPillBtnActive : ""}`}
-                    onClick={() => setCatScope("MONTH")}
+                    onClick={() => {
+                      setCatScope("MONTH");
+                      setExpandedCategory(null);
+                    }}
                   >
                     Este Mês
                   </button>
                   <button
                     type="button"
                     className={`${styles.subPillBtn} ${catScope === "YEAR" ? styles.subPillBtnActive : ""}`}
-                    onClick={() => setCatScope("YEAR")}
+                    onClick={() => {
+                      setCatScope("YEAR");
+                      setExpandedCategory(null);
+                    }}
                   >
                     Ano {displayYear}
                   </button>
@@ -864,18 +833,82 @@ export default function ChartsPage() {
                   </div>
 
                   <ul className={styles.categoryList}>
-                    {activeCategoryDist.map(cat => (
-                      <li key={cat.name} className={styles.categoryItem}>
-                        <div className={styles.catLeft}>
-                          <span className={styles.catIndicator} style={{ background: cat.color }} />
-                          <span className={styles.catName}>{cat.name}</span>
-                        </div>
-                        <div className={styles.catRight}>
-                          <span className={styles.catPct}>{cat.percentage}%</span>
-                          <span className={styles.catVal}>{formatCurrency(cat.total)}</span>
-                        </div>
-                      </li>
-                    ))}
+                    {activeCategoryDist.map(cat => {
+                      const isExpanded = expandedCategory === cat.name;
+                      const hasSlips = cat.slips && cat.slips.length > 0;
+                      return (
+                        <li key={cat.name} className={styles.categoryItemWrapper}>
+                          <button
+                            type="button"
+                            className={styles.categoryItemBtn}
+                            onClick={() => setExpandedCategory(prev => prev === cat.name ? null : cat.name)}
+                            aria-expanded={isExpanded}
+                            title="Clique para ver os detalhes das despesas desta categoria"
+                          >
+                            <div className={styles.catLeft}>
+                              <span className={styles.catIndicator} style={{ background: cat.color }} />
+                              <span className={styles.catName}>{cat.name}</span>
+                              {cat.count > 0 && (
+                                <span className={styles.catCountBadge}>
+                                  {cat.count} {cat.count === 1 ? "despesa" : "despesas"}
+                                </span>
+                              )}
+                            </div>
+                            <div className={styles.catRight}>
+                              <span className={styles.catPct}>{cat.percentage}%</span>
+                              <span className={styles.catVal}>{formatCurrency(cat.total)}</span>
+                              <ChevronDown
+                                size={14}
+                                className={`${styles.catChevron} ${isExpanded ? styles.catChevronOpen : ""}`}
+                              />
+                            </div>
+                          </button>
+
+                          {isExpanded && (
+                            <div className={styles.catDetailsPanel}>
+                              {hasSlips ? (
+                                <ul className={styles.catSlipsList}>
+                                  {cat.slips!.map(slip => (
+                                    <li key={slip.id} className={styles.catSlipRow}>
+                                      <div className={styles.catSlipInfo}>
+                                        <span className={styles.catSlipTitle}>{slip.title}</span>
+                                        <span className={styles.catSlipDate}>
+                                          Vencimento: {formatDate(slip.dueDate)}
+                                        </span>
+                                      </div>
+                                      <div className={styles.catSlipRight}>
+                                        <span
+                                          className={`${styles.catSlipStatus} ${
+                                            slip.status === "PAGO"
+                                              ? styles.catStatusPaid
+                                              : styles.catStatusPending
+                                          }`}
+                                        >
+                                          {slip.status === "PAGO"
+                                            ? "Pago"
+                                            : slip.status === "RESERVADO"
+                                            ? "Reservado"
+                                            : "Pendente"}
+                                        </span>
+                                        <span className={styles.catSlipAmount}>
+                                          {formatCurrency(slip.amount)}
+                                        </span>
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className={styles.catEmptySub}>
+                                  {catScope === "YEAR"
+                                    ? "Selecione o filtro 'Este Mês' para ver despesas individuais detalhadas."
+                                    : "Nenhuma despesa individual encontrada nesta categoria."}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </>
               ) : (
