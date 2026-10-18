@@ -1,0 +1,128 @@
+.fabContainer {
+  position: fixed;
+  bottom: calc(var(--space-6, 1.5rem) + env(safe-area-inset-bottom, 0px));
+  right: calc(var(--space-6, 1.5rem) + env(safe-area-inset-right, 0px));
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.mainBtn {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 24px -4px rgba(244, 63, 94, 0.45);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  outline: none;
+  pointer-events: auto;
+}
+
+@media (max-width: 640px) {
+  .fabContainer {
+    bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    right: calc(1.25rem + env(safe-area-inset-right, 0px));
+  }
+  .mainBtn {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+}
+
+.mainBtn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 28px -4px rgba(244, 63, 94, 0.6);
+}
+
+.mainBtn:active {
+  transform: scale(0.95);
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.iconOpen {
+  transform: rotate(45deg);
+}
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  animation: dialPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dialPop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.itemLabel {
+  background: rgba(13, 15, 26, 0.9);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.subBtn {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+  pointer-events: auto;
+}
+
+.subBtn:hover {
+  transform: scale(1.08);
+}
+
+.subBtnPet {
+  background: linear-gradient(135deg, #f43f5e, #fb7185);
+}
+
+.subBtnVac {
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+}
+
+.subBtnApp {
+  background: linear-gradient(135deg, #ea580c, #fb923c);
+}

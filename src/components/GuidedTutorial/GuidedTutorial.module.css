@@ -20,30 +20,47 @@
 }
 
 @keyframes ringPulse {
-  0%, 100% { stroke-opacity: 0.5; filter: drop-shadow(0 0 4px rgba(168,85,247,0.5)); }
-  50%       { stroke-opacity: 1;   filter: drop-shadow(0 0 12px rgba(168,85,247,0.9)); }
+  0%, 100% {
+    stroke-opacity: 0.55;
+    filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.5));
+  }
+  50% {
+    stroke-opacity: 1;
+    filter: drop-shadow(0 0 14px rgba(168, 85, 247, 0.95));
+  }
 }
 
 /* ── Info Card ──────────────────────────────────────────────────────────── */
 .card {
   position: fixed;
   left: 50%;
-  width: min(400px, calc(100vw - 32px));
-  max-height: calc(100dvh - 40px);
+  width: min(460px, calc(100vw - 28px));
+  max-height: calc(100dvh - 36px);
   overflow-y: auto;
-  background: linear-gradient(160deg, #13192e 0%, #1a1f3a 100%);
-  border: 1px solid rgba(168, 85, 247, 0.35);
-  border-radius: 20px;
-  padding: 20px;
+  background: linear-gradient(165deg, rgba(16, 20, 38, 0.96) 0%, rgba(24, 29, 56, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(168, 85, 247, 0.38);
+  border-radius: 22px;
+  padding: 18px 20px;
   box-shadow:
-    0 0 0 1px rgba(168,85,247,0.1),
-    0 24px 60px rgba(0,0,0,0.6),
-    0 0 40px rgba(168,85,247,0.12);
+    0 0 0 1px rgba(168, 85, 247, 0.15),
+    0 24px 60px rgba(0, 0, 0, 0.75),
+    0 0 40px rgba(168, 85, 247, 0.16);
   pointer-events: all;
   z-index: 20001;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+}
+
+/* Custom scrollbar for small height screens */
+.card::-webkit-scrollbar {
+  width: 5px;
+}
+.card::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+  border-radius: 3px;
 }
 
 .cardCenter {
@@ -53,70 +70,154 @@
 
 .cardFloat {
   transform: translateX(-50%);
-  /* top set inline via getCardStyle() */
+  /* top/bottom set inline via getCardStyle() */
 }
 
 /* ── Transitions ─────────────────────────────────────────────────────────── */
 .cardIn.cardCenter {
-  animation: cardEnterCenter 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: cardEnterCenter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .cardOut.cardCenter {
-  animation: cardExitCenter 0.2s ease-in forwards;
+  animation: cardExitCenter 0.18s ease-in forwards;
 }
 
 .cardIn.cardFloat {
-  animation: cardEnterFloat 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: cardEnterFloat 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .cardOut.cardFloat {
-  animation: cardExitFloat 0.2s ease-in forwards;
+  animation: cardExitFloat 0.18s ease-in forwards;
 }
 
 @keyframes cardEnterCenter {
-  from { opacity: 0; transform: translate(-50%, calc(-50% + 10px)); }
-  to   { opacity: 1; transform: translate(-50%, -50%); }
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 10px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }
 
 @keyframes cardExitCenter {
-  from { opacity: 1; transform: translate(-50%, -50%); }
-  to   { opacity: 0; transform: translate(-50%, calc(-50% - 8px)); }
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 8px));
+  }
 }
 
 @keyframes cardEnterFloat {
-  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 @keyframes cardExitFloat {
-  from { opacity: 1; transform: translateX(-50%) translateY(0); }
-  to   { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
 }
 
-/* ── Progress dots ───────────────────────────────────────────────────────── */
+/* ── Top Bar: Eyebrow + Close ────────────────────────────────────────────── */
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.badgeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c084fc;
+  background: rgba(168, 85, 247, 0.16);
+  border: 1px solid rgba(168, 85, 247, 0.32);
+  padding: 2.5px 8px;
+  border-radius: 6px;
+}
+
+.stepCounter {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Progress Dots (Clickable) ───────────────────────────────────────────── */
 .dots {
   display: flex;
   gap: 6px;
   justify-content: center;
+  align-items: center;
+  padding: 2px 0;
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.18);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dot:hover {
+  background: rgba(168, 85, 247, 0.6);
+  transform: scale(1.2);
 }
 
 .dotActive {
   background: #a855f7;
-  width: 20px;
-  border-radius: 3px;
-  box-shadow: 0 0 8px rgba(168,85,247,0.6);
+  width: 22px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.75);
 }
 
 .dotDone {
-  background: rgba(168,85,247,0.4);
+  background: rgba(168, 85, 247, 0.45);
 }
 
 /* ── Card Header ─────────────────────────────────────────────────────────── */
@@ -126,42 +227,94 @@
   gap: 12px;
 }
 
-.cardEmoji {
-  font-size: 2rem;
+.emojiBadge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(124, 58, 237, 0.12));
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  filter: drop-shadow(0 0 8px rgba(168,85,247,0.4));
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
+}
+
+.cardEmoji {
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.titleCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .cardTitle {
-  font-family: var(--font-display, 'Outfit', sans-serif);
-  font-size: 1.05rem;
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: 1.12rem;
   font-weight: 800;
   color: #f8fafc;
   line-height: 1.25;
   margin: 0;
 }
 
-/* ── Card Body ───────────────────────────────────────────────────────────── */
-.cardBody {
-  list-style: none;
+.cardSubtitle {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.35;
+  margin: 0;
+}
+
+/* ── Bullets Container ───────────────────────────────────────────────────── */
+.bulletsContainer {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 12px;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
 }
 
-.cardLine {
-  font-size: 0.85rem;
+.bulletRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.bulletIcon {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  line-height: 1.35;
+}
+
+.bulletText {
+  font-size: 0.83rem;
+  line-height: 1.45;
   color: #cbd5e1;
-  line-height: 1.5;
 }
 
-.cardLine:first-child {
-  font-weight: 600;
-  color: #e2e8f0;
+.bulletStrong {
+  color: #f1f5f9;
+  font-weight: 700;
+}
+
+.bulletDesc {
+  color: #94a3b8;
+}
+
+/* ── Optional Tip Box ────────────────────────────────────────────────────── */
+.tipBox {
+  background: rgba(168, 85, 247, 0.09);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-size: 0.77rem;
+  color: #d8b4fe;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 /* ── Card Actions ────────────────────────────────────────────────────────── */
@@ -169,14 +322,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 2px;
 }
 
 .skipBtn {
   background: transparent;
   color: #64748b;
   border: none;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   padding: 8px 4px;
@@ -184,7 +338,34 @@
 }
 
 .skipBtn:hover {
-  color: #94a3b8;
+  color: #cbd5e1;
+}
+
+.navButtons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .nextBtn {
@@ -192,18 +373,21 @@
   color: #fff;
   border: none;
   border-radius: 12px;
-  padding: 11px 22px;
-  font-size: 0.9rem;
+  padding: 8px 16px;
+  font-size: 0.86rem;
   font-weight: 800;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 16px rgba(168,85,247,0.4);
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
   letter-spacing: 0.01em;
 }
 
 .nextBtn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(168,85,247,0.55);
+  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.55);
 }
 
 .nextBtn:active {

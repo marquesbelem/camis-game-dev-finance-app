@@ -85,8 +85,7 @@ export async function PUT(request: NextRequest) {
     const newTitle = body.title !== undefined ? sanitizeInput(body.title) : existing.title;
     const newAmount = body.amount !== undefined ? parseFloat(body.amount) : existing.amount;
     const newCategoryId = body.categoryId !== undefined ? body.categoryId : existing.categoryId;
-    const newIsCreditCardPayment = body.isCreditCardPayment !== undefined ? !!body.isCreditCardPayment : existing.isCreditCardPayment;
-    const newIsDebt = body.isDebt !== undefined ? !!body.isDebt : existing.isDebt;
+    const newIsCreditCardPayment = false;
     const newRecurringDay = body.recurringDay !== undefined ? parseInt(body.recurringDay, 10) : (existing.recurringDay ?? existing.dueDate.getDate());
 
     if (!newTitle || isNaN(newAmount) || newAmount <= 0 || !newCategoryId) {
@@ -164,7 +163,6 @@ export async function PUT(request: NextRequest) {
           dueDate: targetDueDate,
           status: "PENDENTE",
           isCreditCardPayment: newIsCreditCardPayment,
-          isDebt: newIsDebt,
           isRecurring: true,
           recurringDay: newRecurringDay,
           categoryId: newCategoryId,
@@ -187,7 +185,6 @@ export async function PUT(request: NextRequest) {
         data: {
           amount: newAmount,
           isCreditCardPayment: newIsCreditCardPayment,
-          isDebt: newIsDebt,
           recurringDay: newRecurringDay,
           isRecurring: true,
         },
@@ -222,7 +219,6 @@ export async function PUT(request: NextRequest) {
             dueDate: targetDueDate,
             status: "PENDENTE",
             isCreditCardPayment: newIsCreditCardPayment,
-            isDebt: newIsDebt,
             isRecurring: true,
             recurringDay: newRecurringDay,
             categoryId: newCategoryId,

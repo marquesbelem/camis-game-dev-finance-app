@@ -1,26 +1,26 @@
 import { prisma } from "@/lib/prisma";
 
 export const DEFAULT_ACHIEVEMENTS = [
-  // Trilha 1: CARD_THRESHOLD (Redução de uso de cartão)
+  // Trilha 1: BUDGET_CONTROL (Controle de Orçamento)
   {
-    title: "Cartão sob Controle",
-    description: "Mantenha o gasto no cartão de crédito abaixo de 40% do limite mensal.",
-    type: "CARD_THRESHOLD",
-    conditionValue: 40.0,
+    title: "Orçamento sob Controle",
+    description: "Mantenha as despesas do mês abaixo de 90% do orçamento.",
+    type: "BUDGET_CONTROL",
+    conditionValue: 90.0,
     level: 1,
   },
   {
-    title: "Uso Consciente",
-    description: "Mantenha o gasto no cartão de crédito abaixo de 20% do limite mensal.",
-    type: "CARD_THRESHOLD",
-    conditionValue: 20.0,
+    title: "Muralha Financeira",
+    description: "Mantenha as despesas do mês abaixo de 75% do orçamento.",
+    type: "BUDGET_CONTROL",
+    conditionValue: 75.0,
     level: 2,
   },
   {
-    title: "Cartão Zero",
-    description: "Evite totalmente o uso do cartão de crédito no mês (0% do limite).",
-    type: "CARD_THRESHOLD",
-    conditionValue: 0.0,
+    title: "Cofre Inviolável",
+    description: "Mantenha as despesas do mês abaixo de 50% do orçamento.",
+    type: "BUDGET_CONTROL",
+    conditionValue: 50.0,
     level: 3,
   },
   // Trilha 2: STREAK (Consistência Diária)
@@ -148,7 +148,11 @@ export async function recomputeAchievements(userId: string): Promise<void> {
     where: { userId },
   });
 
-  if (existing.length !== DEFAULT_ACHIEVEMENTS.length || !existing.some((a) => a.title === "Primeiro Abate ⚔️")) {
+  if (
+    existing.length !== DEFAULT_ACHIEVEMENTS.length ||
+    !existing.some((a) => a.title === "Primeiro Abate ⚔️") ||
+    existing.some((a) => a.type === "CARD_THRESHOLD")
+  ) {
     await prisma.achievement.deleteMany({ where: { userId } });
     await prisma.achievement.createMany({
       data: DEFAULT_ACHIEVEMENTS.map((a) => ({ ...a, userId })),
@@ -172,11 +176,12 @@ export async function recomputeAchievements(userId: string): Promise<void> {
 
   // Calculate metrics
   const totalSpent = slips.reduce((sum, s) => sum + s.amount, 0);
-  const creditSpent = slips.filter((s) => s.isCreditCardPayment).reduce((sum, s) => sum + s.amount, 0);
   const paidSlipsCount = slips.filter((s) => s.status === "PAGO").length;
 
-  const cardLimit = stats.totalCreditLimit > 0 ? stats.totalCreditLimit : 1000.0;
-  const creditPct = (creditSpent / cardLimit) * 100;
+  const budgetGoal = stats.scheduledSalaryAmount > 0
+    ? (stats.scheduledSalaryAmount * (stats.monthlyBudgetLimit / 100))
+    : 1500.0;
+  const spentPctOfBudget = budgetGoal > 0 ? (totalSpent / budgetGoal) * 100 : 0;
 
   const registrationStreak = stats.registrationStreak || 0;
 
@@ -185,11 +190,9 @@ export async function recomputeAchievements(userId: string): Promise<void> {
   const marginPct = revenue > 0 ? (savings / revenue) * 100 : 0;
 
   // Compute CapyScore dynamically (0-100)
-  const onTimeScore = paidSlipsCount > 0 ? Math.min(40, (paidSlipsCount / Math.max(1, slips.length)) * 40) : 40;
-  const creditScore = creditPct <= 30 ? 30 : creditPct <= 60 ? 15 : 0;
-  const leisureSpent = slips.filter((s) => s.category?.name === "Lazer").reduce((sum, s) => sum + s.amount, 0);
-  const leisureScore = stats.leisureBudget > 0 ? (leisureSpent <= stats.leisureBudget ? 30 : 10) : 30;
-  const capyScoreValue = Math.round(onTimeScore + creditScore + leisureScore);
+  const onTimeScore = paidSlipsCount > 0 ? Math.min(50, (paidSlipsCount / Math.max(1, slips.length)) * 50) : 50;
+  const budgetScore = spentPctOfBudget <= 85 ? 50 : spentPctOfBudget <= 100 ? 25 : 0;
+  const capyScoreValue = Math.round(onTimeScore + budgetScore);
 
   // Fetch apartment project progress if exists
   const apartmentProject = await prisma.apartmentProject.findUnique({
@@ -209,7 +212,7 @@ export async function recomputeAchievements(userId: string): Promise<void> {
   });
 
   const chainUnlocked: Record<string, boolean> = {
-    CARD_THRESHOLD: true,
+    BUDGET_CONTROL: true,
     STREAK: true,
     SAVINGS: true,
     MONSTER_HUNTER: true,
@@ -224,12 +227,12 @@ export async function recomputeAchievements(userId: string): Promise<void> {
 
     if (isPrevUnlocked) {
       switch (ach.type) {
-        case "CARD_THRESHOLD": {
-          if (creditPct <= ach.conditionValue) {
+        case "BUDGET_CONTROL": {
+          if (spentPctOfBudget <= ach.conditionValue) {
             progress = 100;
             unlocked = true;
           } else {
-            const excess = creditPct - ach.conditionValue;
+            const excess = spentPctOfBudget - ach.conditionValue;
             progress = Math.max(0, 100 - excess);
             unlocked = false;
           }

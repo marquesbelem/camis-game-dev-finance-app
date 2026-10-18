@@ -1,14 +1,25 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { X, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import styles from "./GuidedTutorial.module.css";
 
 /* ── Step Definitions ───────────────────────────────────────────────────── */
-interface TutorialStep {
+export interface TutorialBullet {
+  icon: string;
+  strong: string;
+  text: string;
+}
+
+export interface TutorialStep {
   id: string;
+  stepNum: number;
+  badge: string;
   emoji: string;
   title: string;
-  body: string[];
+  subtitle: string;
+  bullets: TutorialBullet[];
+  tip?: string;
   targetSelector: string | null;
   cardPosition: "top" | "bottom" | "center";
 }
@@ -16,54 +27,161 @@ interface TutorialStep {
 const STEPS: TutorialStep[] = [
   {
     id: "welcome",
+    stepNum: 1,
+    badge: "BEM-VINDO",
     emoji: "🦫",
-    title: "Bem-vindo ao Capivara Poupadora!",
-    body: [
-      "Seu organizador financeiro simples, direto e eficiente.",
-      "Vamos te mostrar como tudo funciona em menos de 1 minuto!",
+    title: "Capivara Poupadora",
+    subtitle: "Seu controle financeiro inteligente, gamificado e direto ao ponto.",
+    bullets: [
+      {
+        icon: "🎯",
+        strong: "Controle sem Estresse:",
+        text: "Monitore saldo, despesas e poupança mensal sem planilhas complicadas.",
+      },
+      {
+        icon: "⚡",
+        strong: "Tudo em 1 Lugar:",
+        text: "Lançamento ágil de contas, metas de gastos, relatórios e espaço para pets.",
+      },
     ],
+    tip: "💡 Leva menos de 1 minuto e você pode rever este tour quando quiser no menu.",
     targetSelector: null,
     cardPosition: "center",
   },
   {
     id: "parameters",
+    stepNum: 2,
+    badge: "CONFIGURAÇÃO INICIAL",
     emoji: "⚙️",
-    title: "Aba de Parâmetros",
-    body: [
-      "No menu de navegação, acesse a aba 'Parâmetros' para definir:",
-      "• Seu Salário Mensal Agendado e dia do pagamento",
-      "• Limite total do seu cartão de crédito",
-      "• Porcentagem (%) limite de orçamento para cada categoria",
+    title: "Parâmetros & Metas",
+    subtitle: "Defina suas bases para o app calcular tudo automaticamente.",
+    bullets: [
+      {
+        icon: "💵",
+        strong: "Salário & Data:",
+        text: "Informe seu salário e dia de recebimento para ativar a contagem regressiva de dias.",
+      },
+      {
+        icon: "📊",
+        strong: "Teto por Categoria:",
+        text: "Escolha a % do seu salário reservada para cada área (mercado, lazer, moradia).",
+      },
+      {
+        icon: "🎯",
+        strong: "Limite de Gastos:",
+        text: "Defina o teto geral do mês para manter a saúde e HP da sua Capivara.",
+      },
     ],
-    targetSelector: null,
-    cardPosition: "center",
+    tip: "💡 Encontre em Menu (≡) > Parâmetros a qualquer momento.",
+    targetSelector: "#topbar-burger-btn",
+    cardPosition: "bottom",
   },
   {
     id: "expenses",
-    emoji: "📋",
-    title: "Adicione e Gerencie suas Despesas",
-    body: [
-      "Use o botão + para cadastrar despesas, parcelamentos e compras de cartão.",
-      "Marque como pago conforme quitar suas contas para manter o controle total!",
+    stepNum: 3,
+    badge: "LANÇAMENTOS RÁPIDOS",
+    emoji: "➕",
+    title: "Cadastre Despesas & Rendas",
+    subtitle: "Adicione contas e rendas extras direto pelo botão flutuante.",
+    bullets: [
+      {
+        icon: "📋",
+        strong: "Despesas Flexíveis:",
+        text: "Lance contas pontuais, despesas recorrentes e compras parceladas (ex: 2/10).",
+      },
+      {
+        icon: "💰",
+        strong: "Rendas Extras:",
+        text: "Bônus ou freelances somam automaticamente ao orçamento disponível do mês.",
+      },
+      {
+        icon: "✅",
+        strong: "1 Toque para Quitar:",
+        text: "Marque qualquer conta como paga na lista para atualizar seu saldo na hora.",
+      },
     ],
+    tip: "💡 Toque no botão (+) roxo no canto inferior para abrir o formulário.",
     targetSelector: "#speed-dial-fab",
     cardPosition: "top",
   },
   {
     id: "dashboard",
+    stepNum: 4,
+    badge: "PAINEL PRINCIPAL",
     emoji: "📊",
-    title: "Dashboard & Orçamentos de Categoria",
-    body: [
-      "Acompanhe o resumo financeiro do mês em tempo real nos cards superiores.",
-      "Categorias com limite configurado viram widgets minimizáveis no Dashboard com barra de progresso!",
+    title: "Dashboard & Orçamentos",
+    subtitle: "Acompanhe a saúde financeira do mês em tempo real.",
+    bullets: [
+      {
+        icon: "🛡️",
+        strong: "Cards de Resumo:",
+        text: "Veja saldo livre, contas quitadas, pendências e dias até o próximo salário.",
+      },
+      {
+        icon: "🎯",
+        strong: "Widgets por Categoria:",
+        text: "Barras dinâmicas de progresso alertam se você estiver perto do teto de gastos.",
+      },
     ],
+    tip: "💡 Use as setas no topo da página para navegar entre meses anteriores e futuros.",
     targetSelector: "#summary-cards-section",
     cardPosition: "bottom",
+  },
+  {
+    id: "charts",
+    stepNum: 5,
+    badge: "RELATÓRIOS VISUAIS",
+    emoji: "📈",
+    title: "Gráficos & Estatísticas",
+    subtitle: "Descubra com clareza para onde vai o seu dinheiro.",
+    bullets: [
+      {
+        icon: "🥧",
+        strong: "Pizza por Categoria:",
+        text: "Veja graficamente quais áreas consom a maior fatia do seu orçamento.",
+      },
+      {
+        icon: "📉",
+        strong: "Evolução Mensal:",
+        text: "Compare histórico de receitas vs despesas e acompanhe sua taxa real de poupança.",
+      },
+    ],
+    tip: "💡 Acesse a aba 'Gráficos' no menu lateral para visualizar relatórios completos.",
+    targetSelector: null,
+    cardPosition: "center",
+  },
+  {
+    id: "pets",
+    stepNum: 6,
+    badge: "CUIDADO ESPECIAL",
+    emoji: "🐾",
+    title: "Espaço Pets & Vacinas",
+    subtitle: "Mantenha a saúde e os custos dos seus companheiros organizados.",
+    bullets: [
+      {
+        icon: "🐕",
+        strong: "Perfis e Gastos Próprios:",
+        text: "Cadastre seus bichinhos com foto e acompanhe os gastos exclusivos de cada um.",
+      },
+      {
+        icon: "💉",
+        strong: "Calendário de Vacinas:",
+        text: "Receba lembretes automáticos de vacinação, reforços periódicos e consultas.",
+      },
+    ],
+    tip: "💡 Acesse a aba 'Pets' no menu lateral para gerenciar seus amigos peludos!",
+    targetSelector: null,
+    cardPosition: "center",
   },
 ];
 
 /* ── Spotlight rect ─────────────────────────────────────────────────────── */
-interface SpotRect { x: number; y: number; w: number; h: number; }
+interface SpotRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 function measureTarget(selector: string | null): SpotRect | null {
   if (!selector) return null;
@@ -71,7 +189,7 @@ function measureTarget(selector: string | null): SpotRect | null {
     const el = document.querySelector<HTMLElement>(selector);
     if (!el) return null;
     const r = el.getBoundingClientRect();
-    // Ignore elements outside the viewport entirely
+    // Element outside viewport
     if (r.bottom < 0 || r.top > window.innerHeight) return null;
     const pad = 12;
     return {
@@ -100,6 +218,7 @@ export default function GuidedTutorial({ onComplete, onSkip }: Props) {
   const [transitioning, setTransitioning] = useState(false);
 
   const step = STEPS[stepIdx];
+  const isFirst = stepIdx === 0;
   const isLast = stepIdx === STEPS.length - 1;
 
   /* Initialize viewport dimensions on client only */
@@ -127,55 +246,85 @@ export default function GuidedTutorial({ onComplete, onSkip }: Props) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
-    // Wait for scroll animation (~400ms) before measuring
+    // Wait for scroll animation (~380ms) before measuring
     const timer = setTimeout(() => {
       setVw(window.innerWidth);
       setVh(window.innerHeight);
       setSpotRect(measureTarget(selector));
-    }, 450);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [step.targetSelector, stepIdx]);
 
-  /* Navigate to next step with brief fade */
+  /* Navigate to any step with brief fade */
   const goTo = useCallback((nextIdx: number) => {
+    if (nextIdx < 0 || nextIdx >= STEPS.length) return;
     setTransitioning(true);
     setVisible(false);
     setTimeout(() => {
       setStepIdx(nextIdx);
       setVisible(true);
       setTransitioning(false);
-    }, 220);
+    }, 180);
   }, []);
 
-  const handleNext = () => {
-    if (isLast) { onComplete(); return; }
+  const handleNext = useCallback(() => {
+    if (isLast) {
+      onComplete();
+      return;
+    }
     goTo(stepIdx + 1);
-  };
+  }, [isLast, onComplete, goTo, stepIdx]);
 
-  /* Card position: keep within viewport */
+  const handlePrev = useCallback(() => {
+    if (stepIdx > 0) {
+      goTo(stepIdx - 1);
+    }
+  }, [stepIdx, goTo]);
+
+  /* Keyboard navigation */
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (transitioning) return;
+      if (e.key === "ArrowRight" || e.key === "Enter") {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePrev();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        onSkip();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleNext, handlePrev, onSkip, transitioning]);
+
+  /* Card position: fallback to center if no spotRect */
+  const isCentered = step.cardPosition === "center" || !spotRect;
+
   const getCardStyle = (): React.CSSProperties => {
-    if (step.cardPosition === "center" || !spotRect || !vw || !vh) return {};
+    if (isCentered || !spotRect || !vw || !vh) return {};
 
-    const cardH = 290;
-    const margin = 14;
+    const estimatedCardH = 340;
+    const margin = 16;
     const spaceBelow = vh - (spotRect.y + spotRect.h);
     const spaceAbove = spotRect.y;
 
-    if (spaceBelow >= cardH + margin || spaceAbove < cardH + margin) {
+    if (spaceBelow >= estimatedCardH + margin || spaceAbove < estimatedCardH + margin) {
       // Place below spotlight
-      return { top: Math.min(spotRect.y + spotRect.h + margin, vh - cardH - 8) };
+      return { top: Math.min(spotRect.y + spotRect.h + margin, vh - estimatedCardH - 12) };
     }
     // Place above spotlight
-    return { bottom: vh - spotRect.y + margin };
+    return { bottom: Math.max(12, vh - spotRect.y + margin) };
   };
 
-  /* Build SVG cutout path — fully clamped to viewport */
+  /* Build SVG cutout path — clamped to viewport */
   const buildMaskPath = (): string | null => {
     if (!spotRect || !vw || !vh) return null;
     const { x, y, w, h } = spotRect;
     const r = 12; // border radius
-    // Outer rect (full screen) + inner rounded rect (cutout) using even-odd fill
     return [
       `M0,0 H${vw} V${vh} H0 Z`,
       `M${x + r},${y}`,
@@ -201,9 +350,9 @@ export default function GuidedTutorial({ onComplete, onSkip }: Props) {
           aria-hidden="true"
         >
           {maskPath ? (
-            <path d={maskPath} fill="rgba(0,0,0,0.78)" fillRule="evenodd" />
+            <path d={maskPath} fill="rgba(8, 10, 20, 0.82)" fillRule="evenodd" />
           ) : (
-            <rect width={vw} height={vh} fill="rgba(0,0,0,0.78)" />
+            <rect width={vw} height={vh} fill="rgba(8, 10, 20, 0.82)" />
           )}
           {spotRect && (
             <rect
@@ -213,7 +362,7 @@ export default function GuidedTutorial({ onComplete, onSkip }: Props) {
               height={spotRect.h}
               rx={12}
               fill="none"
-              stroke="rgba(168,85,247,0.8)"
+              stroke="rgba(168, 85, 247, 0.85)"
               strokeWidth={2.5}
               className={styles.spotRing}
             />
@@ -225,43 +374,121 @@ export default function GuidedTutorial({ onComplete, onSkip }: Props) {
       {vw > 0 && (
         <div
           className={`${styles.card} ${visible ? styles.cardIn : styles.cardOut} ${
-            step.cardPosition === "center" ? styles.cardCenter : styles.cardFloat
+            isCentered ? styles.cardCenter : styles.cardFloat
           }`}
-          style={step.cardPosition !== "center" ? getCardStyle() : undefined}
+          style={!isCentered ? getCardStyle() : undefined}
         >
-          {/* Progress dots */}
+          {/* Top Bar: Eyebrow + Close X */}
+          <div className={styles.topRow}>
+            <div className={styles.badgeRow}>
+              <span className={styles.badge}>{step.badge}</span>
+              <span className={styles.stepCounter}>
+                Passo {step.stepNum} de {STEPS.length}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              className={styles.closeBtn}
+              onClick={onSkip}
+              aria-label="Fechar tutorial"
+              title="Fechar (Esc)"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Interactive Progress dots */}
           <div className={styles.dots} aria-label={`Passo ${stepIdx + 1} de ${STEPS.length}`}>
-            {STEPS.map((_, i) => (
-              <span
-                key={i}
+            {STEPS.map((s, i) => (
+              <button
+                key={s.id}
+                type="button"
                 className={`${styles.dot} ${
                   i === stepIdx ? styles.dotActive : i < stepIdx ? styles.dotDone : ""
                 }`}
+                onClick={() => goTo(i)}
+                disabled={transitioning}
+                title={`Ir para: ${s.title}`}
+                aria-label={`Ir para passo ${i + 1}: ${s.title}`}
               />
             ))}
           </div>
 
           {/* Header */}
           <div className={styles.cardHeader}>
-            <span className={styles.cardEmoji}>{step.emoji}</span>
-            <h2 className={styles.cardTitle}>{step.title}</h2>
+            <div className={styles.emojiBadge}>
+              <span className={styles.cardEmoji}>{step.emoji}</span>
+            </div>
+            <div className={styles.titleCol}>
+              <h2 className={styles.cardTitle}>{step.title}</h2>
+              <p className={styles.cardSubtitle}>{step.subtitle}</p>
+            </div>
           </div>
 
-          {/* Body */}
-          <ul className={styles.cardBody}>
-            {step.body.map((line, i) => (
-              <li key={i} className={styles.cardLine}>{line}</li>
+          {/* Bullets List */}
+          <div className={styles.bulletsContainer}>
+            {step.bullets.map((bullet, i) => (
+              <div key={i} className={styles.bulletRow}>
+                <span className={styles.bulletIcon}>{bullet.icon}</span>
+                <div className={styles.bulletText}>
+                  <strong className={styles.bulletStrong}>{bullet.strong}</strong>{" "}
+                  <span className={styles.bulletDesc}>{bullet.text}</span>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
+
+          {/* Optional Tip */}
+          {step.tip && (
+            <div className={styles.tipBox}>
+              <span>{step.tip}</span>
+            </div>
+          )}
 
           {/* Actions */}
           <div className={styles.cardActions}>
-            <button type="button" className={styles.skipBtn} onClick={onSkip} disabled={transitioning}>
-              Pular
+            <button
+              type="button"
+              className={styles.skipBtn}
+              onClick={onSkip}
+              disabled={transitioning}
+            >
+              Pular tutorial
             </button>
-            <button type="button" className={styles.nextBtn} onClick={handleNext} disabled={transitioning}>
-              {isLast ? "🎉 Começar!" : "Próximo →"}
-            </button>
+
+            <div className={styles.navButtons}>
+              {!isFirst && (
+                <button
+                  type="button"
+                  className={styles.backBtn}
+                  onClick={handlePrev}
+                  disabled={transitioning}
+                >
+                  <ChevronLeft size={16} />
+                  Voltar
+                </button>
+              )}
+
+              <button
+                type="button"
+                className={styles.nextBtn}
+                onClick={handleNext}
+                disabled={transitioning}
+              >
+                {isLast ? (
+                  <>
+                    <Check size={16} />
+                    Começar a Usar!
+                  </>
+                ) : (
+                  <>
+                    Próximo
+                    <ChevronRight size={16} />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

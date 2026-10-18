@@ -98,8 +98,7 @@ export async function GET(request: NextRequest) {
           amount: rs.amount,
           dueDate: new Date(year, mon - 1, clampedDay),
           status: "PENDENTE" as const,
-          isCreditCardPayment: rs.isCreditCardPayment,
-          isDebt: rs.isDebt,
+          isCreditCardPayment: false,
           isRecurring: true,
           recurringDay: rs.recurringDay,
           categoryId: rs.categoryId,
@@ -128,51 +127,7 @@ export async function GET(request: NextRequest) {
       orderBy: { dueDate: "asc" },
     });
 
-    let slipsWithInterest = slips as any[];
 
-    // Calculate interest for debts
-    const debtSlips = slips.filter(s => s.isDebt);
-    if (debtSlips.length > 0 && month) {
-      const [year, mon] = month.split("-").map(Number);
-      let prevMonth = mon - 1;
-      let prevYear = year;
-      if (prevMonth === 0) {
-        prevMonth = 12;
-        prevYear -= 1;
-      }
-      
-      const prevStart = new Date(year, mon - 2, 1);
-      prevStart.setUTCHours(0, 0, 0, 0);
-
-      let prevEndMon = mon - 1;
-      let prevEndYear = year;
-      if (prevEndMon < 0) {
-        prevEndMon = 11;
-        prevEndYear--;
-      }
-      const prevEnd = new Date(prevEndYear, prevEndMon, 1);
-      prevEnd.setUTCHours(23, 59, 59, 999);
-
-      const pastDebts = await prisma.paymentSlip.findMany({
-        where: {
-          userId,
-          isDebt: true,
-          dueDate: { gte: prevStart, lte: prevEnd }
-        }
-      });
-
-      slipsWithInterest = slips.map(slip => {
-        if (!slip.isDebt) return slip;
-        
-        // Find past debt with same title/category
-        const prevSlip = pastDebts.find(p => p.title.trim().toLowerCase() === slip.title.trim().toLowerCase() && p.categoryId === slip.categoryId);
-        if (prevSlip && prevSlip.amount > 0) {
-          const interest = ((slip.amount / prevSlip.amount) - 1) * 100;
-          return { ...slip, interestRate: interest };
-        }
-        return { ...slip, interestRate: 0 };
-      });
-    }
 
     // ── Merge virtual apartment events ─────────────────────────────────────
     const project = await prisma.apartmentProject.findUnique({
@@ -253,7 +208,7 @@ export async function GET(request: NextRequest) {
       virtualSlips = [...mappedExpenses, ...mappedInstallments];
     }
 
-    const mergedSlips = [...slipsWithInterest, ...virtualSlips];
+    const mergedSlips = [...slips, ...virtualSlips];
     // Sort all merged slips by due date asc
     mergedSlips.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
@@ -289,9 +244,7 @@ export async function POST(request: NextRequest) {
     const amount = parseFloat(formData.get("amount") as string);
     const dueDate = new Date(formData.get("dueDate") as string);
     const status = formData.get("status") as SlipStatus; // SlipStatus enum
-    const isCreditCardPayment =
-      formData.get("isCreditCardPayment") === "true";
-    const isDebt = formData.get("isDebt") === "true";
+    const isCreditCardPayment = false;
     const isRecurring = formData.get("isRecurring") === "true";
     const isInstallment = formData.get("isInstallment") === "true";
     const installmentsCount = parseInt(formData.get("installmentsCount") as string || "1", 10);
@@ -360,7 +313,6 @@ export async function POST(request: NextRequest) {
             dueDate: d,
             status: i === 1 ? status : "PENDENTE",
             isCreditCardPayment,
-            isDebt,
             isRecurring: false,
             isInstallment: true,
             installmentNumber: i,
@@ -385,7 +337,6 @@ export async function POST(request: NextRequest) {
           dueDate,
           status,
           isCreditCardPayment,
-          isDebt,
           isRecurring,
           recurringDay: isRecurring ? dueDate.getUTCDate() : null,
           isInstallment: false,

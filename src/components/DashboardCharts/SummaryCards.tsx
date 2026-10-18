@@ -1,13 +1,12 @@
 "use client";
 
-import { Heart, Shield, Clock, Swords } from "lucide-react";
+import { Heart, Shield, Clock, Receipt } from "lucide-react";
 import { playSound } from "@/lib/sounds";
 import styles from "./SummaryCards.module.css";
 
 interface Slip {
   amount: number;
   status: string;
-  isCreditCardPayment: boolean;
 }
 
 interface Props {
@@ -43,7 +42,6 @@ export default function SummaryCards({ slips, budgetLimit, loading }: Props) {
   const totalSpent = slips.reduce((sum, s) => sum + s.amount, 0);
   const paidTotal = slips.filter((s) => s.status === "PAGO").reduce((sum, s) => sum + s.amount, 0);
   const pendingTotal = slips.filter((s) => s.status !== "PAGO").reduce((sum, s) => sum + s.amount, 0);
-  const creditTotal = slips.filter((s) => s.isCreditCardPayment).reduce((sum, s) => sum + s.amount, 0);
 
   // Remaining budget represents the user's Health Points (HP)
   const remainingBudget = Math.max(0, budgetLimit - totalSpent);
@@ -124,20 +122,18 @@ export default function SummaryCards({ slips, budgetLimit, loading }: Props) {
         </div>
       </article>
 
-      {/* Credit Card (Swords - Avoid at all costs!) */}
-      <article className={styles.card} aria-label="Gastos no cartão de crédito">
-        <div className={`${styles.iconWrap} ${styles.iconDanger}`}>
-          <Swords size={20} />
+      {/* Total Expenses (Receipt) */}
+      <article className={styles.card} aria-label="Total de despesas registradas">
+        <div className={`${styles.iconWrap} ${styles.iconBrand}`}>
+          <Receipt size={20} />
         </div>
         <div className={styles.info}>
-          <span className={styles.label}>Uso do Cartão</span>
-          <span className={`${styles.value} ${styles.valueDanger}`}>
-            {formatCurrency(creditTotal)}
+          <span className={styles.label}>Dano Total (Gasto)</span>
+          <span className={styles.value}>
+            {formatCurrency(totalSpent)}
           </span>
           <span className={styles.sub}>
-            {totalSpent > 0
-              ? `${((creditTotal / totalSpent) * 100).toFixed(0)}% do dano sofrido`
-              : "0% de dano"}
+            {slips.length} {slips.length === 1 ? "despesa no mês" : "despesas no mês"}
           </span>
         </div>
       </article>

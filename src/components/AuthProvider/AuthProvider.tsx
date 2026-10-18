@@ -277,7 +277,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     try {
       await fetch("/api/auth/tutorial", { method: "DELETE" });
     } catch { /* non-critical */ }
-    setShowTutorial(true);
+    if (typeof window !== "undefined" && window.location.pathname !== "/") {
+      window.location.href = "/";
+    } else {
+      setShowTutorial(true);
+    }
   }
 
   function toggleMode(mode: "login" | "register" | "reset") {

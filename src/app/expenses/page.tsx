@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import { Plus, ChevronLeft, ChevronRight, Receipt, ArrowLeft, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import AdicionarDespesa from "@/components/AdicionarDespesa/AdicionarDespesa";
 import SlipItem, { Slip } from "@/components/SlipList/SlipItem";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
@@ -33,8 +34,34 @@ function formatMonthLabel(monthStr: string): string {
   return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${y}`;
 }
 
-export default function ExpensesPage() {
-  const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
+function ExpensesContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const monthParam = searchParams.get("month");
+
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
+      return monthParam;
+    }
+    return getCurrentMonth();
+  });
+
+  useEffect(() => {
+    if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
+      setSelectedMonth((prev) => (prev !== monthParam ? monthParam : prev));
+    }
+  }, [monthParam]);
+
+  const handleMonthChange = (delta: number) => {
+    setSelectedMonth((prev) => {
+      const nextMonth = shiftMonth(prev, delta);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("month", nextMonth);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      return nextMonth;
+    });
+  };
   const [slips, setSlips] = useState<Slip[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -232,14 +259,16 @@ export default function ExpensesPage() {
           <div className={styles.monthSelector}>
             <button
               className={styles.monthBtn}
-              onClick={() => setSelectedMonth((m) => shiftMonth(m, -1))}
+              onClick={() => handleMonthChange(-1)}
+              aria-label="Mês anterior"
             >
               <ChevronLeft size={18} />
             </button>
             <span className={styles.monthLabel}>{formatMonthLabel(selectedMonth)}</span>
             <button
               className={styles.monthBtn}
-              onClick={() => setSelectedMonth((m) => shiftMonth(m, 1))}
+              onClick={() => handleMonthChange(1)}
+              aria-label="Próximo mês"
             >
               <ChevronRight size={18} />
             </button>
@@ -377,5 +406,23 @@ export default function ExpensesPage() {
 
       <Celebration toasts={toasts} onDismiss={dismissToast} />
     </div>
+  );
+}
+
+export default function ExpensesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className={styles.container}>
+          <div className={styles.skeletonList}>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className={styles.skeletonItem} />
+            ))}
+          </div>
+        </div>
+      }
+    >
+      <ExpensesContent />
+    </Suspense>
   );
 }

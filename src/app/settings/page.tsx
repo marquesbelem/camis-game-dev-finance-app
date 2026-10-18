@@ -5,7 +5,6 @@ import {
   Sliders,
   DollarSign,
   Calendar,
-  CreditCard,
   HeartHandshake,
   Percent,
   Tag,
@@ -50,7 +49,6 @@ export default function SettingsPage() {
   // General Stats / Budget parameters
   const [scheduledSalaryAmount, setScheduledSalaryAmount] = useState<string>("3000");
   const [salaryPaymentDay, setSalaryPaymentDay] = useState<string>("5");
-  const [totalCreditLimit, setTotalCreditLimit] = useState<string>("1000");
   const [leisureBudget, setLeisureBudget] = useState<string>("300");
   const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState<string>("50");
 
@@ -77,7 +75,6 @@ export default function SettingsPage() {
           const stats = await statsRes.json();
           setScheduledSalaryAmount(String(stats.scheduledSalaryAmount ?? 3000));
           setSalaryPaymentDay(String(stats.salaryPaymentDay ?? 5));
-          setTotalCreditLimit(String(stats.totalCreditLimit ?? 1000));
           setLeisureBudget(String(stats.leisureBudget ?? 300));
           setMonthlyBudgetLimit(String(stats.monthlyBudgetLimit ?? 50));
         }
@@ -148,7 +145,6 @@ export default function SettingsPage() {
     try {
       const defaultSalary = 3000;
       const defaultDay = 5;
-      const defaultCredit = 1000;
       const defaultMonthly = 50;
       const defaultLeisure = 0;
 
@@ -156,7 +152,6 @@ export default function SettingsPage() {
       const statsPayload = {
         scheduledSalaryAmount: defaultSalary,
         salaryPaymentDay: defaultDay,
-        totalCreditLimit: defaultCredit,
         leisureBudget: defaultLeisure,
         monthlyBudgetLimit: defaultMonthly,
       };
@@ -186,7 +181,6 @@ export default function SettingsPage() {
       // Update local state
       setScheduledSalaryAmount("3000");
       setSalaryPaymentDay("5");
-      setTotalCreditLimit("1000");
       setLeisureBudget("0");
       setMonthlyBudgetLimit("50");
 
@@ -223,14 +217,12 @@ export default function SettingsPage() {
       // 1. Save general stats & leisure budget (using PUT or PATCH)
       const pSalary = parseFloat(scheduledSalaryAmount.replace(",", "."));
       const pDay = parseInt(salaryPaymentDay, 10);
-      const pCredit = parseFloat(totalCreditLimit.replace(",", "."));
       const pLeisure = parseFloat(leisureBudget.replace(",", "."));
       const pMonthly = parseFloat(monthlyBudgetLimit.replace(",", "."));
 
       const statsPayload = {
         scheduledSalaryAmount: isNaN(pSalary) ? 3000 : pSalary,
         salaryPaymentDay: isNaN(pDay) ? 5 : pDay,
-        totalCreditLimit: isNaN(pCredit) ? 1000 : pCredit,
         leisureBudget: isNaN(pLeisure) ? 0 : pLeisure,
         monthlyBudgetLimit: isNaN(pMonthly) ? 50 : pMonthly,
       };
@@ -398,23 +390,6 @@ export default function SettingsPage() {
                 required
               />
               <span className={styles.fieldHint}>Dia do mês em que você recebe o salário.</span>
-            </div>
-
-            {/* Limite do Cartão */}
-            <div className={styles.fieldGroup}>
-              <label className={styles.label}>
-                <CreditCard size={15} /> Limite do Cartão de Crédito (R$)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                className={styles.input}
-                value={totalCreditLimit}
-                onChange={(e) => setTotalCreditLimit(e.target.value)}
-                placeholder="Ex: 1000.00"
-                required
-              />
-              <span className={styles.fieldHint}>Limite total somado de todos os seus cartões.</span>
             </div>
 
             {/* Teto HP Capivara */}

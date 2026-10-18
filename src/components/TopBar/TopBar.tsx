@@ -14,6 +14,8 @@ import {
   GraduationCap,
   Trash2,
   Sliders,
+  Dog,
+  BarChart3,
 } from "lucide-react";
 import styles from "./TopBar.module.css";
 
@@ -26,7 +28,9 @@ interface TopBarProps {
 
 const navLinks = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/charts", icon: BarChart3, label: "Gráficos" },
   { href: "/expenses", icon: Receipt, label: "Despesas" },
+  { href: "/pets", icon: Dog, label: "Pets" },
   { href: "/categories", icon: Tag, label: "Categorias" },
   { href: "/apartment", icon: Home, label: "Apartamento" },
   { href: "/settings", icon: Sliders, label: "Parâmetros" },
@@ -65,6 +69,7 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
         {/* Hamburger — right side */}
         <button
           type="button"
+          id="topbar-burger-btn"
           className={styles.burgerBtn}
           onClick={() => setIsOpen(true)}
           aria-label="Abrir menu de navegação"

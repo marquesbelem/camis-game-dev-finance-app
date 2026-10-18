@@ -112,12 +112,7 @@ export async function PUT(
       ? new Date(rawDueDate as string)
       : existing.dueDate;
     const status = (formData.get("status") as any) || existing.status;
-    const rawCredit = formData.get("isCreditCardPayment");
-    const isCreditCardPayment =
-      rawCredit !== null ? rawCredit === "true" : existing.isCreditCardPayment;
-    const rawDebt = formData.get("isDebt");
-    const isDebt =
-      rawDebt !== null ? rawDebt === "true" : (existing as any).isDebt;
+    const isCreditCardPayment = false;
     const rawRecurring = formData.get("isRecurring");
     const isRecurring =
       rawRecurring !== null ? rawRecurring === "true" : existing.isRecurring;
@@ -174,7 +169,6 @@ export async function PUT(
                 dueDate: d,
                 status: "PENDENTE",
                 isCreditCardPayment,
-                isDebt,
                 isRecurring: false,
                 isInstallment: true,
                 installmentNumber: i,
@@ -217,7 +211,6 @@ export async function PUT(
         dueDate,
         status,
         isCreditCardPayment,
-        isDebt,
         isRecurring,
         recurringDay: isRecurring ? dueDate.getUTCDate() : null,
         categoryId,
@@ -227,12 +220,11 @@ export async function PUT(
       include: { category: true },
     });
 
-    // Award XP if changing status to PAGO and payment method is PIX/débito
+    // Award XP if changing status to PAGO
     const isPayingNow = status === "PAGO" && existing.status !== "PAGO";
-    const isDebitOrPix = !isCreditCardPayment;
     let xpDetails = null;
 
-    if (isPayingNow && isDebitOrPix) {
+    if (isPayingNow) {
       xpDetails = await awardXp(userId, 25).catch((err) => {
         console.error("XP Error:", err);
         return null;

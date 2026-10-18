@@ -274,7 +274,7 @@ export default function Home() {
       }
     }
 
-    // Refresh slips from server so interest rate is calculated
+    // Refresh slips from server
     loadSlips(true);
   }
 
@@ -576,6 +576,7 @@ export default function Home() {
               {/* ④ Recent Expenses */}
               <RecentExpensesWidget
                 slips={slips}
+                selectedMonth={selectedMonth}
                 onStatusToggle={handleStatusToggle}
                 onEdit={openEdit}
                 onDelete={handleDelete}

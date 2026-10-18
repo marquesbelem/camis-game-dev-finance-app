@@ -7,58 +7,44 @@ import styles from "./CapyScoreGauge.module.css";
 
 interface CapyScoreGaugeProps {
   slips: Slip[];
-  totalCreditLimit: number;
-  leisureBudget: number;
+  budgetLimit?: number;
+  leisureBudget?: number;
 }
 
 export function computeCapyScore(
   slips: Slip[],
-  totalCreditLimit: number,
-  leisureBudget: number
+  budgetLimit: number = 0,
+  leisureBudget: number = 0
 ): {
   score: number;
   billsPts: number;
-  creditPts: number;
-  leisurePts: number;
+  budgetPts: number;
   statusLabel: string;
   statusColor: string;
   recommendedMood: "chilling" | "happy" | "nervous" | "party";
 } {
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  // 1. Contas em dia (+40 max)
+  // 1. Contas em dia (+50 max)
   const overdueCount = slips.filter(
     (s) => s.status !== "PAGO" && s.dueDate.slice(0, 10) < todayStr
   ).length;
 
-  let billsPts = 40;
-  if (overdueCount === 1) billsPts = 20;
+  let billsPts = 50;
+  if (overdueCount === 1) billsPts = 25;
   else if (overdueCount >= 2) billsPts = 0;
 
-  // 2. Uso do cartão de crédito (+30 max)
-  const creditSpent = slips
-    .filter((s) => s.isCreditCardPayment && s.status !== "PAGO")
-    .reduce((acc, s) => acc + s.amount, 0);
-
-  const creditRatio = totalCreditLimit > 0 ? (creditSpent / totalCreditLimit) * 100 : 0;
-  let creditPts = 30;
-  if (creditRatio > 80) creditPts = 0;
-  else if (creditRatio > 50) creditPts = 10;
-  else if (creditRatio > 30) creditPts = 20;
-
-  // 3. Orçamento de lazer (+30 max)
-  const leisureSpent = slips
-    .filter((s) => !s.isCreditCardPayment) // Non-credit or general expenses
-    .reduce((acc, s) => acc + s.amount, 0);
-
-  let leisurePts = 30;
-  if (leisureBudget > 0) {
-    const leisureRatio = (leisureSpent / leisureBudget) * 100;
-    if (leisureRatio > 120) leisurePts = 0;
-    else if (leisureRatio > 100) leisurePts = 15;
+  // 2. Orçamento sob controle (+50 max)
+  const totalSpent = slips.reduce((sum, s) => sum + s.amount, 0);
+  let budgetPts = 50;
+  if (budgetLimit > 0) {
+    const ratio = (totalSpent / budgetLimit) * 100;
+    if (ratio > 100) budgetPts = 0;
+    else if (ratio > 85) budgetPts = 25;
+    else budgetPts = 50;
   }
 
-  const score = Math.min(100, Math.max(0, billsPts + creditPts + leisurePts));
+  const score = Math.min(100, Math.max(0, billsPts + budgetPts));
 
   let statusLabel = "Excelente 🌟";
   let statusColor = "#10b981";
@@ -81,8 +67,7 @@ export function computeCapyScore(
   return {
     score,
     billsPts,
-    creditPts,
-    leisurePts,
+    budgetPts,
     statusLabel,
     statusColor,
     recommendedMood,
@@ -91,11 +76,11 @@ export function computeCapyScore(
 
 export default function CapyScoreGauge({
   slips,
-  totalCreditLimit,
-  leisureBudget,
+  budgetLimit = 0,
+  leisureBudget = 0,
 }: CapyScoreGaugeProps) {
-  const { score, billsPts, creditPts, leisurePts, statusLabel, statusColor } =
-    computeCapyScore(slips, totalCreditLimit, leisureBudget);
+  const { score, billsPts, budgetPts, statusLabel, statusColor } =
+    computeCapyScore(slips, budgetLimit, leisureBudget);
 
   const radius = 36;
   const circumference = 2 * Math.PI * radius;
@@ -148,15 +133,11 @@ export default function CapyScoreGauge({
         <div className={styles.breakdown}>
           <div className={styles.breakdownItem}>
             <span className={styles.breakdownLabel}>Contas em dia</span>
-            <span className={styles.breakdownPts}>{billsPts}/40 pts</span>
+            <span className={styles.breakdownPts}>{billsPts}/50 pts</span>
           </div>
           <div className={styles.breakdownItem}>
-            <span className={styles.breakdownLabel}>Cartão sob controle</span>
-            <span className={styles.breakdownPts}>{creditPts}/30 pts</span>
-          </div>
-          <div className={styles.breakdownItem}>
-            <span className={styles.breakdownLabel}>Lazer equilibrado</span>
-            <span className={styles.breakdownPts}>{leisurePts}/30 pts</span>
+            <span className={styles.breakdownLabel}>Orçamento no limite</span>
+            <span className={styles.breakdownPts}>{budgetPts}/50 pts</span>
           </div>
         </div>
       </div>

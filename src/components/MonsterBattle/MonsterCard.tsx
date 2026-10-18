@@ -45,25 +45,15 @@ export function BattleSlash({ amount, onComplete }: BattleSlashProps) {
 
 export function MonsterBadge({
   isOverdue,
-  isCreditCard,
   isRecurring,
 }: {
   isOverdue?: boolean;
-  isCreditCard?: boolean;
   isRecurring?: boolean;
 }) {
   if (isOverdue) {
     return (
       <span className={`${styles.monsterBadge} ${styles.badgeOverdue}`} title="Monstro dos Juros">
         👹 Monstro dos Juros
-      </span>
-    );
-  }
-
-  if (isCreditCard) {
-    return (
-      <span className={`${styles.monsterBadge} ${styles.badgeCredit}`} title="Fantasma da Fatura">
-        🐲 Fantasma da Fatura
       </span>
     );
   }

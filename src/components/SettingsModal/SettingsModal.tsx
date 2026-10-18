@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Settings, X, DollarSign, Calendar, CreditCard, HeartHandshake, Percent, Trash2 } from "lucide-react";
+import { Settings, X, DollarSign, Calendar, HeartHandshake, Percent, Trash2 } from "lucide-react";
 import styles from "./SettingsModal.module.css";
 
 interface SettingsModalProps {
@@ -14,7 +14,6 @@ interface SettingsModalProps {
 
 export default function SettingsModal({ isOpen, onClose, onSaved, onDeleteAccount }: SettingsModalProps) {
   const [budgetLimit, setBudgetLimit] = useState("");
-  const [creditLimit, setCreditLimit] = useState("");
   const [salaryAmount, setSalaryAmount] = useState("");
   const [paymentDay, setPaymentDay] = useState("");
   const [leisureBudget, setLeisureBudget] = useState("");
@@ -34,7 +33,6 @@ export default function SettingsModal({ isOpen, onClose, onSaved, onDeleteAccoun
       .then((data) => {
         if (data && !data.error) {
           setBudgetLimit(data.monthlyBudgetLimit?.toString() ?? "50");
-          setCreditLimit(data.totalCreditLimit?.toString() ?? "1000");
           setSalaryAmount(data.scheduledSalaryAmount?.toString() ?? "3000");
           setPaymentDay(data.salaryPaymentDay?.toString() ?? "5");
           setLeisureBudget(data.leisureBudget?.toString() ?? "0");
@@ -57,7 +55,6 @@ export default function SettingsModal({ isOpen, onClose, onSaved, onDeleteAccoun
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           monthlyBudgetLimit: parseFloat(budgetLimit) || 50,
-          totalCreditLimit: parseFloat(creditLimit) || 1000,
           scheduledSalaryAmount: parseFloat(salaryAmount) || 3000,
           salaryPaymentDay: parseInt(paymentDay, 10) || 5,
           leisureBudget: parseFloat(leisureBudget) || 0,
@@ -126,21 +123,6 @@ export default function SettingsModal({ isOpen, onClose, onSaved, onDeleteAccoun
               onChange={(e) => setPaymentDay(e.target.value)}
               className={styles.input}
               placeholder="5"
-              required
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label}>
-              <CreditCard size={14} /> Limite do Cartão (R$)
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={creditLimit}
-              onChange={(e) => setCreditLimit(e.target.value)}
-              className={styles.input}
-              placeholder="1000.00"
               required
             />
           </div>

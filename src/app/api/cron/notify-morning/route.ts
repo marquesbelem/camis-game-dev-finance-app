@@ -31,6 +31,12 @@ export async function GET(request: NextRequest) {
             installments: true,
           },
         },
+        pets: {
+          include: {
+            vaccines: true,
+            appointments: true,
+          },
+        },
       },
     });
 
@@ -67,8 +73,28 @@ export async function GET(request: NextRequest) {
       const todayItems = allPending.filter(i => i.date.toISOString().slice(0, 10) === todayStr);
       const tomorrowItems = allPending.filter(i => i.date.toISOString().slice(0, 10) === tomorrowStr);
 
+      // 3. Pet alerts (vaccine booster near/today & daycare today)
+      const petAlerts: string[] = [];
+      for (const pet of (user.pets || [])) {
+        for (const vac of (pet.vaccines || [])) {
+          if (!vac.boosterDate) continue;
+          const bStr = vac.boosterDate.toISOString().slice(0, 10);
+          if (bStr === todayStr) {
+            petAlerts.push(`💉 Reforço de ${vac.name} de ${pet.name} hoje`);
+          } else if (bStr === tomorrowStr) {
+            petAlerts.push(`💉 Reforço de ${vac.name} de ${pet.name} amanhã`);
+          }
+        }
+        for (const app of (pet.appointments || [])) {
+          const aStr = app.date.toISOString().slice(0, 10);
+          if (aStr === todayStr && app.status === "PENDENTE") {
+            petAlerts.push(`🐾 Hoje é dia de ${app.title} de ${pet.name}`);
+          }
+        }
+      }
+
       const totalItemsCount = overdueItems.length + todayItems.length + tomorrowItems.length;
-      if (totalItemsCount === 0) continue;
+      if (totalItemsCount === 0 && petAlerts.length === 0) continue;
 
       const formatCurrency = (val: number) => val.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
       const formatDateBR = (d: Date) => {
@@ -79,7 +105,10 @@ export async function GET(request: NextRequest) {
       let title = "Lembrete Financeiro 📊";
       let body = "";
 
-      if (totalItemsCount === 1) {
+      if (totalItemsCount === 0 && petAlerts.length > 0) {
+        title = "Lembrete do Pet 🐾";
+        body = petAlerts.join(". ") + "!";
+      } else if (totalItemsCount === 1) {
         if (overdueItems.length === 1) {
           title = "Conta Atrasada! 🚨";
           body = `A despesa "${overdueItems[0].name}" de ${formatCurrency(overdueItems[0].amount)} venceu em ${formatDateBR(overdueItems[0].date)}. Pague para evitar juros!`;
@@ -89,6 +118,9 @@ export async function GET(request: NextRequest) {
         } else {
           title = "Vencimento Amanhã 📅";
           body = `A despesa "${tomorrowItems[0].name}" de ${formatCurrency(tomorrowItems[0].amount)} vence amanhã.`;
+        }
+        if (petAlerts.length > 0) {
+          body += ` • ${petAlerts.join(". ")}!`;
         }
       } else {
         const parts = [];
@@ -105,6 +137,9 @@ export async function GET(request: NextRequest) {
         const hasMore = allItems.length > 3 ? ` e mais ${allItems.length - 3}` : '';
 
         body = `Você tem pendências (${parts.join(', ')}): ${itemNames}${hasMore}. Abra o app para organizar suas finanças!`;
+        if (petAlerts.length > 0) {
+          body += ` • ${petAlerts.join(". ")}!`;
+        }
       }
 
       // Dispatch multicast message

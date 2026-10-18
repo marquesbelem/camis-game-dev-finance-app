@@ -11,6 +11,7 @@ interface RecentExpensesWidgetProps {
   onStatusToggle: (slip: Slip) => void;
   onEdit: (slip: Slip) => void;
   onDelete: (id: string, deleteFuture?: boolean) => void;
+  selectedMonth?: string;
 }
 
 export default function RecentExpensesWidget({
@@ -18,6 +19,7 @@ export default function RecentExpensesWidget({
   onStatusToggle,
   onEdit,
   onDelete,
+  selectedMonth,
 }: RecentExpensesWidgetProps) {
   // Sort pending / due soon slips first and take top 3
   const pendingSlips = slips.filter((s) => s.status !== "PAGO");
@@ -60,7 +62,10 @@ export default function RecentExpensesWidget({
         </ul>
       )}
 
-      <Link href="/expenses" className={styles.actionBtn}>
+      <Link
+        href={selectedMonth ? `/expenses?month=${selectedMonth}` : "/expenses"}
+        className={styles.actionBtn}
+      >
         <Receipt size={16} />
         <span>Ver Todas as Despesas ({slips.length})</span>
         <ArrowRight size={14} />

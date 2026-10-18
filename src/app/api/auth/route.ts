@@ -76,35 +76,35 @@ export async function POST(request: NextRequest) {
 
         // Clone/Seed default achievements for the new user (9 chained achievements)
         const defaultAchievements = [
-          // CARD_THRESHOLD
+          // BUDGET_CONTROL
           {
-            title: "Cartão sob Controle",
-            description: "Mantenha o gasto no cartão de crédito abaixo de 40% do limite mensal.",
-            type: "CARD_THRESHOLD",
-            conditionValue: 40.0,
+            title: "Orçamento sob Controle",
+            description: "Mantenha as despesas do mês abaixo de 90% do orçamento.",
+            type: "BUDGET_CONTROL",
+            conditionValue: 90.0,
             level: 1,
             userId: newUser.id,
           },
           {
-            title: "Uso Consciente",
-            description: "Mantenha o gasto no cartão de crédito abaixo de 20% do limite mensal.",
-            type: "CARD_THRESHOLD",
-            conditionValue: 20.0,
+            title: "Muralha Financeira",
+            description: "Mantenha as despesas do mês abaixo de 75% do orçamento.",
+            type: "BUDGET_CONTROL",
+            conditionValue: 75.0,
             level: 2,
             userId: newUser.id,
           },
           {
-            title: "Cartão Zero",
-            description: "Evite totalmente o uso do cartão de crédito no mês (0% do limite).",
-            type: "CARD_THRESHOLD",
-            conditionValue: 0.0,
+            title: "Cofre Inviolável",
+            description: "Mantenha as despesas do mês abaixo de 50% do orçamento.",
+            type: "BUDGET_CONTROL",
+            conditionValue: 50.0,
             level: 3,
             userId: newUser.id,
           },
           // STREAK
           {
             title: "Foco Inicial",
-            description: "Fique 3 dias seguidos sem usar o cartão de crédito.",
+            description: "Mantenha uma chama de consistência por 3 dias seguidos.",
             type: "STREAK",
             conditionValue: 3.0,
             level: 1,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
           },
           {
             title: "Hábito Saudável",
-            description: "Fique 7 dias seguidos sem usar o cartão de crédito.",
+            description: "Mantenha uma chama de consistência por 7 dias seguidos.",
             type: "STREAK",
             conditionValue: 7.0,
             level: 2,
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
           },
           {
             title: "Mestre do Débito",
-            description: "Fique 30 dias seguidos sem usar o cartão de crédito.",
+            description: "Mantenha uma chama de consistência por 30 dias seguidos.",
             type: "STREAK",
             conditionValue: 30.0,
             level: 3,

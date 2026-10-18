@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, DollarSign, Tag, CreditCard, Calendar, AlertCircle } from "lucide-react";
+import { X, DollarSign, Tag, Calendar, AlertCircle } from "lucide-react";
 import styles from "./RecurringEditModal.module.css";
 
 interface Category {
@@ -18,7 +18,7 @@ interface RecurringSlip {
   amount: number;
   dueDate: string;
   recurringDay?: number | null;
-  isCreditCardPayment: boolean;
+  isCreditCardPayment?: boolean;
   categoryId: string;
   category: Category;
 }
@@ -36,7 +36,6 @@ export default function RecurringEditModal({ isOpen, onClose, onSave, slip }: Pr
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [recurringDay, setRecurringDay] = useState(1);
-  const [isCreditCardPayment, setIsCreditCardPayment] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -67,7 +66,6 @@ export default function RecurringEditModal({ isOpen, onClose, onSave, slip }: Pr
         setTitle(slip.title);
         setAmount(slip.amount.toString());
         setCategoryId(slip.categoryId);
-        setIsCreditCardPayment(slip.isCreditCardPayment);
         const defaultDay = slip.recurringDay ?? (slip.dueDate ? parseInt(slip.dueDate.slice(8, 10), 10) : 1);
         setRecurringDay(defaultDay);
       }, 0);
@@ -114,7 +112,6 @@ export default function RecurringEditModal({ isOpen, onClose, onSave, slip }: Pr
           title: title.trim(),
           amount: parsedAmount,
           categoryId,
-          isCreditCardPayment,
           recurringDay,
         }),
       });
@@ -259,29 +256,6 @@ export default function RecurringEditModal({ isOpen, onClose, onSave, slip }: Pr
                 </option>
               ))}
             </select>
-          </div>
-
-          {/* Credit card Toggle */}
-          <div
-            className={`${styles.toggleRow} ${isCreditCardPayment ? styles.toggleRowActive : ""}`}
-            onClick={() => !loading && setIsCreditCardPayment(!isCreditCardPayment)}
-            role="checkbox"
-            aria-checked={isCreditCardPayment}
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === " " || e.key === "Enter") {
-                e.preventDefault();
-                if (!loading) setIsCreditCardPayment(!isCreditCardPayment);
-              }
-            }}
-          >
-            <div className={styles.toggleInfo}>
-              <CreditCard size={16} />
-              <span>Pagar com Cartão de Crédito</span>
-            </div>
-            <div className={`${styles.toggle} ${isCreditCardPayment ? styles.toggleOn : ""}`}>
-              <div className={styles.toggleThumb} />
-            </div>
           </div>
 
           {/* Actions */}

@@ -8,7 +8,7 @@ interface Slip {
   title: string;
   amount: number;
   status: string;
-  isCreditCardPayment: boolean;
+  isCreditCardPayment?: boolean;
   category: { id: string; name: string; colorCode: string };
 }
 
@@ -30,7 +30,7 @@ function getCategoryIcon(name: string): string {
   if (n.includes("transport") || n.includes("carro") || n.includes("gasolina")) return "⚔️";
   if (n.includes("educaç") || n.includes("educac") || n.includes("curso")) return "📚";
   if (n.includes("cartão") || n.includes("cartao") || n.includes("crédito")) return "💳";
-  if (n.includes("emprést") || n.includes("emprest") || n.includes("dívida")) return "💀";
+  if (n.includes("emprést") || n.includes("emprest")) return "💀";
   if (n.includes("invest") || n.includes("poupanç")) return "🛡️";
   return "⚔️";
 }

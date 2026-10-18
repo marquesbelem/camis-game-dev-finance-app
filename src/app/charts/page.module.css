@@ -1,0 +1,966 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Capivara Poupadora – Analytics / Charts Page Styles
+   Design tokens integrated with globals.css
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.container {
+  min-height: 100vh;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  padding: 1rem 1rem 8rem 1rem;
+  padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 2rem 2rem 8rem 2rem;
+  }
+}
+
+/* ── Top Header Bar ───────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (min-width: 768px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  width: 100%;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.backBtn:hover {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+  transform: translateX(-2px);
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.titleIcon {
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  letter-spacing: var(--tracking-tight);
+}
+
+@media (min-width: 768px) {
+  .title {
+    font-size: var(--text-2xl);
+  }
+}
+
+.subtitle {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+  white-space: normal;
+  line-height: var(--leading-normal);
+}
+
+@media (min-width: 768px) {
+  .subtitle {
+    font-size: var(--text-sm);
+  }
+}
+
+/* ── Year Navigation (Exact Dashboard MonthNav Pattern) ───────────────────── */
+.headerControls {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .headerControls {
+    width: auto;
+  }
+}
+
+.yearNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  justify-content: space-between;
+}
+
+@media (min-width: 768px) {
+  .yearNav {
+    width: auto;
+    justify-content: flex-start;
+  }
+}
+
+.yearBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.yearBtn:hover:not(:disabled) {
+  background: var(--color-bg-overlay);
+  color: var(--color-text-primary);
+}
+
+.yearBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.yearLabel {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  padding: 0 var(--space-3);
+  text-align: center;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .yearLabel {
+    flex: none;
+    min-width: 90px;
+    font-size: var(--text-base);
+  }
+}
+
+/* ── KPI Summary Cards ────────────────────────────────────────────────────── */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (min-width: 900px) {
+  .kpiGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+.kpiCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.kpiCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+}
+
+.kpiCard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--kpi-accent, var(--color-brand));
+  opacity: 0.8;
+}
+
+.kpiCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.625rem;
+}
+
+.kpiLabel {
+  font-size: 0.7rem;
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+}
+
+.kpiIconWrapper {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--kpi-bg, rgba(124, 92, 252, 0.15));
+  color: var(--kpi-accent, var(--color-brand));
+}
+
+.kpiValue {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+  letter-spacing: var(--tracking-tight);
+}
+
+@media (min-width: 1024px) {
+  .kpiValue {
+    font-size: var(--text-2xl);
+  }
+}
+
+.kpiSubtext {
+  font-size: 0.72rem;
+  color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.kpiBadgeSuccess {
+  color: var(--color-success);
+  font-weight: var(--font-semibold);
+}
+
+.kpiBadgeDanger {
+  color: var(--color-danger);
+  font-weight: var(--font-semibold);
+}
+
+/* ── Tab Switcher / View Controls (Responsive & Mobile-first) ─────────────── */
+.viewControlsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .viewControlsRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.tabPills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 0.25rem;
+  gap: 0.25rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .tabPills {
+    display: inline-flex;
+    width: auto;
+  }
+}
+
+.tabBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  padding: 0.5rem 0.35rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .tabBtn {
+    font-size: var(--text-sm);
+    padding: 0.5rem 1.125rem;
+  }
+}
+
+.tabBtnActive {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font-weight: var(--font-semibold);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-border-brand);
+}
+
+.tabLabelFull {
+  display: none;
+}
+
+.tabLabelShort {
+  display: inline;
+}
+
+@media (min-width: 768px) {
+  .tabLabelFull {
+    display: inline;
+  }
+  .tabLabelShort {
+    display: none;
+  }
+}
+
+.legendBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .legendBar {
+    justify-content: flex-end;
+  }
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ── Main Chart Section ───────────────────────────────────────────────────── */
+.chartCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 768px) {
+  .chartCard {
+    padding: 1.5rem;
+  }
+}
+
+.chartCardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.chartTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .chartTitle {
+    font-size: var(--text-lg);
+  }
+}
+
+.chartSubtitle {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+.chartContainer {
+  width: 100%;
+  height: 320px;
+}
+
+@media (min-width: 768px) {
+  .chartContainer {
+    height: 380px;
+  }
+}
+
+/* Custom Tooltip */
+.customTooltip {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.875rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-body);
+}
+
+.tooltipTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 0.4rem 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.3rem;
+}
+
+.tooltipRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  font-size: var(--text-xs);
+  margin: 0.25rem 0;
+}
+
+.tooltipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 0.35rem;
+}
+
+.tooltipValue {
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+/* ── Secondary Section: Category Distribution & Monthly Details ─────────── */
+.bottomGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 960px) {
+  .bottomGrid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.sideCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .sideCard {
+    padding: 1.5rem;
+  }
+}
+
+.sideCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sideCardTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.subPills {
+  display: inline-flex;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 2px;
+  gap: 2px;
+}
+
+.subPillBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+  font-weight: var(--font-semibold);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.subPillBtnActive {
+  background: var(--color-brand);
+  color: #fff;
+}
+
+.donutWrapper {
+  width: 100%;
+  height: 230px;
+  margin-bottom: 1rem;
+}
+
+/* Category List — No scroll trap, natural expansion */
+.categoryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.categoryItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.75rem;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  transition: background 0.15s ease;
+}
+
+.categoryItem:hover {
+  background: var(--color-bg-overlay);
+}
+
+.catLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.catIndicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.catName {
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}
+
+.catRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.catPct {
+  color: var(--color-text-tertiary);
+  font-size: 0.75rem;
+}
+
+.catVal {
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+/* ── Month Selector Carousel / Pills ─────────────────────────────────────── */
+.monthSelectorScroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.monthPill {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.5rem 0.875rem;
+  font-size: var(--text-xs);
+  font-family: var(--font-body);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  transition: all 0.2s ease;
+}
+
+.monthPill:hover {
+  background: var(--color-bg-overlay);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.monthPillActive {
+  background: var(--gradient-brand);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px var(--color-brand-glow);
+}
+
+.pillDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* ── Month Drilldown Details ─────────────────────────────────────────────── */
+.drilldownContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.drilldownHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.drilldownMonthName {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.drilldownBadge {
+  font-size: var(--text-xs);
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-semibold);
+}
+
+.badgeSurplus {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-dim);
+}
+
+.badgeDeficit {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-dim);
+}
+
+.metricRows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.metricRowItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.metricRowLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.metricRowTitle {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+}
+
+.metricRowSub {
+  font-size: 0.7rem;
+  color: var(--color-text-tertiary);
+}
+
+.metricRowValue {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+.capyInsightBox {
+  background: linear-gradient(135deg, rgba(124, 92, 252, 0.12), rgba(34, 197, 94, 0.08));
+  border: 1px solid var(--color-border-brand);
+  border-radius: var(--radius-lg);
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.capyEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.capyInsightTitle {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-brand);
+  margin: 0 0 0.2rem 0;
+}
+
+.capyInsightText {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+/* ── Month Slips / Expenses Breakdown List ────────────────────────────────── */
+.slipsBreakdownSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.875rem;
+}
+
+.slipsBreakdownHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.slipsBreakdownTitle {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+}
+
+.manageExpensesLink {
+  font-size: 0.72rem;
+  color: var(--color-brand);
+  text-decoration: none;
+  font-weight: var(--font-semibold);
+  transition: opacity 0.15s ease;
+}
+
+.manageExpensesLink:hover {
+  text-decoration: underline;
+}
+
+.slipsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.slipItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.75rem;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  transition: all 0.15s ease;
+}
+
+.slipLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.slipCategoryPill {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.slipTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.slipTitle {
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+@media (min-width: 480px) {
+  .slipTitle {
+    max-width: 220px;
+  }
+}
+
+.slipDate {
+  font-size: 0.68rem;
+  color: var(--color-text-tertiary);
+}
+
+.slipRight {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.slipStatusBadge {
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-semibold);
+}
+
+.slipStatusPaid {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.slipStatusPending {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+}
+
+.slipAmount {
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+}
+
+/* ── Loading Skeleton ─────────────────────────────────────────────────────── */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.loadingSpinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

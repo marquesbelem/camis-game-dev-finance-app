@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Edit, Trash2, Calendar, CreditCard, AlertCircle } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Calendar, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import RecurringEditModal from "@/components/RecurringEditModal/RecurringEditModal";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
@@ -20,7 +20,7 @@ interface RecurringSlip {
   amount: number;
   dueDate: string;
   recurringDay?: number | null;
-  isCreditCardPayment: boolean;
+  isCreditCardPayment?: boolean;
   categoryId: string;
   category: Category;
 }
@@ -195,12 +195,6 @@ export default function RecurringPage() {
                             <Calendar size={13} className={styles.metaIcon} />
                             Dia {day} de cada mês
                           </span>
-                          {slip.isCreditCardPayment && (
-                            <span className={styles.creditBadge} title="Cartão de Crédito">
-                              <CreditCard size={12} className={styles.metaIcon} />
-                              Cartão
-                            </span>
-                          )}
                         </div>
                       </div>
 

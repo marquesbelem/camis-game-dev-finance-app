@@ -30,7 +30,7 @@ interface Achievement {
 
 interface UserStats {
   monthlyBudgetLimit: number;
-  totalCreditLimit: number;
+  totalCreditLimit?: number;
   currentStreakDays: number;
   level: number;
   xp: number;
@@ -46,7 +46,7 @@ interface Props {
 }
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
-  CARD_THRESHOLD: <TrendingDown size={18} />,
+  BUDGET_CONTROL: <TrendingDown size={18} />,
   SAVINGS: <Star size={18} />,
   STREAK: <Zap size={18} />,
   MONSTER_HUNTER: <Swords size={18} />,
@@ -55,7 +55,7 @@ const TYPE_ICONS: Record<string, React.ReactNode> = {
 };
 
 const TRAIL_LABELS: Record<string, string> = {
-  CARD_THRESHOLD: "💳 Trilha Redução de Cartão",
+  BUDGET_CONTROL: "🛡️ Trilha Orçamento Blindado",
   STREAK: "🔥 Trilha Consistência Diária",
   SAVINGS: "📈 Trilha Margem de Lucro",
   MONSTER_HUNTER: "⚔️ Trilha Caçador de Monstros",
@@ -72,7 +72,6 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
 
   // Settings form state
   const [budgetLimit, setBudgetLimit] = useState("");
-  const [creditLimit, setCreditLimit] = useState("");
   const [salaryAmount, setSalaryAmount] = useState("");
   const [paymentDay, setPaymentDay] = useState("");
   const [leisureBudget, setLeisureBudget] = useState("");
@@ -93,7 +92,6 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
 
     if (statsData && !statsData.error) {
       setBudgetLimit(statsData.monthlyBudgetLimit?.toString() ?? "50");
-      setCreditLimit(statsData.totalCreditLimit?.toString() ?? "1000");
       setSalaryAmount(statsData.scheduledSalaryAmount?.toString() ?? "3000");
       setPaymentDay(statsData.salaryPaymentDay?.toString() ?? "5");
       setLeisureBudget(statsData.leisureBudget?.toString() ?? "0");
@@ -125,7 +123,6 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           monthlyBudgetLimit: parseFloat(budgetLimit) || 50,
-          totalCreditLimit: parseFloat(creditLimit) || 1000,
           scheduledSalaryAmount: parseFloat(salaryAmount) || 3000,
           salaryPaymentDay: parseInt(paymentDay) || 5,
           leisureBudget: parseFloat(leisureBudget) || 0,
@@ -147,7 +144,7 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
   const filteredTrails = allTrailTypes.filter((t) => {
     if (activeFilter === "ALL") return true;
     if (activeFilter === "RPG" && (t === "MONSTER_HUNTER" || t === "APARTMENT_PROGRESS" || t === "CAPY_SCORE")) return true;
-    if (activeFilter === "FINANCE" && (t === "CARD_THRESHOLD" || t === "STREAK" || t === "SAVINGS")) return true;
+    if (activeFilter === "FINANCE" && (t === "BUDGET_CONTROL" || t === "STREAK" || t === "SAVINGS")) return true;
     return false;
   });
 
@@ -198,7 +195,7 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
           className={`${styles.filterBtn} ${activeFilter === "FINANCE" ? styles.filterBtnActive : ""}`}
           onClick={() => setActiveFilter("FINANCE")}
         >
-          💳 Cartão & Margem
+          💰 Orçamento & Margem
         </button>
       </div>
 
