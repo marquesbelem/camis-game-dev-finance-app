@@ -40,6 +40,7 @@ export default function VaccineModal({
   const [type, setType] = useState("VACINA");
   const [applicationDate, setApplicationDate] = useState("");
   const [boosterDate, setBoosterDate] = useState("");
+  const [boosterDone, setBoosterDone] = useState(false);
   const [isExpense, setIsExpense] = useState(false);
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
@@ -52,6 +53,7 @@ export default function VaccineModal({
       setType(editingVaccine.type);
       setApplicationDate(editingVaccine.applicationDate.slice(0, 10));
       setBoosterDate(editingVaccine.boosterDate ? editingVaccine.boosterDate.slice(0, 10) : "");
+      setBoosterDone(Boolean(editingVaccine.boosterDone));
       setIsExpense(editingVaccine.isExpense);
       setAmount(editingVaccine.amount !== null ? String(editingVaccine.amount) : "");
       setNotes(editingVaccine.notes || "");
@@ -61,6 +63,7 @@ export default function VaccineModal({
       setType("VACINA");
       setApplicationDate(today);
       setBoosterDate("");
+      setBoosterDone(false);
       setIsExpense(false);
       setAmount("");
       setNotes("");
@@ -106,6 +109,7 @@ export default function VaccineModal({
           type,
           applicationDate,
           boosterDate: boosterDate || null,
+          boosterDone: Boolean(boosterDone),
           isExpense,
           amount: isExpense && amount ? parseFloat(amount.replace(",", ".")) : null,
           notes: notes.trim() || null,
@@ -234,6 +238,17 @@ export default function VaccineModal({
               <Bell size={13} />
               Você receberá notificação push e alertas no app quando o reforço estiver perto!
             </span>
+            {boosterDate && (
+              <label className={styles.checkboxLabel} style={{ marginTop: "0.5rem", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  className={styles.checkboxInput}
+                  checked={boosterDone}
+                  onChange={(e) => setBoosterDone(e.target.checked)}
+                />
+                <span>Marcar que este reforço já foi realizado</span>
+              </label>
+            )}
           </div>
 
           {/* Expense Section */}

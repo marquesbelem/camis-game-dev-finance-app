@@ -39,6 +39,7 @@ export interface PetVaccine {
   type: string;
   applicationDate: string;
   boosterDate: string | null;
+  boosterDone?: boolean;
   notes: string | null;
   isExpense: boolean;
   amount: number | null;

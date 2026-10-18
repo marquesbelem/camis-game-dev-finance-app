@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
       const petAlerts: string[] = [];
       for (const pet of (user.pets || [])) {
         for (const vac of (pet.vaccines || [])) {
-          if (!vac.boosterDate) continue;
+          if (!vac.boosterDate || vac.boosterDone) continue;
           const bStr = vac.boosterDate.toISOString().slice(0, 10);
           if (bStr === todayStr) {
             petAlerts.push(`💉 Reforço de ${vac.name} de ${pet.name} hoje`);

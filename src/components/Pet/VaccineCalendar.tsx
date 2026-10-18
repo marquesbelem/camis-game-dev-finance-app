@@ -21,6 +21,7 @@ interface VaccineCalendarProps {
   onAdd: () => void;
   onEdit: (vaccine: PetVaccine) => void;
   onDelete: (vaccineId: string, vaccineName: string) => void;
+  onToggleBooster?: (vaccineId: string, currentStatus: boolean) => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -39,6 +40,7 @@ export default function VaccineCalendar({
   onAdd,
   onEdit,
   onDelete,
+  onToggleBooster,
 }: VaccineCalendarProps) {
   const [filter, setFilter] = useState<"ALL" | "VACINA" | "VERMIFUGO" | "UPCOMING">("ALL");
 
@@ -52,7 +54,7 @@ export default function VaccineCalendar({
       if (filter === "VACINA") return vac.type === "VACINA";
       if (filter === "VERMIFUGO") return vac.type === "VERMIFUGO";
       if (filter === "UPCOMING") {
-        if (!vac.boosterDate) return false;
+        if (!vac.boosterDate || vac.boosterDone) return false;
         const bStr = vac.boosterDate.slice(0, 10);
         return bStr >= todaySPStr;
       }
@@ -60,12 +62,22 @@ export default function VaccineCalendar({
     });
   }, [vaccines, filter, todaySPStr]);
 
-  function getBoosterInfo(boosterDateStr: string | null) {
+  function getBoosterInfo(boosterDateStr: string | null, boosterDone?: boolean) {
     if (!boosterDateStr) {
       return {
         badgeClass: styles.boosterNone,
         icon: CheckCircle2,
         text: "Dose única / Sem reforço",
+        isDone: false,
+      };
+    }
+
+    if (boosterDone) {
+      return {
+        badgeClass: styles.boosterDone,
+        icon: CheckCircle2,
+        text: `Reforço Realizado (${formatDate(boosterDateStr)})`,
+        isDone: true,
       };
     }
 
@@ -80,6 +92,7 @@ export default function VaccineCalendar({
         badgeClass: styles.boosterOverdue,
         icon: AlertTriangle,
         text: `Reforço atrasado (${formatDate(boosterDateStr)})`,
+        isDone: false,
       };
     }
 
@@ -88,6 +101,7 @@ export default function VaccineCalendar({
         badgeClass: styles.boosterSoon,
         icon: AlertTriangle,
         text: "Reforço vence hoje! 💉",
+        isDone: false,
       };
     }
 
@@ -96,6 +110,7 @@ export default function VaccineCalendar({
         badgeClass: styles.boosterSoon,
         icon: Clock,
         text: `Reforço em ${diffDays} dia${diffDays > 1 ? "s" : ""} (${formatDate(boosterDateStr)})`,
+        isDone: false,
       };
     }
 
@@ -103,6 +118,7 @@ export default function VaccineCalendar({
       badgeClass: styles.boosterGood,
       icon: Calendar,
       text: `Reforço em ${formatDate(boosterDateStr)}`,
+      isDone: false,
     };
   }
 
@@ -180,7 +196,7 @@ export default function VaccineCalendar({
       ) : (
         <ul className={styles.list}>
           {filteredVaccines.map((vac) => {
-            const boosterInfo = getBoosterInfo(vac.boosterDate);
+            const boosterInfo = getBoosterInfo(vac.boosterDate, vac.boosterDone);
             const BoosterIcon = boosterInfo.icon;
 
             const typeClass =
@@ -233,10 +249,34 @@ export default function VaccineCalendar({
                     <span>Aplicada em: <strong>{formatDate(vac.applicationDate)}</strong></span>
                   </div>
 
-                  <div className={`${styles.boosterBadge} ${boosterInfo.badgeClass}`}>
-                    <BoosterIcon size={13} />
-                    <span>{boosterInfo.text}</span>
-                  </div>
+                  {vac.boosterDate ? (
+                    <button
+                      type="button"
+                      className={`${styles.boosterToggler} ${boosterInfo.badgeClass}`}
+                      onClick={() => onToggleBooster && onToggleBooster(vac.id, !!vac.boosterDone)}
+                      title={
+                        vac.boosterDone
+                          ? "Reforço marcado como feito. Clique para desmarcar se necessário."
+                          : "Clique para marcar que o reforço foi realizado!"
+                      }
+                      aria-label={
+                        vac.boosterDone
+                          ? `Reforço de ${vac.name} realizado. Clique para desmarcar.`
+                          : `Marcar reforço de ${vac.name} como feito`
+                      }
+                    >
+                      <BoosterIcon size={13} />
+                      <span>{boosterInfo.text}</span>
+                      <span className={styles.boosterActionBadge}>
+                        {vac.boosterDone ? "✓ Feito" : "Marcar Feito"}
+                      </span>
+                    </button>
+                  ) : (
+                    <div className={`${styles.boosterBadge} ${boosterInfo.badgeClass}`}>
+                      <BoosterIcon size={13} />
+                      <span>{boosterInfo.text}</span>
+                    </div>
+                  )}
                 </div>
 
                 {vac.isExpense && vac.amount && (

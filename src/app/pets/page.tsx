@@ -242,6 +242,51 @@ export default function PetDashboardPage() {
     }
   }
 
+  async function handleToggleVaccineBooster(vaccineId: string, currentStatus: boolean) {
+    if (!activePet) return;
+    const nextStatus = !currentStatus;
+
+    // Optimistic update
+    setPets((prev) =>
+      prev.map((pet) => {
+        if (pet.id !== activePet.id) return pet;
+        return {
+          ...pet,
+          vaccines: (pet.vaccines || []).map((vac) =>
+            vac.id === vaccineId ? { ...vac, boosterDone: nextStatus } : vac
+          ),
+        };
+      })
+    );
+
+    try {
+      const res = await fetch(
+        `/api/pets/${activePet.id}/vaccines/${vaccineId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ boosterDone: nextStatus }),
+        }
+      );
+
+      if (res.ok) {
+        addToast({
+          title: nextStatus ? "Reforço realizado! 💉" : "Reforço desmarcado",
+          message: nextStatus
+            ? "O reforço da vacina foi registrado como feito."
+            : "O reforço voltou para o status pendente.",
+          type: nextStatus ? "success" : "info",
+        });
+        await loadAlerts();
+      } else {
+        await loadPets(true);
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar status do reforço da vacina:", err);
+      await loadPets(true);
+    }
+  }
+
   return (
     <div className={styles.container}>
       {/* Top Header */}
@@ -313,6 +358,7 @@ export default function PetDashboardPage() {
               onAdd={handleOpenAddVaccine}
               onEdit={handleOpenEditVaccine}
               onDelete={handleDeleteVaccine}
+              onToggleBooster={handleToggleVaccineBooster}
             />
 
             {/* Appointments / Daycare */}

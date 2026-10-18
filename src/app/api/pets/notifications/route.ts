@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
         vaccines: {
           where: {
             boosterDate: { not: null },
+            boosterDone: false,
           },
         },
         appointments: true,
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
     for (const pet of pets) {
       // Check vaccines
       for (const vaccine of pet.vaccines) {
-        if (!vaccine.boosterDate) continue;
+        if (!vaccine.boosterDate || vaccine.boosterDone) continue;
         const boosterDate = new Date(vaccine.boosterDate);
         const boosterStr = boosterDate.toISOString().slice(0, 10);
 
