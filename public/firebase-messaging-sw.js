@@ -22,12 +22,13 @@ if (firebaseConfig.messagingSenderId) {
   messaging.onBackgroundMessage((payload) => {
     console.log('[firebase-messaging-sw.js] Received background message: ', payload);
     
-    const notificationTitle = payload.notification?.title || 'Capivara Poupadora';
+    const notificationTitle = payload.notification?.title || 'LootFinance';
     const notificationOptions = {
       body: payload.notification?.body || '',
       icon: '/icon.png',
       badge: '/icon.png',
-      tag: 'capivara-notification',
+      tag: payload.data?.tag || 'capivara-notification',
+      data: payload.data || {},
       renotify: true
     };
 

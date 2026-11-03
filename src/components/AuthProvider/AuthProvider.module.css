@@ -6,7 +6,7 @@
   justify-content: center;
   min-height: 100dvh;
   width: 100%;
-  background: radial-gradient(circle at top, #1e1b4b 0%, #0d0f1a 70%);
+  background: radial-gradient(circle at top, #1e1b4b 0%, #12082e 70%);
   padding: var(--space-4);
   font-family: var(--font-body);
 }
@@ -19,7 +19,7 @@
   background: rgba(30, 41, 59, 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--overlay-soft);
   border-radius: var(--radius-2xl);
   padding: var(--space-8) var(--space-6);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
@@ -81,7 +81,7 @@
   border-radius: var(--radius-lg);
   padding: 4px;
   margin-bottom: var(--space-6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--overlay-soft);
 }
 
 .tabBtn {
@@ -132,7 +132,7 @@
 .input {
   width: 100%;
   background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--overlay-strong);
   border-radius: var(--radius-lg);
   padding: var(--space-3) var(--space-4);
   color: white;
@@ -267,7 +267,7 @@
 
 .logoutBtn {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--overlay-strong);
   border-radius: var(--radius-md);
   color: var(--color-text-secondary);
   padding: var(--space-1) var(--space-2);
@@ -276,9 +276,9 @@
 }
 
 .logoutBtn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--overlay-soft);
   color: white;
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: var(--overlay-strong);
 }
 
 /* ── Page Loader ────────────────────────────────────────────────────────── */
@@ -289,7 +289,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100dvh;
-  background: #0d0f1a;
+  background: var(--color-bg-surface);
 }
 
 .spinner {
@@ -310,3 +310,36 @@
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
+
+.logoImg {
+  width: min(260px, 70%);
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+
+.credit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: var(--space-3);
+  font-size: 0.65rem;
+  color: var(--color-text-tertiary);
+}
+
+.creditLogo {
+  height: 26px;
+  width: auto;
+  opacity: 0.85;
+}
+
+
+.themeSlot {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+

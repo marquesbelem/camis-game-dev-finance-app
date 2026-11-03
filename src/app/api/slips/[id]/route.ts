@@ -251,7 +251,9 @@ export async function DELETE(
 
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    const deleteAll = searchParams.get("deleteAll") === "true";
+    const deleteAll =
+      searchParams.get("deleteAll") === "true" ||
+      searchParams.get("deleteFuture") === "true";
 
     if (id.startsWith("apt-exp-")) {
       const expId = id.slice(8);
@@ -314,6 +316,43 @@ export async function DELETE(
             month,
           },
         }).catch(console.error);
+      }
+
+      if (deleteAll) {
+        // Stop future recurrences and delete future pending occurrences
+        const now = new Date();
+        const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+        await prisma.paymentSlip.updateMany({
+          where: {
+            userId,
+            title: existing.title,
+            categoryId: existing.categoryId,
+            dueDate: { lt: nextMonthStart },
+          },
+          data: { isRecurring: false },
+        });
+
+        await prisma.paymentSlip.deleteMany({
+          where: {
+            userId,
+            title: existing.title,
+            categoryId: existing.categoryId,
+            dueDate: { gte: nextMonthStart },
+            status: "PENDENTE",
+          },
+        });
+
+        await prisma.paymentSlip.updateMany({
+          where: {
+            userId,
+            title: existing.title,
+            categoryId: existing.categoryId,
+            dueDate: { gte: nextMonthStart },
+            status: "PAGO",
+          },
+          data: { isRecurring: false },
+        });
       }
     }
 

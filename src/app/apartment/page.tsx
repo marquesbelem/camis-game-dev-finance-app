@@ -25,6 +25,7 @@ import {
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
 import ApartmentVoxel3D from "@/components/ApartmentVoxel/ApartmentVoxel3D";
 import DateInput from "@/components/ui/DateInput";
+import { dismissExpenseNotification } from "@/lib/notifications";
 import styles from "./page.module.css";
 
 export interface PurchaseOption {
@@ -582,6 +583,8 @@ export default function ApartmentPage() {
 
   async function handleDeleteExpense(id: string, description: string) {
     if (!confirm(`Excluir a despesa "${description}"?`)) return;
+    dismissExpenseNotification(id);
+    dismissExpenseNotification(`apt-exp-${id}`);
     try {
       const res = await fetch(`/api/apartment/expenses/${id}`, { method: "DELETE" });
       if (!res.ok) {

@@ -7,6 +7,9 @@ import { sanitizeInput } from "@/lib/security";
 import { SlipStatus } from "@prisma/client";
 import { randomUUID } from "crypto";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // GET /api/slips?month=YYYY-MM
 export async function GET(request: NextRequest) {
   try {

@@ -29,13 +29,13 @@
   width: 52px;
   height: 52px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);
-  border: 1px solid rgba(168, 85, 247, 0.35);
-  color: #c084fc;
+  background: linear-gradient(135deg, rgba(122, 75, 232, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);
+  border: 1px solid rgba(122, 75, 232, 0.35);
+  color: #B7A0FF;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
+  box-shadow: 0 4px 20px rgba(122, 75, 232, 0.2);
 }
 
 .pageTitle {
@@ -70,18 +70,18 @@
   justify-content: center;
   width: 54px;
   height: 54px;
-  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #8F6BF0 0%, #662DE0 100%);
   color: #fff;
   border: none;
   border-radius: 9999px;
   cursor: pointer;
-  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 24px rgba(122, 75, 232, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .addBtn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 30px rgba(168, 85, 247, 0.65);
+  box-shadow: 0 8px 30px rgba(122, 75, 232, 0.65);
 }
 
 .addBtn:active {

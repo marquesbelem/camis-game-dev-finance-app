@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Capivara3D from "@/components/Capivara3D/Capivara3D";
 import TopBar from "@/components/TopBar/TopBar";
 import GuidedTutorial from "@/components/GuidedTutorial/GuidedTutorial";
 import DeleteAccountModal from "@/components/DeleteAccountModal/DeleteAccountModal";
 import { Eye, EyeOff } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
 import styles from "./AuthProvider.module.css";
 
 // ── Global Fetch Interceptor ────────────────────────────────────────────────
@@ -81,8 +81,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       setUsername(storedUsername);
       setUserId(storedUserId);
       setupFetchInterceptor(storedUserId);
-      // Show tutorial if not yet completed
-      if (!tutorialDone) setShowTutorial(true);
+      // Show tutorial if not yet completed and not default test user
+      if (!tutorialDone && storedUsername !== "teste") setShowTutorial(true);
     }
     setLoading(false);
   }, []);
@@ -247,7 +247,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem("cami_username");
     localStorage.removeItem("cami_user_id");
     localStorage.removeItem("cami_tutorial_completed");
-    // Reload to clear auth state
+    setUsername(null);
+    setUserId(null);
+    // Reload to clear auth state and show the login screen
     window.location.reload();
   }
 
@@ -306,12 +308,13 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   if (!username || !userId) {
     return (
       <main className={styles.authContainer} id="auth-gate-root">
+        <div className={styles.themeSlot}><ThemeToggle /></div>
         <div className={styles.authCard}>
           <header className={styles.authHeader}>
-            <div className={styles.logo3d}>
-              <Capivara3D sizeMultiplier={0.7} />
-            </div>
-            <h1 className={styles.title}>Capivara Poupadora</h1>
+            <h1 className={styles.title}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/logo.png" alt="LootFinance" className={`${styles.logoImg} logo-on-dark`} />{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/brand/logo-light.png" alt="LootFinance" className={`${styles.logoImg} logo-on-light`} />
+            </h1>
             <p className={styles.subtitle}>
               Seu painel financeiro pessoal, moderno e gamificado com capivaras!
             </p>
@@ -448,6 +451,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
           <footer className={styles.authFooter}>
             <p>Seus dados serão salvos de forma segura e persistente.</p>
+          <div className={styles.credit}>
+              <span>Desenvolvido por</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/camis-gamedev.png" alt="CamisGameDev" className={`${styles.creditLogo} logo-on-dark`} />{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/brand/camis-gamedev-light.png" alt="CamisGameDev" className={`${styles.creditLogo} logo-on-light`} />
+            </div>
           </footer>
         </div>
       </main>

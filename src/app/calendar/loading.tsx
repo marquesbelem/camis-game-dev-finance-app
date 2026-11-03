@@ -7,7 +7,7 @@ export default function Loading() {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "60vh",
-        background: "var(--color-bg-base, #0d0f1a)",
+        background: "var(--color-bg-base, #12082e)",
       }}
       aria-busy="true"
       aria-label="Carregando calendário..."

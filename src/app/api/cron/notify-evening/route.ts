@@ -46,14 +46,32 @@ export async function GET(request: NextRequest) {
         where: { userId: user.id, status: "PENDENTE" },
       });
 
+      // Filter out any recurring slips that the user deleted/skipped
+      const skips = await prisma.recurringSkip.findMany({
+        where: { userId: user.id },
+      });
+      const skipSet = new Set(
+        skips.map(
+          (s) => `${s.title.trim().toLowerCase()}-${s.categoryId}-${s.year}-${s.month}`
+        )
+      );
+
+      const activePendingSlips = pendingSlips.filter((s) => {
+        const d = new Date(s.dueDate);
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        const key = `${s.title.trim().toLowerCase()}-${s.categoryId}-${y}-${m}`;
+        return !skipSet.has(key);
+      });
+
       // 2. Apartment items due
       const pendingAptExpenses = (user.apartmentProject?.expenses || []).filter(exp => exp.status === "PENDENTE");
       const pendingAptInstallments = (user.apartmentProject?.installments || []).filter(inst => inst.status === "PENDENTE");
 
       const allPending = [
-        ...pendingSlips.map(s => ({ name: s.title, amount: s.amount, date: s.dueDate })),
-        ...pendingAptExpenses.map(e => ({ name: `[Apê] ${e.description}`, amount: e.amount, date: e.date })),
-        ...pendingAptInstallments.map(i => ({ name: `[Apê] Parcela #${i.installmentNumber}`, amount: i.amount, date: i.dueDate }))
+        ...activePendingSlips.map(s => ({ id: s.id, name: s.title, amount: s.amount, date: s.dueDate })),
+        ...pendingAptExpenses.map(e => ({ id: `apt-exp-${e.id}`, name: `[Apê] ${e.description}`, amount: e.amount, date: e.date })),
+        ...pendingAptInstallments.map(i => ({ id: `apt-inst-${i.id}`, name: `[Apê] Parcela #${i.installmentNumber}`, amount: i.amount, date: i.dueDate }))
       ];
 
       const tomorrowSP = new Date(todaySP.getTime() + 24 * 60 * 60 * 1000);
@@ -100,8 +118,13 @@ export async function GET(request: NextRequest) {
       }
 
       // Dispatch multicast message
+      const singleItem = totalItemsCount === 1 ? (overdueItems[0] || todayItems[0] || tomorrowItems[0]) : null;
       const message = {
         notification: { title, body },
+        data: {
+          tag: singleItem ? `expense-${singleItem.id}` : "expenses-reminder",
+          ...(singleItem ? { slipId: singleItem.id } : {}),
+        },
         tokens,
       };
 

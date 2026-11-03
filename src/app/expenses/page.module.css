@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--overlay-soft);
   gap: 16px;
 }
 
@@ -32,7 +32,7 @@
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--overlay-soft);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
   transition: all 0.2s ease;
@@ -71,8 +71,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--overlay-soft);
+  border: 1px solid var(--overlay-soft);
   padding: 4px 10px;
   border-radius: 12px;
 }
@@ -104,7 +104,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--gradient-brand, linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%));
+  background: var(--gradient-brand, linear-gradient(135deg, #8F6BF0 0%, #8b5cf6 100%));
   color: #fff;
   border: none;
   font-size: 0.88rem;
@@ -112,14 +112,14 @@
   padding: 10px 18px;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: var(--shadow-brand, 0 4px 14px rgba(168, 85, 247, 0.35));
+  box-shadow: var(--shadow-brand, 0 4px 14px rgba(122, 75, 232, 0.35));
   transition: all 0.2s ease;
 }
 
 .addBtn:hover {
   transform: translateY(-1px);
   opacity: 0.92;
-  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.45);
+  box-shadow: 0 6px 20px rgba(122, 75, 232, 0.45);
 }
 
 .controlsRow {
@@ -128,7 +128,7 @@
   gap: 16px;
   flex-wrap: wrap;
   background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--overlay-soft);
   padding: 12px 16px;
   border-radius: 16px;
 }
@@ -146,10 +146,10 @@
 }
 
 .controlSelect {
-  background-color: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--overlay-strong);
   border-radius: 10px;
-  color: #f8fafc;
+  color: var(--color-text-primary);
   padding: 8px 12px;
   font-size: 0.85rem;
   font-weight: 700;
@@ -158,8 +158,8 @@
 }
 
 .controlSelect option {
-  background-color: #1e293b;
-  color: #f8fafc;
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
   padding: 8px;
 }
 
@@ -182,8 +182,8 @@
   left: 0;
   width: 100%;
   min-width: 180px;
-  background-color: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--overlay-strong);
   border-radius: 10px;
   padding: 8px;
   display: flex;
@@ -201,7 +201,7 @@
   gap: 8px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #f8fafc;
+  color: var(--color-text-primary);
   cursor: pointer;
   padding: 6px 8px;
   border-radius: 6px;
@@ -209,7 +209,7 @@
 }
 
 .multiSelectItem:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: var(--overlay-soft);
 }
 
 .multiSelectItem input[type="checkbox"] {
@@ -270,7 +270,7 @@
 
 .skeletonItem {
   height: 64px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--overlay-soft);
   border-radius: 14px;
   animation: pulse 1.5s infinite;
 }
@@ -353,8 +353,8 @@
   border-radius: 9999px;
   font-size: 0.95rem;
   font-weight: 800;
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(122, 75, 232, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(122, 75, 232, 0.2);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none; /* Allows clicking through if it overlaps something */
 }
@@ -381,21 +381,21 @@
   width: 54px;
   height: 54px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #8F6BF0 0%, #8b5cf6 100%);
   color: #fff;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 24px rgba(122, 75, 232, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   outline: none;
 }
 
 .fab:hover {
   transform: scale(1.08);
-  box-shadow: 0 8px 30px rgba(168, 85, 247, 0.65);
+  box-shadow: 0 8px 30px rgba(122, 75, 232, 0.65);
 }
 
 .fab:active {

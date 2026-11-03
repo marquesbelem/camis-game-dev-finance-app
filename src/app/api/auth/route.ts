@@ -66,8 +66,6 @@ export async function POST(request: NextRequest) {
             currentStreakDays: 0,
             level: 1,
             xp: 0,
-            lastRegistrationDate: null,
-            registrationStreak: 0,
             scheduledSalaryAmount: 3000.0,
             salaryPaymentDay: 5,
             lastSalaryValidationMonth: null,

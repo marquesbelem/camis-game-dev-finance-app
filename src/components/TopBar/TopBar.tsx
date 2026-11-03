@@ -11,6 +11,7 @@ import {
   Tag,
   Home,
   LogOut,
+  User,
   GraduationCap,
   Sliders,
   Dog,
@@ -18,6 +19,7 @@ import {
   Wallet,
   ChevronDown,
 } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
 import styles from "./TopBar.module.css";
 
 interface TopBarProps {
@@ -66,19 +68,17 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
     setIsOpen(false);
   }, [pathname]);
 
-  const initials = username ? username.slice(0, 2).toUpperCase() : "??";
-
   return (
     <>
       <header className={styles.topBar} role="banner">
         {/* Logo left */}
         <Link href="/" className={styles.logoArea} style={{ textDecoration: 'none' }}>
-          <span className={styles.logoEmoji}>🦫</span>
-          <span className={styles.logoText}>Capivara Poupadora</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}<img src="/brand/logo.png" alt="LootFinance" className={`${styles.logoImg} logo-on-dark`} />{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/brand/logo-light.png" alt="LootFinance" className={`${styles.logoImg} logo-on-light`} />
         </Link>
 
-        {/* Hamburger — right side */}
-        <button
+        <div className={styles.topBarActions}>
+          <ThemeToggle />
+          <button
           type="button"
           id="topbar-burger-btn"
           className={styles.burgerBtn}
@@ -88,6 +88,7 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
         >
           <Menu size={22} />
         </button>
+        </div>
       </header>
 
       {/* Overlay */}
@@ -109,8 +110,7 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
           {/* Drawer Header */}
           <div className={styles.drawerHeader}>
             <Link href="/" className={styles.drawerLogoArea} style={{ textDecoration: 'none' }} onClick={() => setIsOpen(false)}>
-              <span className={styles.drawerLogoEmoji}>🦫</span>
-              <span className={styles.drawerLogoText}>Capivara Poupadora</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}<img src="/brand/logo.png" alt="LootFinance" className={`${styles.logoImg} logo-on-dark`} />{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/brand/logo-light.png" alt="LootFinance" className={`${styles.logoImg} logo-on-light`} />
             </Link>
             <button
               type="button"
@@ -192,10 +192,9 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
           {/* Drawer Footer – user info + logout */}
           <div className={styles.drawerFooter}>
             <div className={styles.drawerUserRow}>
-              <div className={styles.drawerUserAvatar}>{initials}</div>
+              <div className={styles.drawerUserAvatar} aria-hidden="true"><User size={14} /></div>
               <div className={styles.drawerUserInfo}>
                 <p className={styles.drawerUserName}>{username}</p>
-                <p className={styles.drawerUserLabel}>Conta ativa</p>
               </div>
             </div>
             {onRestartTutorial && (
@@ -216,6 +215,11 @@ export default function TopBar({ username, onLogout, onRestartTutorial, onDelete
               <LogOut size={16} />
               Sair da Conta
             </button>
+            <div className={styles.credit}>
+              <span>Desenvolvido por</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/camis-gamedev.png" alt="CamisGameDev" className={`${styles.creditLogo} logo-on-dark`} />{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/brand/camis-gamedev-light.png" alt="CamisGameDev" className={`${styles.creditLogo} logo-on-light`} />
+            </div>
           </div>
         </nav>
       )}

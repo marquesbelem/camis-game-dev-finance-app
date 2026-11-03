@@ -185,14 +185,14 @@
 
 /* Toast Levelup Variant */
 .toast_levelup {
-  border-left: 4px solid #a855f7;
+  border-left: 4px solid #8F6BF0;
   background: linear-gradient(135deg, #281938 0%, var(--color-bg-elevated) 100%);
   animation: levelupSlideIn var(--transition-spring) both, levelupPulse 3s infinite alternate 0.5s;
-  box-shadow: 0 0 25px rgba(168, 85, 247, 0.25);
+  box-shadow: 0 0 25px rgba(122, 75, 232, 0.25);
 }
 .toast_levelup :global(.iconWrap) {
-  background: rgba(168, 85, 247, 0.2) !important;
-  color: #a855f7 !important;
+  background: rgba(122, 75, 232, 0.2) !important;
+  color: #8F6BF0 !important;
   animation: spinGlow 2.5s linear infinite !important;
 }
 
@@ -202,14 +202,14 @@
 }
 
 @keyframes levelupPulse {
-  0% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.3); }
-  100% { box-shadow: 0 0 35px rgba(168, 85, 247, 0.45); border-color: rgba(168, 85, 247, 0.8); }
+  0% { box-shadow: 0 0 20px rgba(122, 75, 232, 0.2); border-color: rgba(122, 75, 232, 0.3); }
+  100% { box-shadow: 0 0 35px rgba(122, 75, 232, 0.45); border-color: rgba(122, 75, 232, 0.8); }
 }
 
 @keyframes spinGlow {
-  0% { transform: rotate(0deg) scale(1); filter: drop-shadow(0 0 2px rgba(168, 85, 247, 0.4)); }
-  50% { transform: rotate(180deg) scale(1.1); filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.8)); }
-  100% { transform: rotate(360deg) scale(1); filter: drop-shadow(0 0 2px rgba(168, 85, 247, 0.4)); }
+  0% { transform: rotate(0deg) scale(1); filter: drop-shadow(0 0 2px rgba(122, 75, 232, 0.4)); }
+  50% { transform: rotate(180deg) scale(1.1); filter: drop-shadow(0 0 10px rgba(122, 75, 232, 0.8)); }
+  100% { transform: rotate(360deg) scale(1); filter: drop-shadow(0 0 2px rgba(122, 75, 232, 0.4)); }
 }
 
 .glowIcon {

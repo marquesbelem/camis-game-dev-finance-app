@@ -1,11 +1,11 @@
 {
-  "name": "Capivara Poupadora",
-  "short_name": "Capivara",
+  "name": "LootFinance",
+  "short_name": "LootFinance",
   "description": "Gerenciador Financeiro Gamificado",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d0f1a",
-  "theme_color": "#0d0f1a",
+  "background_color": "#12082e",
+  "theme_color": "#12082e",
   "icons": [
     {
       "src": "/icon.png",

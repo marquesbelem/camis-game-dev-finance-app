@@ -7,6 +7,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import AdicionarDespesa from "@/components/AdicionarDespesa/AdicionarDespesa";
 import SlipItem, { Slip } from "@/components/SlipList/SlipItem";
 import Celebration, { useToasts } from "@/components/Achievements/Celebration";
+import { dismissExpenseNotification } from "@/lib/notifications";
 import styles from "./page.module.css";
 
 interface Category {
@@ -167,6 +168,7 @@ function ExpensesContent() {
   }
 
   async function handleDelete(id: string, deleteFutureInstallments = false) {
+    dismissExpenseNotification(id);
     try {
       const slipToDelete = slips.find((s) => s.id === id);
       if (deleteFutureInstallments && slipToDelete?.isRecurring) {
@@ -177,9 +179,18 @@ function ExpensesContent() {
         }
       }
 
-      const url = deleteFutureInstallments
-        ? `/api/slips/${id}?deleteFuture=true`
-        : `/api/slips/${id}`;
+      if (deleteFutureInstallments && slipToDelete?.isInstallment && slipToDelete?.installmentGroupId) {
+        slips.forEach((s) => {
+          if (
+            s.installmentGroupId === slipToDelete.installmentGroupId &&
+            (s.installmentNumber ?? 1) >= (slipToDelete.installmentNumber ?? 1)
+          ) {
+            dismissExpenseNotification(s.id);
+          }
+        });
+      }
+
+      const url = `/api/slips/${id}?deleteAll=${deleteFutureInstallments}&deleteFuture=${deleteFutureInstallments}`;
       const res = await fetch(url, { method: "DELETE" });
       if (res.ok) {
         setSlips((prev) => prev.filter((s) => s.id !== id));

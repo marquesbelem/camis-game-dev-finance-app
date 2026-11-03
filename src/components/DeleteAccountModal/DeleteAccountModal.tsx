@@ -96,7 +96,7 @@ export default function DeleteAccountModal({
             <ul className={styles.dangerList}>
               <li>Todas as suas despesas, boletos e contas registradas</li>
               <li>Histórico de receitas extras e relatórios mensais</li>
-              <li>Todas as conquistas, nível, XP e CapyCoins acumulados</li>
+              <li>Todas as conquistas, nível e XP acumulados</li>
               <li>Projeto, etapas e maquete 3D do seu apartamento</li>
               <li>Seu usuário e credenciais de acesso ao sistema</li>
             </ul>

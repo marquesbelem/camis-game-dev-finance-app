@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, LayoutDashboard, ChevronLeft, ChevronRight, DollarSign, ShoppingBag, Settings, Trash2, X } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { LayoutDashboard, ChevronLeft, ChevronRight, DollarSign, ShoppingBag, Settings, Trash2, X } from "lucide-react";
 import { playSound } from "@/lib/sounds";
+import { dismissExpenseNotification } from "@/lib/notifications";
 import AdicionarDespesa from "@/components/AdicionarDespesa/AdicionarDespesa";
 import SettingsModal from "@/components/SettingsModal/SettingsModal";
 import SpeedDialFab from "@/components/SpeedDialFab/SpeedDialFab";
@@ -152,13 +153,15 @@ export default function Home() {
     return () => window.removeEventListener("tutorialCompleted", handleTutorialDone);
   }, [loadSlips]);
 
+  const deletedIdsRef = useRef<Set<string>>(new Set());
+
   // ── Native notifications verification for ALL slips & apartment expenses ──
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window)) return;
 
     async function checkUpcomingNotifications() {
       try {
-        const res = await fetch("/api/slips");
+        const res = await fetch("/api/slips", { cache: "no-store" });
         if (!res.ok) return;
         const allSlips: Slip[] = await res.json().catch(() => []);
         if (!Array.isArray(allSlips)) return;
@@ -173,6 +176,7 @@ export default function Home() {
         const tomorrowStr = `${yyyy}-${mm}-${dd}`;
 
         const upcoming = allSlips.filter((s) => {
+          if (deletedIdsRef.current.has(s.id)) return false;
           if (s.status === "PAGO") return false;
           const dateStr = s.dueDate.slice(0, 10);
           return dateStr === tomorrowStr;
@@ -184,12 +188,13 @@ export default function Home() {
           const notifiedIdsRaw = localStorage.getItem(storageKey);
           const notifiedIds = notifiedIdsRaw ? JSON.parse(notifiedIdsRaw) : [];
 
-          const toNotify = upcoming.filter((s) => !notifiedIds.includes(s.id));
+          const toNotify = upcoming.filter((s) => !notifiedIds.includes(s.id) && !deletedIdsRef.current.has(s.id));
 
           if (toNotify.length > 0) {
             const triggerNotifications = () => {
               if (toNotify.length === 1) {
                 const slip = toNotify[0];
+                if (deletedIdsRef.current.has(slip.id)) return;
                 const formattedAmount = slip.amount.toLocaleString("pt-BR", {
                   style: "currency",
                   currency: "BRL",
@@ -197,11 +202,15 @@ export default function Home() {
                 new Notification("⚠️ Despesa Vencendo Amanhã!", {
                   body: `A despesa "${slip.title}" (${formattedAmount}) vence amanhã. Não se esqueça de pagar!`,
                   icon: "/favicon.ico",
+                  tag: `expense-${slip.id}`,
+                  data: { slipId: slip.id },
                 });
               } else {
                 new Notification("⚠️ Despesas Vencendo Amanhã!", {
                   body: `Você tem ${toNotify.length} despesas vencendo amanhã. Toque para verificar seu painel!`,
                   icon: "/favicon.ico",
+                  tag: `expenses-upcoming-${todayStr}`,
+                  data: { slipIds: toNotify.map((s) => s.id) },
                 });
               }
 
@@ -263,6 +272,9 @@ export default function Home() {
   }
 
   async function handleDelete(id: string, deleteAll?: boolean) {
+    deletedIdsRef.current.add(id);
+    dismissExpenseNotification(id);
+
     try {
       const deleted = slips.find((s) => s.id === id);
       if (deleteAll && deleted?.isRecurring) {
@@ -272,7 +284,20 @@ export default function Home() {
           console.error("Erro ao cancelar recorrência:", rErr);
         }
       }
-      const url = `/api/slips/${id}${deleteAll ? "?deleteAll=true" : ""}`;
+
+      if (deleteAll && deleted?.isInstallment && deleted?.installmentGroupId) {
+        slips.forEach((s) => {
+          if (
+            s.installmentGroupId === deleted.installmentGroupId &&
+            (s.installmentNumber ?? 1) >= (deleted.installmentNumber ?? 1)
+          ) {
+            deletedIdsRef.current.add(s.id);
+            dismissExpenseNotification(s.id);
+          }
+        });
+      }
+
+      const url = `/api/slips/${id}?deleteAll=${Boolean(deleteAll)}&deleteFuture=${Boolean(deleteAll)}`;
       const res = await fetch(url, { method: "DELETE" });
       if (!res.ok) {
         let errMsg = "Não foi possível excluir a despesa.";
@@ -529,7 +554,7 @@ export default function Home() {
                 onClick={() => { setEditingSlip(null); setIsFormOpen(true); }}
                 aria-label="Adicionar despesa"
               >
-                <Plus size={18} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}<img src="/brand/symbols/plus-white.png" alt="" width={16} height={16} />
                 <span>Adicionar Despesa</span>
               </button>
             </div>

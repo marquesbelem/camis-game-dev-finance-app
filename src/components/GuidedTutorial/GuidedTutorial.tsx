@@ -30,7 +30,7 @@ const STEPS: TutorialStep[] = [
     stepNum: 1,
     badge: "BEM-VINDO",
     emoji: "🦫",
-    title: "Capivara Poupadora",
+    title: "LootFinance",
     subtitle: "Seu controle financeiro inteligente, gamificado e direto ao ponto.",
     bullets: [
       {
@@ -362,7 +362,7 @@ export default function GuidedTutorial({ onComplete, onSkip }: Props) {
               height={spotRect.h}
               rx={12}
               fill="none"
-              stroke="rgba(168, 85, 247, 0.85)"
+              stroke="rgba(122, 75, 232, 0.85)"
               strokeWidth={2.5}
               className={styles.spotRing}
             />

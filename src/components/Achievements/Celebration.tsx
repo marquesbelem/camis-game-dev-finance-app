@@ -155,7 +155,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
                 "--i": i,
                 "--color":
                   toast.type === "levelup"
-                    ? "#a855f7"
+                    ? "#8F6BF0"
                     : toast.type === "xp"
                     ? "#6366f1"
                     : "#f59e0b",

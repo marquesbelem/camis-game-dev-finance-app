@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
         else monthPending += slip.amount;
 
         const catName = slip.category?.name || "Outros";
-        const catColor = slip.category?.colorCode || "#7c5cfc";
+        const catColor = slip.category?.colorCode || "#7A4BE8";
 
         if (!monthCategoryMap[catName]) {
           monthCategoryMap[catName] = { name: catName, color: catColor, total: 0 };
@@ -239,7 +239,7 @@ export async function GET(request: NextRequest) {
           status: s.status,
           category: {
             name: s.category?.name || "Outros",
-            color: s.category?.colorCode || "#7c5cfc",
+            color: s.category?.colorCode || "#7A4BE8",
           },
         })),
         extraIncomesList: monthExtras.map(e => ({

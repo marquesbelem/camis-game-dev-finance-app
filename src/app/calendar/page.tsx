@@ -92,11 +92,15 @@ export default function CalendarPage() {
               new Notification("⚠️ Despesa Vencendo Amanhã!", {
                 body: `A despesa "${slip.title}" (${formattedAmount}) vence amanhã. Não se esqueça de pagar!`,
                 icon: "/favicon.ico",
+                tag: `expense-${slip.id}`,
+                data: { slipId: slip.id },
               });
             } else {
               new Notification("⚠️ Despesas Vencendo Amanhã!", {
                 body: `Você tem ${toNotify.length} despesas vencendo amanhã. Toque para verificar seu painel!`,
                 icon: "/favicon.ico",
+                tag: `expenses-upcoming-${todayStr}`,
+                data: { slipIds: toNotify.map((s) => s.id) },
               });
             }
 

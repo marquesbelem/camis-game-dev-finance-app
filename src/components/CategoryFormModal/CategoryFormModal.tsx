@@ -24,7 +24,7 @@ const ICON_OPTIONS = [
 
 // ── Preset color palette (from globals.css design tokens + extras) ─────────
 const PRESET_COLORS = [
-  "#7C5CFC", "#22C55E", "#F59E0B", "#EF4444",
+  "#7A4BE8", "#22C55E", "#F59E0B", "#EF4444",
   "#EC4899", "#3B82F6", "#14B8A6", "#8B5CF6",
   "#6B7280", "#F97316", "#10B981", "#0EA5E9",
 ];

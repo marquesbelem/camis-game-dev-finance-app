@@ -17,7 +17,7 @@
 }
 
 .modal {
-  background: #1e293b;
+  background: var(--color-bg-surface);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 20px;
   width: 100%;
@@ -87,17 +87,17 @@
 }
 
 .closeBtn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--overlay-soft);
   color: #fff;
 }
 
 .expenseInfo {
   background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--overlay-soft);
   border-radius: 12px;
   padding: 12px 16px;
   font-size: 0.9rem;
-  color: #e2e8f0;
+  color: var(--color-text-primary);
 }
 
 .expenseTitle {
@@ -131,7 +131,7 @@
 }
 
 .optionCard:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--overlay-soft);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -176,7 +176,7 @@
 }
 
 .cancelBtn {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--overlay-soft);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #cbd5e1;
   font-size: 0.85rem;

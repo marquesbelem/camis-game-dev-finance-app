@@ -14,7 +14,7 @@
 
 .modal {
   background: var(--color-bg-surface, #16192b);
-  border: 1px solid var(--color-border-strong, rgba(255, 255, 255, 0.15));
+  border: 1px solid var(--color-border-strong, var(--overlay-strong));
   border-radius: var(--radius-xl, 1.25rem);
   width: 100%;
   max-width: 520px;
@@ -46,7 +46,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-bottom: 1px solid var(--color-border, var(--overlay-soft));
 }
 
 .title {
@@ -104,12 +104,12 @@
 }
 
 .formBody::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--overlay-strong);
   border-radius: 9999px;
 }
 
 .formBody::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--overlay-strong);
 }
 
 .fieldGroup {
@@ -133,8 +133,8 @@
 .input,
 .select,
 .textarea {
-  background: var(--color-bg-input, #0d0f1a);
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  background: var(--color-bg-input, #12082e);
+  border: 1px solid var(--color-border, var(--overlay-strong));
   border-radius: var(--radius-md, 0.5rem);
   padding: 0.625rem 0.875rem;
   color: var(--color-text-primary, #fff);
@@ -168,7 +168,7 @@
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--overlay-soft);
   border: 2px solid transparent;
   font-size: 1.5rem;
   display: inline-flex;
@@ -196,7 +196,7 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-top: 1px solid var(--color-border, var(--overlay-soft));
   background: var(--color-bg-surface, #16192b);
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.35);
   position: relative;
@@ -205,7 +205,7 @@
 
 .cancelBtn {
   background: transparent;
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.15));
+  border: 1px solid var(--color-border, var(--overlay-strong));
   color: var(--color-text-secondary, #94a3b8);
   padding: 0.625rem 1.125rem;
   border-radius: var(--radius-md, 0.5rem);
@@ -217,7 +217,7 @@
 }
 
 .cancelBtn:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--overlay-soft);
   color: #fff;
 }
 

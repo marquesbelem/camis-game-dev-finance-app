@@ -1,6 +1,6 @@
 .card {
   background: var(--color-surface, #1e293b);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--overlay-soft);
   border-radius: 20px;
   padding: 16px 20px;
   display: flex;
@@ -59,7 +59,7 @@
 
 .scoreBgCircle {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.08);
+  stroke: var(--overlay-soft);
   stroke-width: 8;
 }
 
@@ -109,5 +109,5 @@
 
 .breakdownPts {
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--color-text-primary);
 }

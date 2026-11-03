@@ -1,26 +1,27 @@
 /* ─────────────────────────────────────────────────────────────────────────────
-   Capivara Poupadora – Global Design System
+   LootFinance – Global Design System
    Harmony Color Palette · Dark Mode Default · Google Fonts Outfit + Inter
    ───────────────────────────────────────────────────────────────────────────── */
 
 /* ── Google Fonts ─────────────────────────────────────────────────────────── */
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap");
+/* Fonts loaded locally via next/font (Bungee + Raleway) */
 
 /* ── CSS Custom Properties — Dark Mode Default ────────────────────────────── */
 :root {
   /* ── Harmony Color Palette ─────────────────────────────────────────────── */
 
   /* Background layers */
-  --color-bg-base: hsl(228, 16%, 8%);        /* Deepest background         */
-  --color-bg-surface: hsl(228, 14%, 12%);    /* Card / panel surface        */
-  --color-bg-elevated: hsl(228, 13%, 16%);   /* Elevated card / modal       */
-  --color-bg-overlay: hsl(228, 12%, 20%);    /* Hover / active state        */
-  --color-bg-input: hsl(228, 13%, 14%);      /* Input field background      */
+  --color-bg-base: hsl(258, 48%, 7%);        /* Deepest background         */
+  --color-bg-surface: hsl(258, 38%, 11%);    /* Card / panel surface        */
+  --color-bg-elevated: hsl(258, 34%, 15%);   /* Elevated card / modal       */
+  --color-bg-overlay: hsl(258, 30%, 20%);    /* Hover / active state        */
+  --color-bg-input: hsl(258, 36%, 13%);      /* Input field background      */
 
   /* Brand — Violet primary */
-  --color-brand: hsl(258, 90%, 66%);         /* #7C5CFC                    */
+  --color-brand: hsl(258, 76%, 58%);         /* #7A4BE8                    */
   --color-brand-dim: hsl(258, 70%, 55%);
-  --color-brand-glow: hsl(258, 90%, 66%, 0.25);
+  --color-brand-glow: hsl(258, 76%, 58%, 0.3);
+  --color-accent: hsl(39, 100%, 50%);        /* #FFA500 Camis yellow       */
   --color-brand-subtle: hsl(258, 50%, 20%);
 
   /* Accent — Emerald success */
@@ -29,7 +30,7 @@
   --color-success-subtle: hsl(152, 50%, 12%);
 
   /* Warning — Amber */
-  --color-warning: hsl(38, 95%, 58%);        /* #F59E0B                    */
+  --color-warning: hsl(39, 100%, 50%);        /* #F59E0B                    */
   --color-warning-dim: hsl(38, 80%, 44%);
   --color-warning-subtle: hsl(38, 70%, 12%);
 
@@ -43,7 +44,7 @@
   --color-info-subtle: hsl(199, 60%, 12%);
 
   /* Category palette */
-  --color-cat-rent: hsl(258, 90%, 66%);      /* Aluguel    – Violet        */
+  --color-cat-rent: hsl(258, 76%, 58%);      /* Aluguel    – Violet        */
   --color-cat-food: hsl(152, 68%, 46%);      /* Alimentação – Emerald      */
   --color-cat-util: hsl(38, 95%, 58%);       /* Utilidades  – Amber        */
   --color-cat-card: hsl(0, 84%, 60%);        /* Cartão      – Rose         */
@@ -53,17 +54,17 @@
   --color-text-primary: hsl(220, 20%, 96%);
   --color-text-secondary: hsl(220, 12%, 64%);
   --color-text-tertiary: hsl(220, 10%, 44%);
-  --color-text-inverse: hsl(228, 16%, 8%);
+  --color-text-inverse: hsl(258, 48%, 7%);
 
   /* Borders */
-  --color-border: hsl(228, 13%, 20%);
-  --color-border-strong: hsl(228, 13%, 28%);
+  --color-border: hsl(258, 28%, 21%);
+  --color-border-strong: hsl(258, 26%, 30%);
   --color-border-brand: hsl(258, 60%, 40%);
 
   /* Gradients */
-  --gradient-brand: linear-gradient(135deg, hsl(258, 90%, 66%), hsl(280, 80%, 60%));
-  --gradient-surface: linear-gradient(180deg, hsl(228, 14%, 13%), hsl(228, 14%, 11%));
-  --gradient-glow: radial-gradient(ellipse at top, hsl(258, 90%, 66%, 0.12) 0%, transparent 60%);
+  --gradient-brand: linear-gradient(135deg, hsl(258, 76%, 58%), hsl(268, 80%, 52%));
+  --gradient-surface: linear-gradient(180deg, hsl(258, 38%, 12%), hsl(258, 38%, 10%));
+  --gradient-glow: radial-gradient(ellipse at top, hsl(258, 76%, 58%, 0.12) 0%, transparent 60%);
 
   /* ── Spacing Scale ─────────────────────────────────────────────────────── */
   --space-1: 0.25rem;   /*  4px */
@@ -79,8 +80,9 @@
   --space-20: 5rem;     /* 80px */
 
   /* ── Typography ────────────────────────────────────────────────────────── */
-  --font-display: "Outfit", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-display: var(--font-body-loaded), "Raleway", system-ui, sans-serif; /* legible heavy weights for headings and figures */
+  --font-brand: var(--font-display-loaded), "Bungee", system-ui, sans-serif; /* logo-style accents only */
+  --font-body: var(--font-body-loaded), "Raleway", system-ui, sans-serif;
 
   --text-xs: 0.6875rem;   /* 11px */
   --text-sm: 0.8125rem;   /* 13px */
@@ -122,7 +124,7 @@
   --shadow-md: 0 4px 12px hsl(0, 0%, 0%, 0.5);
   --shadow-lg: 0 8px 24px hsl(0, 0%, 0%, 0.6);
   --shadow-xl: 0 20px 48px hsl(0, 0%, 0%, 0.7);
-  --shadow-brand: 0 0 24px hsl(258, 90%, 66%, 0.3);
+  --shadow-brand: 0 0 24px hsl(258, 76%, 58%, 0.3);
   --shadow-success: 0 0 16px hsl(152, 68%, 46%, 0.25);
   --shadow-danger: 0 0 16px hsl(0, 84%, 60%, 0.25);
 
@@ -135,7 +137,9 @@
   /* ── Layout ────────────────────────────────────────────────────────────── */
   --sidebar-width: 280px;
   --header-height: 64px;
-  --content-max-width: 1280px;
+  --content-max-width: none; /* use the full screen */
+  --overlay-soft: rgba(255, 255, 255, 0.06);
+  --overlay-strong: rgba(255, 255, 255, 0.12);
   --z-sidebar: 100;
   --z-header: 200;
   --z-modal: 300;
@@ -179,7 +183,7 @@ body {
 /* ── Typography Defaults ──────────────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
-  font-weight: var(--font-bold);
+  font-weight: 800;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
   color: var(--color-text-primary);
@@ -381,7 +385,7 @@ button:not(:disabled):active {
 
 /* Custom text selection */
 ::selection {
-  background: hsl(258, 90%, 66%, 0.3);
+  background: hsl(258, 76%, 58%, 0.3);
   color: var(--color-text-primary);
 }
 
@@ -433,3 +437,77 @@ label > svg,
   color: var(--color-brand) !important;
 }
 
+
+/* Brand symbols as faint background ornaments */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+body::before {
+  top: 90px;
+  right: 2vw;
+  width: min(260px, 22vw);
+  aspect-ratio: 1;
+  background-image: url("/brand/symbols/star-purple.png");
+  opacity: 0.07;
+}
+
+body::after {
+  bottom: -40px;
+  left: calc(var(--sidebar-width, 0px) * 0 + 1vw);
+  width: min(120px, 10vw);
+  aspect-ratio: 326 / 1080;
+  background-image: url("/brand/symbols/bracket-yellow.png");
+  opacity: 0.06;
+}
+
+/* ── Light theme (toggle via <html data-theme="light">) ───────────────────── */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --color-bg-base: hsl(258, 60%, 97%);
+  --color-bg-surface: hsl(0, 0%, 100%);
+  --color-bg-elevated: hsl(258, 45%, 98%);
+  --color-bg-overlay: hsl(258, 35%, 94%);
+  --color-bg-input: hsl(0, 0%, 100%);
+
+  --color-brand-subtle: hsl(258, 80%, 94%);
+  --color-success-subtle: hsl(152, 55%, 92%);
+  --color-warning-subtle: hsl(39, 100%, 90%);
+  --color-danger-subtle: hsl(0, 85%, 94%);
+  --color-info-subtle: hsl(199, 80%, 92%);
+
+  --color-text-primary: hsl(258, 45%, 12%);
+  --color-text-secondary: hsl(258, 14%, 36%);
+  --color-text-tertiary: hsl(258, 10%, 50%);
+  --color-text-inverse: hsl(0, 0%, 100%);
+
+  --color-border: hsl(258, 25%, 87%);
+  --color-border-strong: hsl(258, 22%, 76%);
+  --color-border-brand: hsl(258, 60%, 70%);
+
+  --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(258, 45%, 98%));
+  --gradient-glow: radial-gradient(ellipse at top, hsl(258, 76%, 58%, 0.10) 0%, transparent 60%);
+
+  --shadow-sm: 0 1px 2px hsl(258, 40%, 20%, 0.08);
+  --shadow-md: 0 4px 12px hsl(258, 40%, 20%, 0.10);
+  --shadow-lg: 0 8px 24px hsl(258, 40%, 20%, 0.12);
+  --shadow-xl: 0 20px 48px hsl(258, 40%, 20%, 0.16);
+
+  --overlay-soft: rgba(60, 30, 140, 0.06);
+  --overlay-strong: rgba(60, 30, 140, 0.12);
+}
+
+/* Logo variants: white-wordmark for dark, purple-wordmark for light */
+.logo-on-light { display: none !important; }
+:root[data-theme="light"] .logo-on-light { display: block !important; }
+:root[data-theme="light"] .logo-on-dark { display: none !important; }
+
+/* Theme switch smoothness (kept subtle) */
+body { transition: background-color var(--transition-base), color var(--transition-base); }

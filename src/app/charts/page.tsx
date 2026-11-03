@@ -380,10 +380,10 @@ export default function ChartsPage() {
               <div
                 className={styles.kpiCard}
                 style={{
-                  "--kpi-accent": data.yearlyTotals.totalSavings >= 0 ? "#7c5cfc" : "#f59e0b",
+                  "--kpi-accent": data.yearlyTotals.totalSavings >= 0 ? "#7A4BE8" : "#f59e0b",
                   "--kpi-bg":
                     data.yearlyTotals.totalSavings >= 0
-                      ? "rgba(124, 92, 252, 0.15)"
+                      ? "rgba(122, 75, 232, 0.15)"
                       : "rgba(245, 158, 11, 0.15)",
                 } as any}
               >
@@ -482,7 +482,7 @@ export default function ChartsPage() {
                 <span>Despesas</span>
               </div>
               <div className={styles.legendItem}>
-                <span className={styles.legendDot} style={{ background: "#a855f7" }} />
+                <span className={styles.legendDot} style={{ background: "#8F6BF0" }} />
                 <span>Saldo</span>
               </div>
             </div>
@@ -545,9 +545,9 @@ export default function ChartsPage() {
                         type="monotone"
                         dataKey="netBalance"
                         name="Saldo Líquido"
-                        stroke="#a855f7"
+                        stroke="#8F6BF0"
                         strokeWidth={3}
-                        dot={{ r: 4, fill: "#a855f7" }}
+                        dot={{ r: 4, fill: "#8F6BF0" }}
                         activeDot={{ r: 6 }}
                       />
                     </ComposedChart>
@@ -558,8 +558,8 @@ export default function ChartsPage() {
                     >
                       <defs>
                         <linearGradient id="balanceGlow" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#7c5cfc" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#7c5cfc" stopOpacity={0.0} />
+                          <stop offset="5%" stopColor="#7A4BE8" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#7A4BE8" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -580,7 +580,7 @@ export default function ChartsPage() {
                         type="monotone"
                         dataKey="accumulatedBalance"
                         name="Saldo Acumulado"
-                        stroke="#7c5cfc"
+                        stroke="#7A4BE8"
                         strokeWidth={3}
                         fillOpacity={1}
                         fill="url(#balanceGlow)"

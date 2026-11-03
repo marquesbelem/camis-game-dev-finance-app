@@ -1,6 +1,6 @@
 .panel {
   background: var(--color-bg-surface, #1e293b);
-  border: 1px solid var(--color-border, rgba(255,255,255,0.08));
+  border: 1px solid var(--color-border, var(--overlay-soft));
   border-radius: 20px;
   padding: 20px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.2);
@@ -38,9 +38,9 @@
 }
 
 .panelBadge {
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  color: #c084fc;
+  background: rgba(122, 75, 232, 0.15);
+  border: 1px solid rgba(122, 75, 232, 0.3);
+  color: #B7A0FF;
   font-size: 0.7rem;
   font-weight: 700;
   padding: 2px 8px;
@@ -65,7 +65,7 @@
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--overlay-soft);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--color-text-tertiary, #475569);
   display: flex;
@@ -77,9 +77,9 @@
 }
 
 .collapseBtn:hover {
-  background: rgba(168, 85, 247, 0.15);
-  border-color: rgba(168, 85, 247, 0.35);
-  color: #c084fc;
+  background: rgba(122, 75, 232, 0.15);
+  border-color: rgba(122, 75, 232, 0.35);
+  color: #B7A0FF;
 }
 
 .collapseIcon {
@@ -113,18 +113,18 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid color-mix(in srgb, var(--cat-color, #a855f7) 30%, transparent);
+  background: var(--overlay-soft);
+  border: 1px solid color-mix(in srgb, var(--cat-color, #8F6BF0) 30%, transparent);
   border-radius: 14px;
   padding: 12px 14px;
   margin-bottom: 16px;
-  box-shadow: inset 0 0 20px color-mix(in srgb, var(--cat-color, #a855f7) 10%, transparent);
+  box-shadow: inset 0 0 20px color-mix(in srgb, var(--cat-color, #8F6BF0) 10%, transparent);
 }
 
 .bossIcon {
   font-size: 1.5rem;
   flex-shrink: 0;
-  filter: drop-shadow(0 0 6px rgba(168,85,247,0.5));
+  filter: drop-shadow(0 0 6px rgba(122,75,232,0.5));
 }
 
 .bossInfo {
@@ -239,10 +239,10 @@
 .barTrack {
   width: 100%;
   height: 8px;
-  background: rgba(255,255,255,0.06);
+  background: var(--overlay-soft);
   border-radius: 999px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid var(--overlay-soft);
 }
 
 .barFill {
@@ -259,7 +259,7 @@
   left: 0;
   right: 0;
   height: 50%;
-  background: rgba(255,255,255,0.25);
+  background: var(--overlay-strong);
   border-radius: 999px 999px 0 0;
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Settings, DollarSign, Receipt } from "lucide-react";
+import { Settings, DollarSign, Receipt } from "lucide-react";
 import styles from "./SpeedDialFab.module.css";
 
 interface SpeedDialFabProps {
@@ -53,7 +53,7 @@ export default function SpeedDialFab({
             isOpen ? styles.iconOpen : ""
           }`}
         >
-          <Plus size={26} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}<img src="/brand/symbols/plus-white.png" alt="" width={24} height={24} />
         </span>
       </button>
 

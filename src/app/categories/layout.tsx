@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Gerenciar Categorias – Capivara Poupadora",
+  title: "Gerenciar Categorias – LootFinance",
   description:
     "Crie, edite e organize as categorias de gastos das suas despesas. Mantenha suas finanças organizadas por tipo de despesa.",
 };

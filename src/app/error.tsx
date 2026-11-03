@@ -21,7 +21,7 @@ export default function ErrorBoundary({ error, reset }: ErrorBoundaryProps) {
         justifyContent: "center",
         minHeight: "60vh",
         padding: "2rem",
-        background: "var(--color-bg-base, #0d0f1a)",
+        background: "var(--color-bg-base, #12082e)",
       }}
       role="alert"
     >
