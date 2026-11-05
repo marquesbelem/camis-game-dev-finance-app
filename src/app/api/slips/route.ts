@@ -29,21 +29,35 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const month = searchParams.get("month"); // e.g. "2026-06"
 
-    // Auto-generate recurring slips for this month if needed
-    if (month) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { createdAt: true },
+    });
+    const regDate = user?.createdAt ? new Date(user.createdAt) : new Date();
+    const regMonthStr = `${regDate.getFullYear()}-${String(regDate.getMonth() + 1).padStart(2, "0")}`;
+    const isBeforeRegistration = Boolean(month && month < regMonthStr);
+
+    // Auto-generate recurring slips for this month if needed (never before user registration)
+    if (month && !isBeforeRegistration) {
       const [year, mon] = month.split("-").map(Number);
       // Get recurring slips for this user to auto-generate for the month if missing
       const allSlips = await prisma.paymentSlip.findMany({
         where: { userId, isRecurring: true },
         orderBy: { dueDate: "desc" },
-        distinct: ['title', 'categoryId'],
       });
 
       const latestSlipsMap = new Map<string, typeof allSlips[0]>();
+      const earliestMonthMap = new Map<string, string>();
       for (const slip of allSlips) {
         const key = `${slip.title.trim().toLowerCase()}-${slip.categoryId}`;
         if (!latestSlipsMap.has(key)) {
           latestSlipsMap.set(key, slip);
+        }
+        const createdD = new Date(slip.createdAt);
+        const createdMonthStr = `${createdD.getFullYear()}-${String(createdD.getMonth() + 1).padStart(2, "0")}`;
+        const prevEarliest = earliestMonthMap.get(key);
+        if (!prevEarliest || createdMonthStr < prevEarliest) {
+          earliestMonthMap.set(key, createdMonthStr);
         }
       }
 
@@ -88,6 +102,11 @@ export async function GET(request: NextRequest) {
       const slipsToCreate = [];
       for (const rs of recurringSlips) {
         const key = `${rs.title.trim().toLowerCase()}-${rs.categoryId}`;
+        const originMonth = earliestMonthMap.get(key) ?? regMonthStr;
+        const minValidMonth = originMonth > regMonthStr ? originMonth : regMonthStr;
+        if (month < minValidMonth) {
+          continue;
+        }
         if (skippedKeys.has(key) || existingKeys.has(key)) {
           continue;
         }
@@ -116,7 +135,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const whereClause: { userId: string; dueDate?: { gte: Date; lt: Date } } = { userId };
+    const whereClause: { userId: string; isRecurring?: boolean; dueDate?: { gte: Date; lt: Date } } = { userId };
+    if (isBeforeRegistration) {
+      whereClause.isRecurring = false;
+    }
     if (month) {
       const [year, mon] = month.split("-").map(Number);
       const start = new Date(year, mon - 1, 1);

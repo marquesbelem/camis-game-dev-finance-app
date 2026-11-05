@@ -833,82 +833,25 @@ export default function ChartsPage() {
                   </div>
 
                   <ul className={styles.categoryList}>
-                    {activeCategoryDist.map(cat => {
-                      const isExpanded = expandedCategory === cat.name;
-                      const hasSlips = cat.slips && cat.slips.length > 0;
-                      return (
-                        <li key={cat.name} className={styles.categoryItemWrapper}>
-                          <button
-                            type="button"
-                            className={styles.categoryItemBtn}
-                            onClick={() => setExpandedCategory(prev => prev === cat.name ? null : cat.name)}
-                            aria-expanded={isExpanded}
-                            title="Clique para ver os detalhes das despesas desta categoria"
-                          >
-                            <div className={styles.catLeft}>
-                              <span className={styles.catIndicator} style={{ background: cat.color }} />
-                              <span className={styles.catName}>{cat.name}</span>
-                              {cat.count > 0 && (
-                                <span className={styles.catCountBadge}>
-                                  {cat.count} {cat.count === 1 ? "despesa" : "despesas"}
-                                </span>
-                              )}
-                            </div>
-                            <div className={styles.catRight}>
-                              <span className={styles.catPct}>{cat.percentage}%</span>
-                              <span className={styles.catVal}>{formatCurrency(cat.total)}</span>
-                              <ChevronDown
-                                size={14}
-                                className={`${styles.catChevron} ${isExpanded ? styles.catChevronOpen : ""}`}
-                              />
-                            </div>
-                          </button>
-
-                          {isExpanded && (
-                            <div className={styles.catDetailsPanel}>
-                              {hasSlips ? (
-                                <ul className={styles.catSlipsList}>
-                                  {cat.slips!.map(slip => (
-                                    <li key={slip.id} className={styles.catSlipRow}>
-                                      <div className={styles.catSlipInfo}>
-                                        <span className={styles.catSlipTitle}>{slip.title}</span>
-                                        <span className={styles.catSlipDate}>
-                                          Vencimento: {formatDate(slip.dueDate)}
-                                        </span>
-                                      </div>
-                                      <div className={styles.catSlipRight}>
-                                        <span
-                                          className={`${styles.catSlipStatus} ${
-                                            slip.status === "PAGO"
-                                              ? styles.catStatusPaid
-                                              : styles.catStatusPending
-                                          }`}
-                                        >
-                                          {slip.status === "PAGO"
-                                            ? "Pago"
-                                            : slip.status === "RESERVADO"
-                                            ? "Reservado"
-                                            : "Pendente"}
-                                        </span>
-                                        <span className={styles.catSlipAmount}>
-                                          {formatCurrency(slip.amount)}
-                                        </span>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p className={styles.catEmptySub}>
-                                  {catScope === "YEAR"
-                                    ? "Selecione o filtro 'Este Mês' para ver despesas individuais detalhadas."
-                                    : "Nenhuma despesa individual encontrada nesta categoria."}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </li>
-                      );
-                    })}
+                    {activeCategoryDist.map(cat => (
+                      <li key={cat.name} className={styles.categoryItemWrapper}>
+                        <div className={styles.categoryItemBtn} style={{ cursor: "default" }}>
+                          <div className={styles.catLeft}>
+                            <span className={styles.catIndicator} style={{ background: cat.color }} />
+                            <span className={styles.catName}>{cat.name}</span>
+                            {cat.count > 0 && (
+                              <span className={styles.catCountBadge}>
+                                {cat.count} {cat.count === 1 ? "despesa" : "despesas"}
+                              </span>
+                            )}
+                          </div>
+                          <div className={styles.catRight}>
+                            <span className={styles.catPct}>{cat.percentage}%</span>
+                            <span className={styles.catVal}>{formatCurrency(cat.total)}</span>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
                   </ul>
                 </>
               ) : (

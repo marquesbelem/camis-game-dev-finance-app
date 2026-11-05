@@ -64,7 +64,6 @@ export default function Home() {
   const [editingSlip, setEditingSlip] = useState<Slip | null>(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<Record<string, boolean>>({});
-  const [salaryToCelebrate, setSalaryToCelebrate] = useState<{ amount: number; month: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userStats, setUserStats] = useState<any>(null);
   const [feedbackType, setFeedbackType] = useState<FeedbackType>(null);
@@ -88,22 +87,11 @@ export default function Home() {
       setSlips(Array.isArray(slipsData) ? slipsData : []);
       setExtraIncomes(Array.isArray(extraData) ? extraData : []);
       setUserStats(statsData);
-      const salary = statsData.scheduledSalaryAmount > 0 ? statsData.scheduledSalaryAmount : 3000.0;
+      const salary = typeof statsData.scheduledSalaryAmount === "number" ? statsData.scheduledSalaryAmount : 3000.0;
       const budgetPct = statsData.monthlyBudgetLimit ?? 50.0;
       const calculatedBudget = salary * (budgetPct / 100);
       const totalExtra = Array.isArray(extraData) ? extraData.reduce((sum: number, inc: any) => sum + inc.amount, 0) : 0;
       setBudgetLimit(calculatedBudget + totalExtra);
-
-      // Trigger retroactive salary received celebration if validated AND tutorial is completed
-      if (statsData.celebrateSalary) {
-        const isTutorialDone = typeof window !== "undefined" && localStorage.getItem("cami_tutorial_completed") === "true";
-        if (isTutorialDone) {
-          setSalaryToCelebrate({
-            amount: statsData.scheduledSalaryAmount,
-            month: formatMonthLabel(selectedMonth),
-          });
-        }
-      }
     } catch {
       addToast({ title: "Erro", message: "Falha ao carregar despesas.", type: "danger" });
     } finally {
@@ -117,7 +105,7 @@ export default function Home() {
 
   // ── Configured Category Budgets calculation for selected month ───────────
   const categoryBudgets: CategoryBudgetInfo[] = useMemo(() => {
-    const salaryNum = userStats?.scheduledSalaryAmount > 0 ? userStats.scheduledSalaryAmount : 3000;
+    const salaryNum = typeof userStats?.scheduledSalaryAmount === "number" ? userStats.scheduledSalaryAmount : 3000;
 
     return (categories as any[])
       .filter((cat) => cat.budgetLimit && Number(cat.budgetLimit) > 0)
@@ -675,12 +663,10 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── Toast notifications & Salary Modal ────────────────────────────── */}
+      {/* ── Toast notifications ───────────────────────────────────────────── */}
       <Celebration
         toasts={toasts}
         onDismiss={dismissToast}
-        salaryToCelebrate={salaryToCelebrate}
-        onDismissSalary={() => setSalaryToCelebrate(null)}
       />
 
       {/* ── Full Screen Visual Feedback Overlay ────────────────────────────── */}

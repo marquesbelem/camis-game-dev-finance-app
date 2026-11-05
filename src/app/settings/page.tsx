@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   Sliders,
   DollarSign,
-  Calendar,
   HeartHandshake,
   Percent,
   Tag,
@@ -48,7 +47,6 @@ export default function SettingsPage() {
 
   // General Stats / Budget parameters
   const [scheduledSalaryAmount, setScheduledSalaryAmount] = useState<string>("3000");
-  const [salaryPaymentDay, setSalaryPaymentDay] = useState<string>("5");
   const [leisureBudget, setLeisureBudget] = useState<string>("300");
   const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState<string>("50");
 
@@ -74,7 +72,6 @@ export default function SettingsPage() {
         if (statsRes.ok) {
           const stats = await statsRes.json();
           setScheduledSalaryAmount(String(stats.scheduledSalaryAmount ?? 3000));
-          setSalaryPaymentDay(String(stats.salaryPaymentDay ?? 5));
           setLeisureBudget(String(stats.leisureBudget ?? 300));
           setMonthlyBudgetLimit(String(stats.monthlyBudgetLimit ?? 50));
         }
@@ -144,14 +141,12 @@ export default function SettingsPage() {
     setResetting(true);
     try {
       const defaultSalary = 3000;
-      const defaultDay = 5;
       const defaultMonthly = 50;
       const defaultLeisure = 0;
 
       // 1. Reset general stats
       const statsPayload = {
         scheduledSalaryAmount: defaultSalary,
-        salaryPaymentDay: defaultDay,
         leisureBudget: defaultLeisure,
         monthlyBudgetLimit: defaultMonthly,
       };
@@ -180,7 +175,6 @@ export default function SettingsPage() {
 
       // Update local state
       setScheduledSalaryAmount("3000");
-      setSalaryPaymentDay("5");
       setLeisureBudget("0");
       setMonthlyBudgetLimit("50");
 
@@ -216,13 +210,11 @@ export default function SettingsPage() {
     try {
       // 1. Save general stats & leisure budget (using PUT or PATCH)
       const pSalary = parseFloat(scheduledSalaryAmount.replace(",", "."));
-      const pDay = parseInt(salaryPaymentDay, 10);
       const pLeisure = parseFloat(leisureBudget.replace(",", "."));
       const pMonthly = parseFloat(monthlyBudgetLimit.replace(",", "."));
 
       const statsPayload = {
         scheduledSalaryAmount: isNaN(pSalary) ? 3000 : pSalary,
-        salaryPaymentDay: isNaN(pDay) ? 5 : pDay,
         leisureBudget: isNaN(pLeisure) ? 0 : pLeisure,
         monthlyBudgetLimit: isNaN(pMonthly) ? 50 : pMonthly,
       };
@@ -323,26 +315,24 @@ export default function SettingsPage() {
         </div>
       </header>
 
-      <div className="mb-6 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center justify-center flex-wrap gap-4">
-        <div className={styles.monthNav} role="group" aria-label="Seletor de mês">
-          <button
-            type="button"
-            className={styles.monthBtn}
-            onClick={() => setSelectedMonth((m) => shiftMonth(m, -1))}
-            aria-label="Mês anterior"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <span className={styles.monthLabel}>{formatMonthLabel(selectedMonth)}</span>
-          <button
-            type="button"
-            className={styles.monthBtn}
-            onClick={() => setSelectedMonth((m) => shiftMonth(m, 1))}
-            aria-label="Próximo mês"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
+      <div className={styles.monthNav} role="group" aria-label="Seletor de mês">
+        <button
+          type="button"
+          className={styles.monthBtn}
+          onClick={() => setSelectedMonth((m) => shiftMonth(m, -1))}
+          aria-label="Mês anterior"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <span className={styles.monthLabel}>{formatMonthLabel(selectedMonth)}</span>
+        <button
+          type="button"
+          className={styles.monthBtn}
+          onClick={() => setSelectedMonth((m) => shiftMonth(m, 1))}
+          aria-label="Próximo mês"
+        >
+          <ChevronRight size={18} />
+        </button>
       </div>
 
       <form onSubmit={handleSaveAll} className={styles.formContent}>
@@ -352,13 +342,10 @@ export default function SettingsPage() {
             <DollarSign size={20} className="text-emerald-400" />
             <span>Orçamento Geral & Cartões</span>
           </h2>
-          <p className={styles.sectionDesc}>
-            Estes valores são usados para calcular o CapyScore, HP da capivara e orçamentos do mês.
-          </p>
 
           <div className={styles.grid2}>
             {/* Salário Agendado */}
-            <div className={styles.fieldGroup}>
+            <div className={`${styles.fieldGroup} ${styles.fullWidth}`}>
               <label className={styles.label}>
                 <DollarSign size={15} /> Salário Agendado (R$)
               </label>
@@ -374,28 +361,10 @@ export default function SettingsPage() {
               <span className={styles.fieldHint}>Renda mensal base configurada.</span>
             </div>
 
-            {/* Dia do Pagamento */}
-            <div className={styles.fieldGroup}>
-              <label className={styles.label}>
-                <Calendar size={15} /> Dia do Pagamento
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="31"
-                className={styles.input}
-                value={salaryPaymentDay}
-                onChange={(e) => setSalaryPaymentDay(e.target.value)}
-                placeholder="Ex: 5"
-                required
-              />
-              <span className={styles.fieldHint}>Dia do mês em que você recebe o salário.</span>
-            </div>
-
-            {/* Teto HP Capivara */}
+            {/* Teto HP */}
             <div className={`${styles.fieldGroup} ${styles.fullWidth}`}>
               <label className={styles.label}>
-                <Percent size={15} /> Teto HP Capivara (% Limite Geral de Gastos)
+                <Percent size={15} /> Teto de Orçamento (% Limite Geral de Gastos)
               </label>
               <div className={styles.rangeGroup}>
                 <input
@@ -410,7 +379,7 @@ export default function SettingsPage() {
                 <span className={styles.rangeBadge}>{monthlyBudgetLimit}%</span>
               </div>
               <span className={styles.fieldHint}>
-                Percentual do seu salário que define o teto máximo de despesas do mês antes da Capivara perder HP.
+                Percentual do seu salário que define o teto máximo de despesas do mês.
               </span>
             </div>
           </div>
@@ -603,13 +572,10 @@ export default function SettingsPage() {
                   <span className={styles.bullet}>•</span> Salário Agendado: <strong>R$ 3.000,00</strong>
                 </li>
                 <li>
-                  <span className={styles.bullet}>•</span> Dia do Pagamento: <strong>Dia 5</strong>
-                </li>
-                <li>
                   <span className={styles.bullet}>•</span> Limite do Cartão: <strong>R$ 1.000,00</strong>
                 </li>
                 <li>
-                  <span className={styles.bullet}>•</span> Teto HP Capivara: <strong>50%</strong>
+                  <span className={styles.bullet}>•</span> Teto de Orçamento: <strong>50%</strong>
                 </li>
                 <li>
                   <span className={styles.bullet}>•</span> Orçamento Lazer: <strong>R$ 0,00</strong>

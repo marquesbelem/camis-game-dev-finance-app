@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Settings, X, DollarSign, Calendar, HeartHandshake, Percent, Trash2 } from "lucide-react";
+import { Settings, X, DollarSign, HeartHandshake, Percent, Trash2 } from "lucide-react";
 import styles from "./SettingsModal.module.css";
 
 interface SettingsModalProps {
@@ -15,7 +15,6 @@ interface SettingsModalProps {
 export default function SettingsModal({ isOpen, onClose, onSaved, onDeleteAccount }: SettingsModalProps) {
   const [budgetLimit, setBudgetLimit] = useState("");
   const [salaryAmount, setSalaryAmount] = useState("");
-  const [paymentDay, setPaymentDay] = useState("");
   const [leisureBudget, setLeisureBudget] = useState("");
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -34,7 +33,6 @@ export default function SettingsModal({ isOpen, onClose, onSaved, onDeleteAccoun
         if (data && !data.error) {
           setBudgetLimit(data.monthlyBudgetLimit?.toString() ?? "50");
           setSalaryAmount(data.scheduledSalaryAmount?.toString() ?? "3000");
-          setPaymentDay(data.salaryPaymentDay?.toString() ?? "5");
           setLeisureBudget(data.leisureBudget?.toString() ?? "0");
         }
       })
@@ -56,7 +54,6 @@ export default function SettingsModal({ isOpen, onClose, onSaved, onDeleteAccoun
         body: JSON.stringify({
           monthlyBudgetLimit: parseFloat(budgetLimit) || 50,
           scheduledSalaryAmount: parseFloat(salaryAmount) || 3000,
-          salaryPaymentDay: parseInt(paymentDay, 10) || 5,
           leisureBudget: parseFloat(leisureBudget) || 0,
         }),
       });
@@ -113,22 +110,6 @@ export default function SettingsModal({ isOpen, onClose, onSaved, onDeleteAccoun
 
           <div className={styles.field}>
             <label className={styles.label}>
-              <Calendar size={14} /> Dia do Pagamento
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="31"
-              value={paymentDay}
-              onChange={(e) => setPaymentDay(e.target.value)}
-              className={styles.input}
-              placeholder="5"
-              required
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label}>
               <HeartHandshake size={14} /> Orçamento Lazer (R$)
             </label>
             <input
@@ -144,7 +125,7 @@ export default function SettingsModal({ isOpen, onClose, onSaved, onDeleteAccoun
 
           <div className={`${styles.field} ${styles.fullWidth}`}>
             <label className={styles.label}>
-              <Percent size={14} /> Orçamento Teto HP Capivara (% Limite Geral)
+              <Percent size={14} /> Orçamento Teto (% Limite Geral)
             </label>
             <input
               type="number"

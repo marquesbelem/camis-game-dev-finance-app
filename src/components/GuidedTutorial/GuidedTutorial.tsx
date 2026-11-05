@@ -58,8 +58,8 @@ const STEPS: TutorialStep[] = [
     bullets: [
       {
         icon: "💵",
-        strong: "Salário & Data:",
-        text: "Informe seu salário e dia de recebimento para ativar a contagem regressiva de dias.",
+        strong: "Salário Base:",
+        text: "Informe seu salário mensal para calcular automaticamente seus limites.",
       },
       {
         icon: "📊",
@@ -69,7 +69,7 @@ const STEPS: TutorialStep[] = [
       {
         icon: "🎯",
         strong: "Limite de Gastos:",
-        text: "Defina o teto geral do mês para manter a saúde e HP da sua Capivara.",
+        text: "Defina o teto geral do mês para manter a saúde do seu orçamento.",
       },
     ],
     tip: "💡 Encontre em Menu (≡) > Parâmetros a qualquer momento.",
@@ -115,7 +115,7 @@ const STEPS: TutorialStep[] = [
       {
         icon: "🛡️",
         strong: "Cards de Resumo:",
-        text: "Veja saldo livre, contas quitadas, pendências e dias até o próximo salário.",
+        text: "Veja saldo livre, contas quitadas, pendências e resumo do orçamento mensal.",
       },
       {
         icon: "🎯",
@@ -373,9 +373,8 @@ export default function GuidedTutorial({ onComplete, onSkip }: Props) {
       {/* ── Info Card ── */}
       {vw > 0 && (
         <div
-          className={`${styles.card} ${visible ? styles.cardIn : styles.cardOut} ${
-            isCentered ? styles.cardCenter : styles.cardFloat
-          }`}
+          className={`${styles.card} ${visible ? styles.cardIn : styles.cardOut} ${isCentered ? styles.cardCenter : styles.cardFloat
+            }`}
           style={!isCentered ? getCardStyle() : undefined}
         >
           {/* Top Bar: Eyebrow + Close X */}
@@ -404,9 +403,8 @@ export default function GuidedTutorial({ onComplete, onSkip }: Props) {
               <button
                 key={s.id}
                 type="button"
-                className={`${styles.dot} ${
-                  i === stepIdx ? styles.dotActive : i < stepIdx ? styles.dotDone : ""
-                }`}
+                className={`${styles.dot} ${i === stepIdx ? styles.dotActive : i < stepIdx ? styles.dotDone : ""
+                  }`}
                 onClick={() => goTo(i)}
                 disabled={transitioning}
                 title={`Ir para: ${s.title}`}

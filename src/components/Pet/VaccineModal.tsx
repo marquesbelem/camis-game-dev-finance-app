@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { PetVaccine } from "@/lib/types";
 import { X, Bell, DollarSign } from "lucide-react";
 import DateInput from "@/components/ui/DateInput";
@@ -71,7 +72,7 @@ export default function VaccineModal({
     setErrorMsg("");
   }, [editingVaccine, isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -142,7 +143,7 @@ export default function VaccineModal({
     }
   }
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
@@ -334,6 +335,7 @@ export default function VaccineModal({
           </footer>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

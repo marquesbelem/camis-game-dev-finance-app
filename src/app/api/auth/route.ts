@@ -67,8 +67,6 @@ export async function POST(request: NextRequest) {
             level: 1,
             xp: 0,
             scheduledSalaryAmount: 3000.0,
-            salaryPaymentDay: 5,
-            lastSalaryValidationMonth: null,
           },
         });
 

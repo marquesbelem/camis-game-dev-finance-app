@@ -35,7 +35,6 @@ interface UserStats {
   level: number;
   xp: number;
   scheduledSalaryAmount: number;
-  salaryPaymentDay: number;
   leisureBudget: number;
 }
 
@@ -73,7 +72,6 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
   // Settings form state
   const [budgetLimit, setBudgetLimit] = useState("");
   const [salaryAmount, setSalaryAmount] = useState("");
-  const [paymentDay, setPaymentDay] = useState("");
   const [leisureBudget, setLeisureBudget] = useState("");
 
   const achievementsRef = useRef<Achievement[]>([]);
@@ -93,7 +91,6 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
     if (statsData && !statsData.error) {
       setBudgetLimit(statsData.monthlyBudgetLimit?.toString() ?? "50");
       setSalaryAmount(statsData.scheduledSalaryAmount?.toString() ?? "3000");
-      setPaymentDay(statsData.salaryPaymentDay?.toString() ?? "5");
       setLeisureBudget(statsData.leisureBudget?.toString() ?? "0");
     }
 
@@ -124,7 +121,6 @@ export default function AchievementsPanel({ selectedMonth, onAchievementUnlocked
         body: JSON.stringify({
           monthlyBudgetLimit: parseFloat(budgetLimit) || 50,
           scheduledSalaryAmount: parseFloat(salaryAmount) || 3000,
-          salaryPaymentDay: parseInt(paymentDay) || 5,
           leisureBudget: parseFloat(leisureBudget) || 0,
         }),
       });

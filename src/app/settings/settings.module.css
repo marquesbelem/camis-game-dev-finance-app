@@ -14,7 +14,7 @@
   justify-content: center;
   min-height: 50vh;
   gap: 16px;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 0.95rem;
 }
 
@@ -51,7 +51,7 @@
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(122, 75, 232, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);
   border: 1px solid rgba(122, 75, 232, 0.35);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -68,7 +68,7 @@
 
 .pageSubtitle {
   font-size: 0.88rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   margin: 2px 0 0 0;
 }
 
@@ -105,14 +105,14 @@
 }
 
 .cardSection {
-  background: var(--color-bg-surface, #1e293b);
-  border: 1px solid var(--overlay-soft);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 20px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .sectionHeaderFlex {
@@ -133,7 +133,7 @@
 
 .sectionDesc {
   font-size: 0.84rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   margin: -8px 0 0 0;
 }
 
@@ -162,20 +162,20 @@
 .label {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .input {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--overlay-strong);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 12px 16px;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-text-primary);
   outline: none;
   transition: all 0.2s ease;
 }
@@ -187,7 +187,7 @@
 
 .fieldHint {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--color-text-tertiary);
 }
 
 .rangeGroup {
@@ -206,7 +206,7 @@
 .rangeBadge {
   background: rgba(122, 75, 232, 0.15);
   border: 1px solid rgba(122, 75, 232, 0.3);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
   font-size: 0.88rem;
   font-weight: 800;
   padding: 4px 12px;
@@ -243,7 +243,7 @@
 .allocationBadge {
   background: rgba(122, 75, 232, 0.15);
   border: 1px solid rgba(122, 75, 232, 0.35);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
   font-size: 0.82rem;
   font-weight: 800;
   padding: 4px 12px;
@@ -280,7 +280,7 @@
   align-items: center;
   justify-content: space-between;
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
 }
 
 .allocatedAmountText {
@@ -296,7 +296,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(15, 23, 42, 0.95);
+  background: var(--panel-strong);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(239, 68, 68, 0.4);
   color: #f87171;
@@ -323,8 +323,8 @@
 }
 
 .categoryCard {
-  background: rgba(15, 23, 42, 0.4);
-  border: 1px solid var(--overlay-soft);
+  background: var(--panel-soft);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 16px;
   display: flex;
@@ -334,8 +334,8 @@
 }
 
 .categoryCard:hover {
-  background: rgba(15, 23, 42, 0.7);
-  border-color: var(--overlay-strong);
+  background: var(--panel-strong);
+  border-color: var(--color-border-strong);
 }
 
 .categoryHeader {
@@ -371,7 +371,7 @@
 .limitBadgeActive {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #B7A0FF;
+  color: var(--color-brand-text);
   background: rgba(122, 75, 232, 0.15);
   border: 1px solid rgba(122, 75, 232, 0.35);
   padding: 2px 8px;
@@ -383,7 +383,7 @@
 
 .limitBadgeNone {
   font-size: 0.72rem;
-  color: #64748b;
+  color: var(--color-text-tertiary);
   background: var(--overlay-soft);
   padding: 2px 8px;
   border-radius: 8px;
@@ -397,7 +397,7 @@
 
 .catInputLabel {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-weight: 700;
 }
 
@@ -409,20 +409,20 @@
 
 .categoryInput {
   width: 100%;
-  background: rgba(2, 6, 23, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 8px 30px 8px 12px;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-text-primary);
   outline: none;
   transition: all 0.2s ease;
 }
 
 .categoryInput:focus {
-  border-color: #B7A0FF;
-  box-shadow: 0 0 0 2px rgba(192, 132, 252, 0.2);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 2px var(--color-brand-glow);
 }
 
 .pctSymbol {
@@ -430,7 +430,7 @@
   right: 12px;
   font-size: 0.85rem;
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   pointer-events: none;
 }
 
@@ -446,18 +446,18 @@
 
 .calculatedLabel {
   font-size: 0.72rem;
-  color: #64748b;
+  color: var(--color-text-tertiary);
 }
 
 .calculatedValueActive {
   font-size: 0.82rem;
   font-weight: 800;
-  color: #34d399;
+  color: var(--color-success);
 }
 
 .calculatedValueNone {
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--color-text-tertiary);
   font-style: italic;
 }
 
@@ -513,12 +513,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  align-self: center;
   gap: 8px;
-  background: var(--color-bg-surface, #1e293b);
-  border: 1px solid var(--overlay-soft);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 9999px;
   padding: 4px 16px;
   min-width: 250px;
+  box-shadow: var(--shadow-sm);
 }
 
 .monthBtn {
@@ -530,13 +532,13 @@
   border-radius: 9999px;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
 
 .monthBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--overlay-soft);
   color: var(--color-text-primary);
 }
 
@@ -588,7 +590,7 @@
   gap: 6px;
   background: rgba(148, 163, 184, 0.08);
   border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   border-radius: 10px;
   padding: 6px 14px;
   font-size: 0.8rem;
@@ -684,7 +686,7 @@
 
 .modalSubtitle {
   font-size: 0.84rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   margin: 4px 0 0;
   line-height: 1.4;
 }
@@ -695,7 +697,7 @@
   right: 20px;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   cursor: pointer;
   border-radius: 8px;
   padding: 6px;
@@ -712,7 +714,7 @@
 
 .modalBody {
   padding: 20px 24px;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
 
@@ -725,7 +727,7 @@
 .resetList {
   margin: 0;
   padding: 12px 16px;
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--panel-soft);
   border: 1px solid var(--overlay-soft);
   border-radius: 14px;
   list-style: none;
@@ -733,7 +735,7 @@
   flex-direction: column;
   gap: 8px;
   font-size: 0.85rem;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
 }
 
 .bullet {
@@ -752,14 +754,14 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
-  background: rgba(15, 23, 42, 0.45);
+  background: var(--panel-soft);
   border-top: 1px solid var(--overlay-soft);
 }
 
 .modalCancelBtn {
   background: transparent;
   border: 1px solid var(--overlay-strong);
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   border-radius: 12px;
   padding: 10px 18px;
   font-size: 0.88rem;

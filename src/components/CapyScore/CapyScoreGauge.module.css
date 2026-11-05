@@ -24,7 +24,7 @@
 .title {
   font-size: 1rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-text-primary);
   margin: 0;
 }
 
@@ -80,13 +80,13 @@
 .scoreNum {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--color-text-primary);
   line-height: 1;
 }
 
 .scoreMax {
   font-size: 0.65rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
 }
 
 .breakdown {
@@ -104,7 +104,7 @@
 }
 
 .breakdownLabel {
-  color: #94a3b8;
+  color: var(--color-text-secondary);
 }
 
 .breakdownPts {

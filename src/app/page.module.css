@@ -127,13 +127,13 @@
 .mascotTitle {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--color-text-primary);
   margin: 0;
 }
 
 .mascotSubtitle {
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -226,7 +226,7 @@
   padding: var(--space-3) var(--space-4);
   background: var(--overlay-soft);
   color: var(--color-text-primary, #fff);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg, 12px);
   font-size: var(--text-sm, 0.85rem);
   font-weight: var(--font-semibold, 700);
@@ -239,7 +239,7 @@
 .settingsBtn:hover {
   background: rgba(122, 75, 232, 0.15);
   border-color: rgba(122, 75, 232, 0.4);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
 }
 
 .addBtn {
@@ -488,15 +488,17 @@
   }
 
   .monthNav {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-1);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  padding: 4px;
-  box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    align-self: center;
+    gap: var(--space-1);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    padding: 4px;
+    box-shadow: var(--shadow-sm);
+  }
 }
 
 /* ── Very small screens (320px – 374px) ─────────────────────────────────────── */
@@ -572,24 +574,25 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  padding: var(--space-4);
+  z-index: 1000;
   animation: fadeIn var(--transition-base) both;
 }
 
 .modalContent {
   background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
   padding: var(--space-6);
   width: 100%;
-  max-width: 400px;
-  box-shadow: var(--shadow-2xl);
-  animation: slideUp var(--transition-base) both;
+  max-width: 420px;
+  box-shadow: var(--shadow-xl);
+  animation: fadeIn var(--transition-base) both;
 }
 
 .modalTitle {
@@ -736,7 +739,7 @@
 
 .closeBtn {
   background: var(--overlay-soft);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
   color: var(--color-text-secondary, #94a3b8);
   border-radius: 8px;
   width: 32px;

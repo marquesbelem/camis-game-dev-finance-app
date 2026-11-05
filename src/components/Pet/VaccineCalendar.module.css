@@ -178,7 +178,7 @@
 
 .typeBadgeVermifugo {
   background: rgba(122, 75, 232, 0.18);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
   border: 1px solid rgba(122, 75, 232, 0.3);
 }
 

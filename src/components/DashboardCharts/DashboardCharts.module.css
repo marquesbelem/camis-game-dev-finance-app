@@ -40,7 +40,7 @@
 .panelBadge {
   background: rgba(122, 75, 232, 0.15);
   border: 1px solid rgba(122, 75, 232, 0.3);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
   font-size: 0.7rem;
   font-weight: 700;
   padding: 2px 8px;
@@ -66,7 +66,7 @@
   height: 30px;
   border-radius: 8px;
   background: var(--overlay-soft);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
   color: var(--color-text-tertiary, #475569);
   display: flex;
   align-items: center;
@@ -79,7 +79,7 @@
 .collapseBtn:hover {
   background: rgba(122, 75, 232, 0.15);
   border-color: rgba(122, 75, 232, 0.35);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
 }
 
 .collapseIcon {

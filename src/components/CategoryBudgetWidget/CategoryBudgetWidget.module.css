@@ -57,7 +57,7 @@
 .title {
   font-size: 0.82rem;
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
@@ -116,8 +116,8 @@
 
 .collapseBtn {
   background: var(--overlay-soft);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   border-radius: 10px;
   width: 34px;
   height: 34px;
@@ -181,7 +181,7 @@
 }
 
 .percentText {
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-weight: 700;
 }
 

@@ -55,7 +55,7 @@
   align-items: center;
   gap: 6px;
   background: var(--overlay-soft);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
   border-radius: 20px;
   padding: 5px 10px 5px 6px;
 }
@@ -108,7 +108,7 @@
   height: 40px;
   border-radius: 10px;
   background: var(--overlay-soft);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
   color: var(--color-text-primary, #f8fafc);
   display: flex;
   align-items: center;
@@ -121,7 +121,7 @@
 .burgerBtn:hover {
   background: rgba(122, 75, 232, 0.15);
   border-color: rgba(122, 75, 232, 0.4);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
 }
 
 /* ── Slide-in Drawer ──────────────────────────────────────────────────────── */
@@ -194,7 +194,7 @@
   height: 32px;
   border-radius: 8px;
   background: var(--overlay-soft);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
   color: var(--color-text-secondary, #94a3b8);
   display: flex;
   align-items: center;
@@ -298,7 +298,7 @@
 
 .navGroupHeaderBtn:hover {
   background: rgba(122, 75, 232, 0.1);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
 }
 
 .navGroupHeaderLeft {
@@ -340,7 +340,7 @@
 
 .drawerLink:hover .drawerLinkIcon {
   background: rgba(122, 75, 232, 0.2);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
 }
 
 .drawerFooter {
@@ -390,7 +390,7 @@
 .drawerTutorialBtn {
   width: 100%;
   background: rgba(122, 75, 232, 0.1);
-  color: #B7A0FF;
+  color: var(--color-brand-text);
   border: 1px solid rgba(122, 75, 232, 0.25);
   border-radius: 10px;
   padding: 10px;

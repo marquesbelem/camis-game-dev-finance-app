@@ -37,7 +37,7 @@
   width: min(460px, calc(100vw - 28px));
   max-height: calc(100dvh - 36px);
   overflow-y: auto;
-  background: linear-gradient(165deg, rgba(16, 20, 38, 0.96) 0%, rgba(24, 29, 56, 0.98) 100%);
+  background: var(--color-bg-surface);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(122, 75, 232, 0.38);
@@ -153,7 +153,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #B7A0FF;
+  color: var(--color-brand-text);
   background: rgba(122, 75, 232, 0.16);
   border: 1px solid rgba(122, 75, 232, 0.32);
   padding: 2.5px 8px;
@@ -163,7 +163,7 @@
 .stepCounter {
   font-size: 0.74rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
 }
 
 .closeBtn {
@@ -262,7 +262,7 @@
 
 .cardSubtitle {
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   line-height: 1.35;
   margin: 0;
 }
@@ -293,7 +293,7 @@
 .bulletText {
   font-size: 0.83rem;
   line-height: 1.45;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
 }
 
 .bulletStrong {
@@ -302,7 +302,7 @@
 }
 
 .bulletDesc {
-  color: #94a3b8;
+  color: var(--color-text-secondary);
 }
 
 /* ── Optional Tip Box ────────────────────────────────────────────────────── */
@@ -312,7 +312,7 @@
   border-radius: 10px;
   padding: 7px 11px;
   font-size: 0.77rem;
-  color: #d8b4fe;
+  color: var(--color-brand-text);
   font-weight: 500;
   line-height: 1.4;
 }
@@ -338,7 +338,7 @@
 }
 
 .skipBtn:hover {
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
 }
 
 .navButtons {
@@ -350,7 +350,7 @@
 .backBtn {
   background: var(--overlay-soft);
   border: 1px solid var(--overlay-strong);
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   border-radius: 12px;
   padding: 8px 12px;
   font-size: 0.83rem;

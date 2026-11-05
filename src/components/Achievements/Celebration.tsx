@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Trophy, X, Sparkles, Award, Wallet } from "lucide-react";
+import { Trophy, X, Sparkles, Award } from "lucide-react";
 import { playSound } from "@/lib/sounds";
 import styles from "./Celebration.module.css";
 
@@ -16,16 +16,12 @@ export interface Toast {
 interface Props {
   toasts: Toast[];
   onDismiss: (id: string) => void;
-  salaryToCelebrate?: { amount: number; month: string } | null;
-  onDismissSalary?: () => void;
 }
 
-// ── Toast Host & Salary Modal ──────────────────────────────────────────────────
+// ── Toast Host ───────────────────────────────────────────────────────────────
 export default function Celebration({
   toasts,
   onDismiss,
-  salaryToCelebrate,
-  onDismissSalary,
 }: Props) {
   const [mounted, setMounted] = useState(false);
 
@@ -39,70 +35,11 @@ export default function Celebration({
   if (!portalRoot) return null;
 
   return createPortal(
-    <>
-      {/* Toasts list */}
-      <div className={styles.host} aria-live="assertive" aria-atomic="false">
-        {toasts.map((toast) => (
-          <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
-        ))}
-      </div>
-
-      {/* Salary Celebration Modal */}
-      {salaryToCelebrate && (
-        <div className={styles.salaryOverlay} role="dialog" aria-modal="true">
-          {/* Confetti Rain Background */}
-          <div className={styles.confettiRain}>
-            {Array.from({ length: 40 }).map((_, i) => (
-              <span
-                key={i}
-                className={styles.rainParticle}
-                style={
-                  {
-                    "--delay": `${Math.random() * 5}s`,
-                    "--left": `${Math.random() * 100}%`,
-                    "--color": ["#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899"][
-                      Math.floor(Math.random() * 5)
-                    ],
-                  } as React.CSSProperties
-                }
-              />
-            ))}
-          </div>
-
-          <div className={styles.salaryModal}>
-            <div className={styles.salaryIconWrap}>
-              <Wallet className={styles.salaryIcon} size={48} />
-              <Sparkles className={styles.sparkleDecoration} size={24} />
-            </div>
-
-            <h2 className={styles.salaryTitle}>💰 Salário Validado!</h2>
-            <p className={styles.salaryMessage}>
-              Seu salário fixo agendado de{" "}
-              <strong>
-                {salaryToCelebrate.amount.toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                })}
-              </strong>{" "}
-              foi recebido e validado com sucesso para o mês de{" "}
-              <strong>{salaryToCelebrate.month}</strong>!
-            </p>
-            <p className={styles.salarySubMessage}>
-              Suas projeções de margem de lucro foram confirmadas retroativamente a 1º deste mês.
-              Continue mantendo seus gastos sob controle!
-            </p>
-
-            <button
-              onClick={onDismissSalary}
-              className={styles.salaryClaimBtn}
-              id="confirm-salary-celebration-btn"
-            >
-              Excelente! Continuar Minha Jornada
-            </button>
-          </div>
-        </div>
-      )}
-    </>,
+    <div className={styles.host} aria-live="assertive" aria-atomic="false">
+      {toasts.map((toast) => (
+        <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
+      ))}
+    </div>,
     portalRoot
   );
 }

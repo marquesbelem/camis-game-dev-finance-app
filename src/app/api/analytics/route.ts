@@ -33,6 +33,13 @@ export async function GET(request: NextRequest) {
     const queryYear = parseInt(searchParams.get("year") || String(currentYear), 10);
     const targetYear = isNaN(queryYear) ? currentYear : queryYear;
 
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { createdAt: true },
+    });
+    const regDate = user?.createdAt ? new Date(user.createdAt) : new Date();
+    const regMonthStr = `${regDate.getFullYear()}-${String(regDate.getMonth() + 1).padStart(2, "0")}`;
+
     // 1. Fetch user stats (fallback scheduled salary)
     let stats = await prisma.userStats.findUnique({
       where: { id: userId },
@@ -47,19 +54,33 @@ export async function GET(request: NextRequest) {
           level: 1,
           xp: 0,
           scheduledSalaryAmount: 3000.0,
-          salaryPaymentDay: 5,
         },
       });
     }
 
-    const defaultSalary = stats.scheduledSalaryAmount > 0 ? stats.scheduledSalaryAmount : 3000.0;
+    const defaultSalary = typeof stats.scheduledSalaryAmount === "number" ? stats.scheduledSalaryAmount : 3000.0;
 
-    // 2. Auto-generate recurring slips for this year if any
-    const recurringSlips = await prisma.paymentSlip.findMany({
+    // 2. Auto-generate recurring slips for this year if any (only from registration/creation month onwards)
+    const allRecurringSlips = await prisma.paymentSlip.findMany({
       where: { userId, isRecurring: true },
       orderBy: { dueDate: "desc" },
-      distinct: ["title", "categoryId"],
     });
+
+    const latestRecurringMap = new Map<string, typeof allRecurringSlips[0]>();
+    const earliestRecurringMonthMap = new Map<string, string>();
+    for (const slip of allRecurringSlips) {
+      const key = `${slip.title.trim().toLowerCase()}-${slip.categoryId}`;
+      if (!latestRecurringMap.has(key)) {
+        latestRecurringMap.set(key, slip);
+      }
+      const createdD = new Date(slip.createdAt);
+      const createdMonthStr = `${createdD.getFullYear()}-${String(createdD.getMonth() + 1).padStart(2, "0")}`;
+      const prevEarliest = earliestRecurringMonthMap.get(key);
+      if (!prevEarliest || createdMonthStr < prevEarliest) {
+        earliestRecurringMonthMap.set(key, createdMonthStr);
+      }
+    }
+    const recurringSlips = Array.from(latestRecurringMap.values());
 
     if (recurringSlips.length > 0) {
       const yearStart = new Date(targetYear, 0, 1);
@@ -86,10 +107,17 @@ export async function GET(request: NextRequest) {
       );
 
       const slipsToCreate = [];
-      // Generate up to end of year or current month if future
       for (let mon = 1; mon <= 12; mon++) {
+        const monthStr = `${targetYear}-${String(mon).padStart(2, "0")}`;
+        if (monthStr < regMonthStr) continue;
+
         for (const rs of recurringSlips) {
-          const key = `${mon}:${rs.title.trim().toLowerCase()}-${rs.categoryId}`;
+          const seriesKey = `${rs.title.trim().toLowerCase()}-${rs.categoryId}`;
+          const originMonth = earliestRecurringMonthMap.get(seriesKey) ?? regMonthStr;
+          const minValidMonth = originMonth > regMonthStr ? originMonth : regMonthStr;
+          if (monthStr < minValidMonth) continue;
+
+          const key = `${mon}:${seriesKey}`;
           if (skipSet.has(key) || existingMap.has(key)) continue;
 
           const day = rs.recurringDay ?? rs.dueDate.getUTCDate();
@@ -163,8 +191,9 @@ export async function GET(request: NextRequest) {
 
     for (let m = 1; m <= 12; m++) {
       const monthStr = `${targetYear}-${String(m).padStart(2, "0")}`;
+      const isBeforeRegistration = monthStr < regMonthStr;
       const mBudget = budgetMap.get(monthStr);
-      const effectiveSalary = mBudget?.scheduledSalaryAmount ?? defaultSalary;
+      const effectiveSalary = isBeforeRegistration ? 0 : (mBudget?.scheduledSalaryAmount ?? defaultSalary);
 
       // Extra incomes for month
       const monthExtras = extraIncomes.filter(ei => ei.month === monthStr);
@@ -173,6 +202,7 @@ export async function GET(request: NextRequest) {
 
       // Expenses for month (using UTC to match stored date exactly)
       const monthSlips = slips.filter(slip => {
+        if (isBeforeRegistration && slip.isRecurring) return false;
         const d = new Date(slip.dueDate);
         return d.getUTCFullYear() === targetYear && d.getUTCMonth() + 1 === m;
       });
@@ -254,7 +284,7 @@ export async function GET(request: NextRequest) {
     // Gather all distinct years from PaymentSlip & ExtraIncome
     const allSlipsDates = await prisma.paymentSlip.findMany({
       where: { userId },
-      select: { dueDate: true, amount: true, status: true },
+      select: { dueDate: true, amount: true, status: true, isRecurring: true },
     });
 
     const allExtras = await prisma.extraIncome.findMany({
@@ -273,7 +303,10 @@ export async function GET(request: NextRequest) {
     yearsSet.add(targetYear);
 
     for (const s of allSlipsDates) {
-      yearsSet.add(new Date(s.dueDate).getFullYear());
+      const d = new Date(s.dueDate);
+      const mStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+      if (mStr < regMonthStr && s.isRecurring) continue;
+      yearsSet.add(d.getUTCFullYear());
     }
     for (const e of allExtras) {
       const y = parseInt(e.month.split("-")[0], 10);
@@ -283,15 +316,22 @@ export async function GET(request: NextRequest) {
     const sortedYears = Array.from(yearsSet).sort((a, b) => a - b);
 
     const multiYearData = sortedYears.map(yr => {
-      // Slips in yr
-      const yrSlips = allSlipsDates.filter(s => new Date(s.dueDate).getFullYear() === yr);
+      // Slips in yr (ignore recurring slips before registration month)
+      const yrSlips = allSlipsDates.filter(s => {
+        const d = new Date(s.dueDate);
+        if (d.getUTCFullYear() !== yr) return false;
+        const mStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+        if (mStr < regMonthStr && s.isRecurring) return false;
+        return true;
+      });
       const yrExpenses = yrSlips.reduce((sum, s) => sum + s.amount, 0);
       const yrPaid = yrSlips.filter(s => s.status === "PAGO").reduce((sum, s) => sum + s.amount, 0);
 
-      // Income in yr (12 months salary + extras)
+      // Income in yr (12 months salary + extras, only from registration month onwards)
       let yrIncome = 0;
       for (let m = 1; m <= 12; m++) {
         const mKey = `${yr}-${String(m).padStart(2, "0")}`;
+        if (mKey < regMonthStr) continue;
         const sAmount = allBudgetSalaryMap.get(mKey) ?? defaultSalary;
         yrIncome += sAmount;
       }

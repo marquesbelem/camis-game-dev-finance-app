@@ -11,7 +11,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(15, 23, 42, 0.4) 100%);
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, var(--panel-soft) 100%);
   border-radius: 24px;
   padding: 12px 0;
   margin-bottom: -10px;
@@ -52,7 +52,7 @@
 .panelTitle {
   font-size: 1.15rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--color-text-primary);
   margin: 0;
 }
 
@@ -81,7 +81,7 @@
   height: 34px;
   border-radius: 12px;
   background: var(--overlay-soft);
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   border: 1px solid var(--overlay-soft);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -110,7 +110,7 @@
 .filterBtn {
   background: var(--overlay-soft);
   border: 1px solid var(--overlay-soft);
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 0.78rem;
   font-weight: 700;
   padding: 6px 14px;
@@ -129,7 +129,7 @@
 
 /* Trail Section & Visual Skill Tree Node Chain */
 .trailSection {
-  background: rgba(30, 41, 59, 0.6);
+  background: var(--panel-soft);
   border: 1px solid var(--overlay-soft);
   border-radius: 20px;
   padding: 16px 20px;
@@ -164,7 +164,7 @@
 
 /* Individual Achievement Card Node */
 .achCard {
-  background: rgba(15, 23, 42, 0.7);
+  background: var(--panel-strong);
   border: 1px solid var(--overlay-soft);
   border-radius: 16px;
   padding: 14px 16px;
@@ -176,14 +176,14 @@
 }
 
 .achUnlocked {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, var(--panel-strong) 100%);
   border-color: rgba(16, 185, 129, 0.4);
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.12);
 }
 
 .achChainLocked {
   opacity: 0.55;
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--panel-soft);
   filter: grayscale(0.4);
 }
 
@@ -198,11 +198,11 @@
   height: 38px;
   border-radius: 12px;
   background: var(--overlay-soft);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   flex-shrink: 0;
 }
 
@@ -230,7 +230,7 @@
 .achTitle {
   font-size: 0.9rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--color-text-primary);
 }
 
 .lvlBadge {
@@ -239,12 +239,12 @@
   padding: 2px 6px;
   border-radius: 8px;
   background: var(--overlay-soft);
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
 }
 
 .achDesc {
   font-size: 0.76rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   line-height: 1.35;
 }
 
@@ -268,7 +268,7 @@
 
 .chipCoin {
   background: rgba(250, 204, 21, 0.15);
-  color: #fde047;
+  color: var(--color-warning);
   border: 1px solid rgba(250, 204, 21, 0.3);
 }
 
@@ -329,7 +329,7 @@
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--panel-strong);
   border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: 16px;
 }
@@ -350,17 +350,17 @@
 .inlineLabel {
   font-size: 0.68rem;
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
 }
 
 .inlineInput {
   background: var(--overlay-soft);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 6px 10px;
   font-size: 0.85rem;
-  color: #fff;
+  color: var(--color-text-primary);
   width: 100%;
 }
 

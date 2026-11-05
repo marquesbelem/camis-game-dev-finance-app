@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Pet } from "@/lib/types";
 import { X } from "lucide-react";
 import DateInput from "@/components/ui/DateInput";
@@ -55,7 +56,7 @@ export default function PetModal({
     setErrorMsg("");
   }, [editingPet, isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -101,7 +102,7 @@ export default function PetModal({
     }
   }
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
@@ -265,6 +266,7 @@ export default function PetModal({
           </footer>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
