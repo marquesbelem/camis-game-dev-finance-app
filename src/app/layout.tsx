@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Analytics } from "@vercel/analytics/next";
 import AuthProvider from "@/components/AuthProvider/AuthProvider";
 import styles from "./layout.module.css";
 import "./globals.css";
@@ -67,8 +68,8 @@ export default function RootLayout({
           {/* Portal anchor for modals and toasts */}
           <div id="portal-root" />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
 }
-
